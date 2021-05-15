@@ -15,26 +15,27 @@ Unique ID names are preferred especially when labelling the graph
 This needs to be in the form of either a **.csv** or **.txt** file
 
 ## uploading the file
-![](image_1.png)
+![](IMAGES/1.uploading.png)
 
 ## types of graphs
 There are **three** different types of graphs that differ on how the graph is labeled. 
-![range of graph types](graph_types.png)
+![range of graph types](MAGES/2.types.png)
 * **Unlabeled graph**
   - the table will render the first 20 points, but can include the total range of values. 
   
-![](Nolab.png)
+![](IMAGES/2.Nolabs)
   
 * **range of genes** 
   - default list the top 20
   - This looks at both up and down directions
 
-![](lab20.png)
+![](IMAGES/2.top20.png)
   
 * **own list** 
   - will label the first 20
   - colors might be different than expect if only labeling one direction of transcripts
-  
+  ![](IMAGES/2.Uploading.png)
+  ![](IMAGES/2.Selected.png)
 ## Types of font
 There are three font types available for the plot
 

@@ -660,8 +660,8 @@ server <- function(input, output) {
       names(SYMBOL_list) <- "list"
       top$GeneCards <- paste("<a href='","https://www.genecards.org/cgi-bin/carddisp.pl?gene=",top$ID,"'>",top$ID,"</a>", sep="")
       top$Protein_atlas <- paste("<a href='","https://www.proteinatlas.org/search/",top$ID,"'>",top$ID,"</a>", sep="")
-      top$UniProt_16_species <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",SYMBOL_list$list,"'>",SYMBOL_list$list,"</a>", sep="")
-      top$UniProt_other_species <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",top$ID,"'>",top$ID,"</a>", sep="")
+      top$UniProt_species <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",SYMBOL_list$list,"'>",SYMBOL_list$list,"</a>", sep="")
+      top$UniProt_other <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",top$ID,"'>",top$ID,"</a>", sep="")
       df <- top
       df$Pvalue <- signif(df$Pvalue,3)
       df$logFC <- signif(df$logFC,3)
@@ -687,8 +687,8 @@ server <- function(input, output) {
       top$GeneCards <- paste("<a href='","https://www.genecards.org/cgi-bin/carddisp.pl?gene=",top$ID,"'>",top$ID,"</a>", sep="")
       top$Protein_atlas <- paste("<a href='","https://www.proteinatlas.org/search/",top$ID,"'>",top$ID,"</a>", sep="")
       
-      top$UniProt_16_species <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",SYMBOL_list$list,"'>",SYMBOL_list$list,"</a>", sep="")
-      top$UniProt_other_species <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",top$ID,"'>",top$ID,"</a>", sep="")
+      top$UniProt_species <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",SYMBOL_list$list,"'>",SYMBOL_list$list,"</a>", sep="")
+      top$UniProt_other <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",top$ID,"'>",top$ID,"</a>", sep="")
       df <- top
       df$Pvalue <- signif(df$Pvalue,3)
       df$logFC <- signif(df$logFC,3)

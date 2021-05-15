@@ -34,17 +34,20 @@ There are **three** different types of graphs that differ on how the graph is la
 * **own list** 
   - will label the first 20
   - colors might be different than expect if only labeling one direction of transcripts
+  
   ![](IMAGES/2.Uploading.png)
   ![](IMAGES/2.Selected.png)
 ## Types of font
 There are three font types available for the plot
 
 This includes **Arial (Default)**, Times New Roman and Courier
+
 ![](IMAGES/3.fonts.png)
 
 ## Cut-offs
 P-value and log2 fold change can be altered in the plot. These are reactive numerical inputs. They will accept scientific formats i.e. 1e-5. 
 These are represented by the horizontal and vertical dotted lines on the graph (Default=grey)
+
 ![](IMAGES/3.cut-offs.png)
 
 ## Axis paramaters
@@ -119,10 +122,30 @@ The title of the graph can be changed for export purposes
 ## explorting the graph
 the user defined parameters will be the same as the exported graph. 
 There are two download options. 
-- PDF 
+- PDF (default: height=8 and width=10)
 - png (default assumes legend is present at the 1200 by 1600; recommended to change to 1200 by 1200)
-  - if the user wishes to increase the resolution, all point parameters will be affected. 
+- if the user wishes to increase the resolution, all point parameters will be affected. 
 
 ![](IMAGES/4.explorting.png)
 
+## Table parameters
+Based on the graph select will etierh show:  no labels (all), range (1 to 20) and selected (own list)
+The table links to several databases:
+- GeneCards 
+- The human protein atlas (atlas)
+- UniProt 16 species (UniProt_species)
+- UniProt other species (UniProt_other)
 
+![](IMAGES/5.Table_links.png)
+
+## summary table and explorting filtered list
+
+The summary table contains the total number of differentially expresssed genes (no labels and range) or the number of significant and non-significant ID's in the list
+
+The files can be exported as either all significant labels for:
+- positive
+- negative
+- both directions
+- own list
+
+![](IMAGES/5.summary.table.png)

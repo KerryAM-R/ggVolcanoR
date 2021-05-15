@@ -1,9 +1,3 @@
----
-title: "ggVolcanoR READ ME file" 
-author: "Kerry A Mullan" 
-output: html_document 
----
-
 # ggVolcanoR
 
 This is the README.md file containing information on the features of the application

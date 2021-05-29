@@ -1,3 +1,7 @@
+
+# Allow files up to 10 Mb
+options(shiny.maxRequestSize=10*1024^2)
+
 ## volcano plots
 require("tidyverse")
 require("ggplot2") #Best plots
@@ -38,21 +42,20 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                                                                     
                                                                     fileInput('file2', 'Choose selected gene file (.csv)',
                                                                               accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                                                    
+                                                                    p("select font for graph"),
                                                                     selectInput('font',
                                                                                 'font type',
                                                                                 choices = fonts, 
                                                                                 selected = fonts[1]),
-                                                                    #y-axis changes
-                                                                    selectInput(inputId = "y", 
-                                                                                label = "Indicator to display on Y-axis", 
-                                                                                choices = y_options, 
-                                                                                selected = "-Log10(p-value)"),
                                                                     p("Cut-offs"),
                                                                     numericInput("Pvalue", "p-value cut-off", value=0.05),
                                                                     numericInput("FC", "absolute log2 fold change", value=0.58),
                                                                     textInput(inputId = "sig_lines", label = "significance lines",value = "grey"),
                                                                     p("Axis parameters"),
+                                                                    selectInput(inputId = "y", 
+                                                                                label = "Y-axis label", 
+                                                                                choices = y_options, 
+                                                                                selected = "-Log10(p-value)"),
                                                                     numericInput("yhigh","y axis upper range",value = 100),
                                                                     numericInput("ybreaks","y axis breaks",value = 10),
                                                                     numericInput("xlow","x axis lower range",value = -10),
@@ -60,8 +63,12 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                                                                     numericInput("xbreaks","x axis upper breaks",value = 1),
                                                                     sliderInput("axis", "axis text size", min=0, max=100, value=30, step=0.1),
                                                                     sliderInput("axis_text", "axis numeric text size", min=0, max=100, value=30, step=0.1),
-                                                                    p("point size parameters"),
+                                                                    p("point size and transparancy"),
                                                                     numericInput("size", "point size", value=3),
+                                                                    sliderInput("alpha1", "transparency of top ID", min=0.01, max=1, value=1,step = 0.01),
+                                                                    sliderInput("alpha2", "transparency of sig ID", min=0.01, max=1, value=0.5,step = 0.01),
+                                                                    sliderInput("alpha3", "transparency of non-sig ID", min=0.01, max=1, value=0.25,step = 0.01),
+                                                                    p("Colour of points"),
                                                                     textInput(inputId = "up", label = "up-regulated",value = "red"),
                                                                     textInput(inputId = "down",  label = "down-regulated", value = "steelblue1"),
                                                                     textInput(inputId = "NS", label = "Non-significant",value = "grey"),
@@ -75,10 +82,7 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                                                                                 label = "select label 2", 
                                                                                 choices = lab, 
                                                                                 selected = "list_up"),
-                                                                    sliderInput("alpha1", "transparency of top ID", min=0.01, max=1, value=1,step = 0.01),
-                                                                    sliderInput("alpha2", "transparency of sig ID", min=0.01, max=1, value=0.5,step = 0.01),
-                                                                    sliderInput("alpha3", "transparency of non-sig ID", min=0.01, max=1, value=0.25,step = 0.01),
-                                                                    p("Labels parameters"),
+                                                                    p("Label parameters"),
                                                                     numericInput("min", "lable range (min)", value=1),
                                                                     numericInput("max", "lable range (max)", value=20),
                                                                     sliderInput("dist", "distance of label", min=0, max=5, value=1,step = 0.1),
@@ -105,7 +109,7 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                                        tabPanel("Table with links", 
                                                 p("Table rendering parameters"),
                                                 popify(actionButton("btn2", "Uniprot search species"), "List of 16 searchable species: https://www.uniprot.org/help/taxonomy", 
-                                                       placement="bottom", trigger = "click"),
+                                                       placement="bottom", trigger = "hover"),
                                                 selectInput("species", label = "",species,selected = "HUMAN"),
                                                 div(DT::dataTableOutput("myoutput",height = "100px"))),
                                        tabPanel("Summary table",DT::dataTableOutput("summary_table"),
@@ -668,12 +672,13 @@ server <- function(input, output) {
       datatable(df, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
         formatStyle(
           'logFC',
-          backgroundColor = styleInterval(c(-input$FC,input$FC), c('blue', 'grey',"red")),
-          color = styleInterval(c(-input$FC,input$FC), c('white', 'white', 'white'))) %>% 
+          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
+          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
+          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
         formatStyle(
           'Pvalue',
-          backgroundColor = styleInterval(c(input$Pvalue), c('black', 'grey')),
-          color = styleInterval(c(input$Pvalue), c('Yellow',  'black')),
+          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
+          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
           fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
       
       
@@ -696,12 +701,13 @@ server <- function(input, output) {
       datatable(df, escape = FALSE,filter = 'top', options=list(scrollX = T), selection = 'none') %>% 
         formatStyle(
           'logFC',
-          backgroundColor = styleInterval(c(-input$FC,input$FC), c('blue', 'grey',"red")),
-          color = styleInterval(c(-input$FC,input$FC), c('white', 'white', 'white'))) %>% 
+          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
+          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
+          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
         formatStyle(
           'Pvalue',
-          backgroundColor = styleInterval(c(input$Pvalue), c('black', 'grey')),
-          color = styleInterval(c(input$Pvalue), c('Yellow',  'black')),
+          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
+          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
           fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
       
     }
@@ -726,12 +732,13 @@ server <- function(input, output) {
       datatable(selected_genes, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
         formatStyle(
           'logFC',
-          backgroundColor = styleInterval(c(-input$FC,input$FC), c('blue', 'grey',"red")),
-          color = styleInterval(c(-input$FC,input$FC), c('white', 'white', 'white'))) %>% 
+          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
+          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
+          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
         formatStyle(
           'Pvalue',
-          backgroundColor = styleInterval(c(input$Pvalue), c('black', 'grey')),
-          color = styleInterval(c(input$Pvalue), c('Yellow',  'black')),
+          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
+          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
           fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
       
     }

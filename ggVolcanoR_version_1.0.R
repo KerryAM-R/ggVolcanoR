@@ -7,7 +7,7 @@ require("tidyverse")
 require("ggplot2") #Best plots
 require("ggrepel") #Avoid overlapping labels
 require("shiny")
-library("shinyBS")
+require("shinyBS")
 require("gridExtra")
 require("DT")
 require("plyr")
@@ -269,6 +269,8 @@ server <- function(input, output) {
     
     
     
+    
+    
     ##### 
     
     if (input$selected=="range of genes" && input$y=="-Log10(p-value)") {
@@ -398,6 +400,13 @@ server <- function(input, output) {
       
     }
     else if (input$selected=="own list" && input$y=="-Log10(p-value)") {
+      
+      
+      merged_list <- sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2,]
+      merged_list <- merged_list[order(merged_list$Pvalue),]
+      sig2 <- merged_list[(input$min:input$max),]
+      list2 <- sig2$ID
+      
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),col=sub.mutateddf.gene_list$colour),size=input$size,alpha=sub.mutateddf.gene_list$alpha) +
         geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC,]
@@ -436,6 +445,13 @@ server <- function(input, output) {
       vals$ggplot
     }
     else if (input$selected=="own list" && input$y=="FDR") {
+      
+      
+      merged_list <- sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2,]
+      merged_list <- merged_list[order(merged_list$Pvalue),]
+      sig2 <- merged_list[(input$min:input$max),]
+      list2 <- sig2$ID
+      
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),col=sub.mutateddf.gene_list$colour),size=input$size,alpha=sub.mutateddf.gene_list$alpha) +
         geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC,]
@@ -474,6 +490,13 @@ server <- function(input, output) {
       vals$ggplot
     }
     else if (input$selected=="own list" && input$y=="adjusted") {
+      
+      merged_list <- sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2,]
+      merged_list <- merged_list[order(merged_list$Pvalue),]
+      sig2 <- merged_list[(input$min:input$max),]
+      list2 <- sig2$ID
+      
+      
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),col=sub.mutateddf.gene_list$colour),size=input$size,alpha=sub.mutateddf.gene_list$alpha) +
         geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC,]
@@ -742,6 +765,7 @@ server <- function(input, output) {
           fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
       
     }
+    
   })
   dataExpTable <- reactive({
     dat <- input.data();
@@ -777,24 +801,29 @@ server <- function(input, output) {
     content = function(file) {
       pdf(file, width=input$width,height=input$height, onefile = FALSE) # open the pdf device
       grid.arrange(vals$ggplot)
-      dev.off()}
+      dev.off()},
+    
+    contentType = "application/pdf"
     
   )
   
   output$downloadPlotPNG <- downloadHandler(
     filename = function() {
-      paste("ggVolcanoR_", Sys.time(), ".png", sep = "")
+      paste("ggVolcanoR_", gsub("/", " ", Sys.time()), ".png", sep = "")
     },
     content = function(file) {
       png(file, width = input$width_png, height = input$height_png, res = input$resolution_PNG)
       grid.arrange(vals$ggplot)
-      dev.off()}
+      dev.off()},
+    
+    contentType = "application/png" # MIME type of the image
+    
   )
-  
+  ?pdf
   output$downloadTABLE <- downloadHandler(
     
     filename = function(){
-      paste(gsub("-", ".", Sys.Date()), " - ","Filtered",input$export," data",".csv", sep = "")
+      paste("ggVolcanoR_",gsub("-", ".", Sys.Date()), " - ","Filtered ",input$FC," ",input$Pvalue," ",input$export,".csv", sep = "")
     },
     
     content = function(file){

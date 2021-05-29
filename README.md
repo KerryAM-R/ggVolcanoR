@@ -1,7 +1,12 @@
 # ggVolcanoR
 
 This is the README.md file containing information on the features of the application
-Please contact x for error reporting. 
+Please contact: Chen.Li@monash.edu or Kerry.Mullan@monash.edu for reporting errors.
+
+Run the following command in R or Rstudio to download and install the required packages
+```
+install.packages(c("tidyverse", "ggplot2", "ggrepel", "shiny", "shinyBS", "gridExtra", "DT", "plyr", "dplyr", "reshape2"))
+```
 
 ## file types accepted
 The file must contain headers: ID, logFC and Pvalue. 

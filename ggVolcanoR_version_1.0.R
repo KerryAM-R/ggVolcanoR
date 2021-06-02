@@ -14,7 +14,10 @@ require("plyr")
 require("dplyr")
 require("reshape2")
 
-filtered_table <- c("pos","neg","both","own list")
+filtered_table <- c("upregulated" = "pos",
+                    "downregulated" ="neg",
+                    "all significant values" = "both",
+                    "own list" = "own list")
 
 fonts <- c("Arial" = "sans", 
            "Times New Roman" = "serif", 
@@ -24,9 +27,9 @@ selected_present <- c("no labels","range of genes","own list")
 y_options <- c("-Log10(p-value)","FDR", "adjusted")
 legend_location <- c("right","bottom","left","top","none")
 species <- c("BOVIN","CHICK","ECOLI","HORSE","HUMAN","MAIZE","MOUSE","PEA", "PIG","RABIT","RAT","SHEEP","SOYBN","TOBAC","WHEAT","YEAST")
-lab <- c("list_up","list_down")
+lab <- c("list: significant up","list: significant down","list: non-significant")
 
-#####
+# user interface  ----
 
 ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                  tabPanel("Volcano plot",sidebarLayout(sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=3,
@@ -56,11 +59,11 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                                                                                 label = "Y-axis label", 
                                                                                 choices = y_options, 
                                                                                 selected = "-Log10(p-value)"),
-                                                                    numericInput("yhigh","y axis upper range",value = 100),
-                                                                    numericInput("ybreaks","y axis breaks",value = 10),
-                                                                    numericInput("xlow","x axis lower range",value = -10),
-                                                                    numericInput("xhigh","x axis upper range",value = 10),
-                                                                    numericInput("xbreaks","x axis upper breaks",value = 1),
+                                                                    numericInput("yhigh","y-axis upper range",value = 100),
+                                                                    numericInput("ybreaks","y-axis tick marks",value = 10),
+                                                                    numericInput("xlow","x-axis lower range",value = -10),
+                                                                    numericInput("xhigh","x-axis upper range",value = 10),
+                                                                    numericInput("xbreaks","x-axis tick marks",value = 1),
                                                                     sliderInput("axis", "axis text size", min=0, max=100, value=30, step=0.1),
                                                                     sliderInput("axis_text", "axis numeric text size", min=0, max=100, value=30, step=0.1),
                                                                     p("point size and transparancy"),
@@ -76,16 +79,21 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                                                                     selectInput(inputId = "lab1", 
                                                                                 label = "select label 1", 
                                                                                 choices = lab, 
-                                                                                selected = "list_down"),
+                                                                                selected = "significant down"),
                                                                     textInput(inputId = "col_lab2", label = "label two",value = "darkblue"),
                                                                     selectInput(inputId = "lab2", 
                                                                                 label = "select label 2", 
                                                                                 choices = lab, 
-                                                                                selected = "list_up"),
+                                                                                selected = "significant up"),
+                                                                    textInput(inputId = "col_lab3", label = "label three",value = "purple"),
+                                                                    selectInput(inputId = "lab3", 
+                                                                                label = "select label 3", 
+                                                                                choices = lab, 
+                                                                                selected = "non-significant in list"),
                                                                     p("Label parameters"),
-                                                                    numericInput("min", "lable range (min)", value=1),
-                                                                    numericInput("max", "lable range (max)", value=20),
-                                                                    sliderInput("dist", "distance of label", min=0, max=5, value=1,step = 0.1),
+                                                                    numericInput("min", "label range (min)", value=1),
+                                                                    numericInput("max", "label range (max)", value=20),
+                                                                    sliderInput("dist", "distance of label", min=0, max=2, value=0.25,step = 0.01),
                                                                     sliderInput("label", "size of labels", min=0, max=60, value=8,step =0.1),
                                                                     p("Legend parameters"),
                                                                     selectInput('legend_location', 'Legend location', legend_location),
@@ -113,7 +121,10 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                                                 selectInput("species", label = "",species,selected = "HUMAN"),
                                                 div(DT::dataTableOutput("myoutput",height = "100px"))),
                                        tabPanel("Summary table",DT::dataTableOutput("summary_table"),
-                                                selectInput('export', 'Selected Filtered csv file', filtered_table),
+                                                selectInput(inputId = "export", 
+                                                            label = "Selected Filtered csv file", 
+                                                            choices = filtered_table, 
+                                                            selected = filtered_table[1]),
                                                 downloadButton("downloadTABLE", "Filtered Table"))
                  )))),
                  tabPanel("Read Me",includeMarkdown("README.md")))
@@ -131,7 +142,7 @@ server <- function(input, output) {
     
     
     inFile <- input$file1
-    if (is.null(inFile)) {  dataframe = data.frame() }
+    if (is.null(inFile)) {  dataframe = read.csv("test-data/Proteomics data.csv") }
     
     else {
       dataframe <- read.csv(
@@ -144,7 +155,7 @@ server <- function(input, output) {
   input.data2 <- function(){ 
     
     inFile2 <- input$file2
-    if (is.null(inFile2)) { dataframe2= NULL}
+    if (is.null(inFile2)) { dataframe2= read.csv("test-data/Refined list.csv")}
     
     else {
       dataframe2 <- read.csv(
@@ -241,6 +252,8 @@ server <- function(input, output) {
     
     mutateddf.gene <- mutate(mutateddf, top=ifelse(mutateddf$ID %in% gene_list, "top", "other"))
     mutateddf.gene
+    
+    # no labels 
     sub.mutateddf.gene <- mutate(mutateddf.gene,
                                  colour=ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,"sig_up",
                                                ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")),
@@ -253,25 +266,11 @@ server <- function(input, output) {
                                                                                                                                                                                                                                                                       ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")))),
                                   alpha=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))))
-    # own list graph
-    sub.mutateddf.gene_list <- mutate(mutateddf.gene,
-                                      colour=ifelse(mutateddf.gene$ID %in% list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "top_up",
-                                                    ifelse(mutateddf.gene$ID %in% list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "top_down",
-                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
-                                                                  ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")))),
-                                      alpha=ifelse(mutateddf.gene$ID %in% list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
-                                                   ifelse(mutateddf.gene$ID %in% list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
-                                                          ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,
-                                                                 ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))),
-                                      
-    )
     
     
     
     
-    
-    
-    ##### 
+       ##### 
     
     if (input$selected=="range of genes" && input$y=="-Log10(p-value)") {
       vals$ggplot <- ggplot() + 
@@ -284,7 +283,8 @@ server <- function(input, output) {
                         size=input$label,
                         family=input$font, 
                         segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist, 'lines')) +
+                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
+                        max.overlaps = Inf) +
         scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab2,input$col_lab1),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2)) +
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme_bw(base_size = 18)+
@@ -326,7 +326,8 @@ server <- function(input, output) {
                         size=input$label,
                         family=input$font, 
                         segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist, 'lines')) +
+                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
+                        max.overlaps = Inf) +
         scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab2,input$col_lab1),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2)) +
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme_bw(base_size = 18)+
@@ -368,7 +369,8 @@ server <- function(input, output) {
                         size=input$label,
                         family=input$font, 
                         segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist, 'lines')) +
+                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
+                        max.overlaps = Inf) +
         scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab2,input$col_lab1),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2)) +
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme_bw(base_size = 18)+
@@ -402,21 +404,42 @@ server <- function(input, output) {
     else if (input$selected=="own list" && input$y=="-Log10(p-value)") {
       
       
-      merged_list <- sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2,]
+      merged_list <- mutateddf[mutateddf$ID %in% list2,]
       merged_list <- merged_list[order(merged_list$Pvalue),]
-      sig2 <- merged_list[(input$min:input$max),]
+    
+      ordered_list <- mutate(merged_list,df_order=ifelse(merged_list$ID %in% list2 & abs(merged_list$logFC)>pos & merged_list$Pvalue<input$Pvalue, "1","2"))
+      ordered_list <- ordered_list[order(ordered_list$df_order),]
+      sig2 <- ordered_list[(input$min:input$max),]
       list2 <- sig2$ID
+      
+      sub.mutateddf.gene_list <- mutate(mutateddf.gene,
+                                        colour=ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "zlist_1",
+                                                      ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "zlist_2",
+                                                            ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue>input$Pvalue, "zlist_3",
+                                                                   ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue>input$Pvalue, "zlist_3",
+                                                                          ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue<input$Pvalue, "zlist_3",
+                                                                                 ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue<input$Pvalue,  "zlist_3",
+                                                                  ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
+                                                                          ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")))))))),
+                                        alpha=ifelse(mutateddf.gene$ID %in% list2, input$alpha1, 
+                                                            ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,input$alpha2,
+                                                                   ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC<neg,input$alpha2,input$alpha3))))
+      
+      colour_class <- c("NS","sig_down","sig_up","zlist_1","zlist_2","zlist_3")
+      
+      sub.mutateddf.gene_list$colour <- factor(sub.mutateddf.gene_list$colour, levels = colour_class)
       
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),col=sub.mutateddf.gene_list$colour),size=input$size,alpha=sub.mutateddf.gene_list$alpha) +
-        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC,]
-                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC], 
-                             y=  -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC],
-                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC]),
+        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2,]
+                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2], 
+                             y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2],
+                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2]),
                         size=input$label,family=input$font, 
                         segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist, 'lines')) +
-        scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab2,input$col_lab1),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2)) +
+                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
+                        max.overlaps = Inf) +
+        scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2,input$lab3)) +
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme_bw(base_size = 18)+
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -447,20 +470,37 @@ server <- function(input, output) {
     else if (input$selected=="own list" && input$y=="FDR") {
       
       
-      merged_list <- sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2,]
+      merged_list <- mutateddf[mutateddf$ID %in% list2,]
       merged_list <- merged_list[order(merged_list$Pvalue),]
-      sig2 <- merged_list[(input$min:input$max),]
+      
+      ordered_list <- mutate(merged_list,df_order=ifelse(merged_list$ID %in% list2 & abs(merged_list$logFC)>pos & merged_list$Pvalue<input$Pvalue, "1","2"))
+      ordered_list <- ordered_list[order(ordered_list$df_order),]
+      sig2 <- ordered_list[(input$min:input$max),]
       list2 <- sig2$ID
+      
+      sub.mutateddf.gene_list <- mutate(mutateddf.gene,
+                                        colour=ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "zlist_1",
+                                                      ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "zlist_2",
+                                                             ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue>input$Pvalue, "zlist_3",
+                                                                    ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue>input$Pvalue, "zlist_3",
+                                                                           ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue<input$Pvalue, "zlist_3",
+                                                                                  ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue<input$Pvalue,  "zlist_3",
+                                                                                         ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
+                                                                                                ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")))))))),
+                                        alpha=ifelse(mutateddf.gene$ID %in% list2, input$alpha1, 
+                                                     ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,input$alpha2,
+                                                            ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC<neg,input$alpha2,input$alpha3))))
       
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),col=sub.mutateddf.gene_list$colour),size=input$size,alpha=sub.mutateddf.gene_list$alpha) +
-        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC,]
-                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC], 
-                             y=  -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC],
-                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC]),
+        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2,]
+                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2], 
+                             y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2],
+                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2]),
                         size=input$label,family=input$font, 
                         segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist, 'lines')) +
+                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
+                        max.overlaps = Inf) +
         scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab2,input$col_lab1),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2)) +
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme_bw(base_size = 18)+
@@ -491,21 +531,38 @@ server <- function(input, output) {
     }
     else if (input$selected=="own list" && input$y=="adjusted") {
       
-      merged_list <- sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2,]
+      merged_list <- mutateddf[mutateddf$ID %in% list2,]
       merged_list <- merged_list[order(merged_list$Pvalue),]
-      sig2 <- merged_list[(input$min:input$max),]
+      
+      ordered_list <- mutate(merged_list,df_order=ifelse(merged_list$ID %in% list2 & abs(merged_list$logFC)>pos & merged_list$Pvalue<input$Pvalue, "1","2"))
+      ordered_list <- ordered_list[order(ordered_list$df_order),]
+      sig2 <- ordered_list[(input$min:input$max),]
       list2 <- sig2$ID
+      
+      sub.mutateddf.gene_list <- mutate(mutateddf.gene,
+                                        colour=ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "zlist_1",
+                                                      ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "zlist_2",
+                                                             ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue>input$Pvalue, "zlist_3",
+                                                                    ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue>input$Pvalue, "zlist_3",
+                                                                           ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue<input$Pvalue, "zlist_3",
+                                                                                  ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue<input$Pvalue,  "zlist_3",
+                                                                                         ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
+                                                                                                ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")))))))),
+                                        alpha=ifelse(mutateddf.gene$ID %in% list2, input$alpha1, 
+                                                     ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,input$alpha2,
+                                                            ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC<neg,input$alpha2,input$alpha3))))
       
       
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),col=sub.mutateddf.gene_list$colour),size=input$size,alpha=sub.mutateddf.gene_list$alpha) +
-        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC,]
-                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC], 
-                             y=  -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC],
-                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2 & sub.mutateddf.gene_list$Pvalue<input$Pvalue & abs(sub.mutateddf.gene_list$logFC)>input$FC]),
+        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2,]
+                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2], 
+                             y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2],
+                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2]),
                         size=input$label,family=input$font, 
                         segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist, 'lines')) +
+                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
+                        max.overlaps = Inf) +
         scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab2,input$col_lab1),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2)) + 
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme_bw(base_size = 18)+
@@ -785,6 +842,7 @@ server <- function(input, output) {
       negative
     }
     else if (input$export=="own list") {
+      
       ownlist <- dat[dat$ID %in% list & dat$Pvalue<input$Pvalue & abs(dat$logFC)>input$FC,]
     }
     else { 
@@ -819,7 +877,7 @@ server <- function(input, output) {
     contentType = "application/png" # MIME type of the image
     
   )
-  ?pdf
+
   output$downloadTABLE <- downloadHandler(
     
     filename = function(){

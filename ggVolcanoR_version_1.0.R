@@ -501,7 +501,7 @@ server <- function(input, output) {
                         segment.alpha = 0.5, 
                         show.legend = F,box.padding = unit(input$dist, 'lines'), 
                         max.overlaps = Inf) +
-        scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab2,input$col_lab1),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2)) +
+        scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2,input$lab3)) +
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme_bw(base_size = 18)+
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -563,7 +563,7 @@ server <- function(input, output) {
                         segment.alpha = 0.5, 
                         show.legend = F,box.padding = unit(input$dist, 'lines'), 
                         max.overlaps = Inf) +
-        scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab2,input$col_lab1),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2)) + 
+        scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2,input$lab3)) +
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme_bw(base_size = 18)+
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),

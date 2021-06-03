@@ -409,7 +409,7 @@ server <- function(input, output) {
     
       ordered_list <- mutate(merged_list,df_order=ifelse(merged_list$ID %in% list2 & abs(merged_list$logFC)>pos & merged_list$Pvalue<input$Pvalue, "1","2"))
       ordered_list <- ordered_list[order(ordered_list$df_order),]
-      sig2 <- ordered_list[(input$min:input$max),]
+      sig2 <- ordered_list
       list2 <- sig2$ID
       
       sub.mutateddf.gene_list <- mutate(mutateddf.gene,
@@ -431,10 +431,10 @@ server <- function(input, output) {
       
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),col=sub.mutateddf.gene_list$colour),size=input$size,alpha=sub.mutateddf.gene_list$alpha) +
-        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2,]
-                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2], 
-                             y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2],
-                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2]),
+        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)],]
+                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]], 
+                             y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]],
+                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]]),
                         size=input$label,family=input$font, 
                         segment.alpha = 0.5, 
                         show.legend = F,box.padding = unit(input$dist, 'lines'), 
@@ -475,7 +475,7 @@ server <- function(input, output) {
       
       ordered_list <- mutate(merged_list,df_order=ifelse(merged_list$ID %in% list2 & abs(merged_list$logFC)>pos & merged_list$Pvalue<input$Pvalue, "1","2"))
       ordered_list <- ordered_list[order(ordered_list$df_order),]
-      sig2 <- ordered_list[(input$min:input$max),]
+      sig2 <- ordered_list
       list2 <- sig2$ID
       
       sub.mutateddf.gene_list <- mutate(mutateddf.gene,
@@ -493,10 +493,10 @@ server <- function(input, output) {
       
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),col=sub.mutateddf.gene_list$colour),size=input$size,alpha=sub.mutateddf.gene_list$alpha) +
-        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2,]
-                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2], 
-                             y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2],
-                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2]),
+        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)],]
+                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]], 
+                             y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]],
+                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]]),
                         size=input$label,family=input$font, 
                         segment.alpha = 0.5, 
                         show.legend = F,box.padding = unit(input$dist, 'lines'), 
@@ -536,7 +536,7 @@ server <- function(input, output) {
       
       ordered_list <- mutate(merged_list,df_order=ifelse(merged_list$ID %in% list2 & abs(merged_list$logFC)>pos & merged_list$Pvalue<input$Pvalue, "1","2"))
       ordered_list <- ordered_list[order(ordered_list$df_order),]
-      sig2 <- ordered_list[(input$min:input$max),]
+      sig2 <- ordered_list
       list2 <- sig2$ID
       
       sub.mutateddf.gene_list <- mutate(mutateddf.gene,
@@ -555,10 +555,10 @@ server <- function(input, output) {
       
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),col=sub.mutateddf.gene_list$colour),size=input$size,alpha=sub.mutateddf.gene_list$alpha) +
-        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2,]
-                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2], 
-                             y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2],
-                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2]),
+        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)],]
+                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]], 
+                             y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]],
+                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]]),
                         size=input$label,family=input$font, 
                         segment.alpha = 0.5, 
                         show.legend = F,box.padding = unit(input$dist, 'lines'), 

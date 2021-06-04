@@ -2,9 +2,9 @@
 
 This is the README.md file containing information on the features of the application.
 
-Please contact: Chen.Li@monash.edu or Kerry.Mullan@monash.edu for reporting errors.
+Please contact: Chen.Li@monash.edu or Kerry.Mullan@monash.edu to report errors.
 
-If using the local GitHug, run the following command in R or Rstudio to download and install the required packages
+If using the local GitHub, run the following command in R or Rstudio to download and install the required packages
 ```
 install.packages(c("tidyverse", "ggplot2", "ggrepel", "shiny", "shinyBS", "gridExtra", "DT", "plyr", "dplyr", "reshape2"))
 ```

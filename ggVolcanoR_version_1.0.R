@@ -14,9 +14,9 @@ require("plyr")
 require("dplyr")
 require("reshape2")
 
-filtered_table <- c("upregulated" = "pos",
-                    "downregulated" ="neg",
-                    "all significant values" = "both",
+filtered_table <- c("upregulated" = "upregulated",
+                    "downregulated" ="downregulated",
+                    "all significant values" = "all_significant",
                     "own list" = "own list")
 
 fonts <- c("Arial" = "sans", 
@@ -39,7 +39,7 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                                                                     radioButtons('sep', 'Separator', c( Tab='\t', Comma=','), ','),
                                                                     radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'),
                                                                     tags$hr(),
-                                                                    popify(actionButton("btn4", "Types of graphs"), "Three distinct graphs for labelling purposes: (1) no label, (2) sequential (3) user uploaded labels (can be non-sequential)", 
+                                                                    popify(actionButton("btn4", "Types of graphs"), "Three distinct graphs for customizable annotation option: (1) no label, (2) range of genes/proteins (3) user uploaded labels", 
                                                                            placement="bottom", trigger = "hover"),
                                                                     selectInput('selected', 'type of output: header=ID', selected_present),
                                                                     
@@ -112,8 +112,10 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                  mainPanel(tabsetPanel(tabPanel("Plot", textInput(inputId = "title", 
                                                                   label = "",
                                                                   value = "Volcano plot: x vs y"),
-                                                plotOutput("ggplot",height = "600px"),
-                                                verbatimTextOutput("value")),
+                                                textOutput("number_of_points"),
+                                                textOutput("sig_values_test"),
+                                                plotOutput("ggplot",height = "600px")    
+                                                ),
                                        tabPanel("Table with links", 
                                                 p("Table rendering parameters"),
                                                 popify(actionButton("btn2", "Uniprot search species"), "List of 16 searchable species: https://www.uniprot.org/help/taxonomy", 
@@ -193,8 +195,8 @@ server <- function(input, output) {
     
     else if (input$selected=="no labels") {
       sub.mutateddf.gene3 <- mutate(dat,
-                                    significance=ifelse(dat$Pvalue<input$Pvalue & dat$logFC>pos,"up",
-                                                        ifelse(dat$Pvalue<input$Pvalue & dat$logFC<neg,"down","non significant")))
+                                    significance=ifelse(dat$Pvalue<input$Pvalue & dat$logFC>pos,"upregulated",
+                                                        ifelse(dat$Pvalue<input$Pvalue & dat$logFC<neg,"downregulated","non significant")))
       
       sub.mutateddf.gene3$count <- 1
       summary <- as.data.frame(ddply(sub.mutateddf.gene3,c("significance"),numcolwise(sum)))[c(1,4)]
@@ -208,8 +210,8 @@ server <- function(input, output) {
     
     else {
       sub.mutateddf.gene3 <- mutate(dat,
-                                    significance=ifelse(dat$Pvalue<input$Pvalue & dat$logFC>pos,"up",
-                                                        ifelse(dat$Pvalue<input$Pvalue & dat$logFC<neg,"down","non significant")))
+                                    significance=ifelse(dat$Pvalue<input$Pvalue & dat$logFC>pos,"upregulated",
+                                                        ifelse(dat$Pvalue<input$Pvalue & dat$logFC<neg,"downregulated","non significant")))
       
       sub.mutateddf.gene3$count <- 1
       summary <- as.data.frame(ddply(sub.mutateddf.gene3,c("significance"),numcolwise(sum)))[c(1,4)]
@@ -221,6 +223,7 @@ server <- function(input, output) {
       summary}
     
   })
+  
   plotInput <- function() {
     dat <- input.data();
     
@@ -552,6 +555,9 @@ server <- function(input, output) {
                                                      ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,input$alpha2,
                                                             ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC<neg,input$alpha2,input$alpha3))))
       
+      colour_class <- c("NS","sig_down","sig_up","zlist_1","zlist_2","zlist_3")
+      
+      sub.mutateddf.gene_list$colour <- factor(sub.mutateddf.gene_list$colour, levels = colour_class)
       
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),col=sub.mutateddf.gene_list$colour),size=input$size,alpha=sub.mutateddf.gene_list$alpha) +
@@ -585,11 +591,11 @@ server <- function(input, output) {
         scale_alpha(guide = 'none')+ 
         scale_y_continuous(limits = c(0, input$yhigh) ,breaks = seq(0, input$yhigh, by = input$ybreaks))+
         scale_x_continuous(limits = c(input$xlow, input$xhigh), breaks = seq(input$xlow, input$xhigh, by = input$xbreaks))+
-        labs(y=expression("-"~Log[10]~"(adj P-value)"),
+        labs(y=expression("-"~Log[10]~"(adj p-value)"),
              x=expression(Log[2]~Fold~Change),
-             title=input$title) +
-        
-        vals$ggplot
+             title=input$title) 
+      
+      vals$ggplot
     }
     else if(input$selected=="no labels" && input$y=="-Log10(p-value)") {     
       vals$ggplot <- ggplot() + 
@@ -833,11 +839,11 @@ server <- function(input, output) {
     neg <- -1*input$FC
     pos <- input$FC
     
-    if (input$export=="pos") {
+    if (input$export=="upregulated") {
       positive <- subset(dat, dat$Pvalue<input$Pvalue & dat$logFC>pos)
       positive
     }
-    else if (input$export=="neg") {
+    else if (input$export=="downregulated") {
       negative <- subset(dat, dat$Pvalue<input$Pvalue & dat$logFC<neg)
       negative
     }
@@ -850,11 +856,43 @@ server <- function(input, output) {
       both }
   })
   
+  output$number_of_points <- renderPrint({
+    
+    dat <- input.data();
+    dat2 <- input.data2();
+    dat <- as.data.frame(dat)
+    dat <- dat[order(dat$Pvalue),]
+    list <- dat2$ID
+    list2 <- dat2$ID
+    dat$logP <- -log10(dat$Pvalue)
+    total <- as.numeric(dim(dat)[1])
+    subsetted <- subset(dat, dat$logP<input$yhigh)
+    subsetted_2 <- subset(subsetted, subsetted$logFC>input$xlow)
+    subsetted_3 <- subset(subsetted_2, subsetted_2$logFC<input$xhigh)
+    points_displayed <- as.numeric(dim(subsetted_3)[1])
+    cat(noquote(paste("There are ", points_displayed," points displayed out of ", total, " which represents ",round(points_displayed/total*100,2),"% of the data",sep="")))
+    
+  })
+  output$sig_values_test <- renderPrint({
+    
+    dat <- input.data();
+    
+    dat2 <- input.data2();
+    dat <- as.data.frame(dat)
+    dat <- dat[order(dat$Pvalue),]
+    
+    sig_value <- min(dat$Pvalue)
+    x.min <- min(dat$logFC)
+    x.max <- max(dat$logFC)
+    cat(noquote(paste("To display all points: y-axis upper range = ", round(-log10(sig_value),0),", x-axis lower range = ", round(x.min,0), " and x-axis upper range = ", round(x.max,0),sep="")))
+    
+  })
   
   # downloading PDF -----
   output$downloadPlot <- downloadHandler(
     filename = function() {
-      paste("ggVolcanoR_", Sys.time(), ".pdf", sep = "")
+      x <- gsub(":", ".", Sys.time())
+      paste("ggVolcanoR_",input$title, gsub("/", "-", x), ".pdf", sep = "")
     },
     content = function(file) {
       pdf(file, width=input$width,height=input$height, onefile = FALSE) # open the pdf device
@@ -867,9 +905,11 @@ server <- function(input, output) {
   
   output$downloadPlotPNG <- downloadHandler(
     filename = function() {
-      paste("ggVolcanoR_", gsub("/", " ", Sys.time()), ".png", sep = "")
+      x <- gsub(":", ".", Sys.time())
+      paste("ggVolcanoR_",input$title, gsub("/", "-", x), ".png", sep = "")
     },
     content = function(file) {
+      
       png(file, width = input$width_png, height = input$height_png, res = input$resolution_PNG)
       grid.arrange(vals$ggplot)
       dev.off()},
@@ -879,11 +919,9 @@ server <- function(input, output) {
   )
 
   output$downloadTABLE <- downloadHandler(
-    
     filename = function(){
       paste("ggVolcanoR_",gsub("-", ".", Sys.Date()), " - ","Filtered ",input$FC," ",input$Pvalue," ",input$export,".csv", sep = "")
     },
-    
     content = function(file){
       write.csv(dataExpTable(),file, row.names = FALSE)
     }

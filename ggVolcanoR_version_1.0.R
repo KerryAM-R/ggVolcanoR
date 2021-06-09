@@ -127,13 +127,19 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                                                             label = "Selected Filtered csv file", 
                                                             choices = filtered_table, 
                                                             selected = filtered_table[1]),
-                                                downloadButton("downloadTABLE", "Filtered Table"))
+                                                downloadButton("downloadTABLE", "Filtered Table")),
+                                       tabPanel("session info", verbatimTextOutput("sessionInfo"))
                  )))),
                  tabPanel("Read Me",includeMarkdown("README.md")))
 
 
 # the function of the app ----
 server <- function(input, output) {
+  
+  output$sessionInfo <- renderPrint({
+    print(sessionInfo())
+  })
+  
   
   options(shiny.sanitize.errors = TRUE)
   

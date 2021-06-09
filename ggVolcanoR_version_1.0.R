@@ -34,6 +34,7 @@ lab <- c("list: significant up","list: significant down","list: non-significant"
 ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                  tabPanel("Volcano plot",sidebarLayout(sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=3,
                                                                     popify(actionButton("btn3", "Uploading the file"), "R is a case sensitive language. Please ensure that the upper and lower cases are matched when uploading the file. ID and id are different", placement="bottom", trigger = "hover"),
+                                                                    checkboxInput("test", label = "Use test data", value = TRUE),
                                                                     fileInput('file1', 'ID, logFC, Pvalue',
                                                                               accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                                                     radioButtons('sep', 'Separator', c( Tab='\t', Comma=','), ','),
@@ -141,6 +142,8 @@ server <- function(input, output) {
   })
   
   
+  
+  
   options(shiny.sanitize.errors = TRUE)
   
   vals <- reactiveValues(ggplot=NULL)
@@ -150,7 +153,7 @@ server <- function(input, output) {
     
     
     inFile <- input$file1
-    if (is.null(inFile)) {  dataframe = read.csv("test-data/Proteomics data.csv") }
+    if (input$test==T) {  dataframe = read.csv("test-data/Proteomics data.csv") }
     
     else {
       dataframe <- read.csv(
@@ -160,10 +163,15 @@ server <- function(input, output) {
         quote=input$quote
       )}
   })
+  
+  
+  
+  
+  
   input.data2 <- function(){ 
     
     inFile2 <- input$file2
-    if (is.null(inFile2)) { dataframe2= read.csv("test-data/Refined list.csv")}
+    if (input$test==T) { dataframe2= read.csv("test-data/Refined list.csv")}
     
     else {
       dataframe2 <- read.csv(

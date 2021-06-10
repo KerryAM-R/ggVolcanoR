@@ -4,28 +4,28 @@ This is the README.md file containing information on the features of the applica
 
 Please contact: Chen.Li@monash.edu or Kerry.Mullan@monash.edu to report errors.
 
-If using the local GitHub, run the following command in R or Rstudio to download and install the required packages
+If using the local GitHub, run the following command in R or Rstudio to download and install the required packages. 
 ```
 install.packages(c("tidyverse", "ggplot2", "ggrepel", "shiny", "shinyBS", "gridExtra", "DT", "plyr", "dplyr", "reshape2"))
 ```
 
-## file types accepted
+## File types accepted
 
 The file must contain headers: ID, logFC and Pvalue. 
 
 Unique ID names are preferred especially when labelling the graph.
 
-This needs to be in the form of either a **.csv** or **.txt** file
+This needs to be in the form of either a **.csv** or **.txt** file.
 
-see the test-data format in the GitHub repository or download by setting the significance threholds to 0. 
+See the test-data format in the GitHub repository or download by setting the significance thresholds to 0. 
 
-## uploading the file
+## Uploading the file
 
 Select browse and you can search your system for your differental expression file. 
 
 ![](IMAGES/1.uploading.png)
 
-## types of graphs
+## Types of graphs
 
 ### Three labelling options are available for plotting. 
 
@@ -36,35 +36,36 @@ Shows all data points without any text labels.
 
 ![](IMAGES/2.Nolabs.png)
   
-### range of genes
+### Range of genes
  - The most dysregulated genes are selected, by default the top 20 most dysregulated genes/proteins are selected. This can be modified by the user. 
   - This of list is based on p-value and not direction of logFC. 
-  - The range can be from x to y
-  - Do not recommend more than 30 points labelled
+  - The range can be from x to y.
+  - Do not recommend more than 30 points labelled.
 
 ![](IMAGES/2.top20.png)
   
- #### Own list
+### Own list
 
   ![](IMAGES/2.Uploading.png)
 
 - This will label the uploaded list of genes/proteins if they meet the significance threshold.  
 - By default, the 20 most dysregualted genes/proteins in the list will be annotated with text in the graph. This can be modified by the user. 
-- A user can chose the range (x to y) 
-- Do not recommend more than 30 points labelled
+- A user can chose the range (x to y) .
+- Do not recommend more than 30 points labelled.
 
   ![](IMAGES/2.zoomSelected.png)
 
-## Types of font
+## Font types
 There are three font types available for the plot.
 
-This includes **Arial (Default)**, Times New Roman and Courier
+This includes **Arial (Default)**, Times New Roman and Courier.
 
 ![](IMAGES/3.fonts.png)
 
 ## Cut-offs
-Thresholds for significance can be altered (Default: Pvalue=0.05 and absolute logFC=0.58) 
-These are represented by the horizontal and vertical dotted lines on the graph (Default=grey)
+Thresholds for significance can be altered (Default: Pvalue=0.05 and absolute logFC=0.58).
+
+These are represented by the horizontal and vertical dotted lines on the graph (Default=grey).
 
 ![](IMAGES/3.cut-offs.png)
 
@@ -72,33 +73,32 @@ These are represented by the horizontal and vertical dotted lines on the graph (
 Select label
 - p-value, FDR (false discovery rate; out-put of EdgeR) or adj p-value (which could include other p-value corrections)
 
-axis 
+Axis 
 - y-axis from 0 onward with the default being 100. To identify the top hit, look at the exponent on the P-value (i.e. 1e-50) and then add 5 to cover that point i.e. 55
 - x-axis default from -10 to 10. 
 
-axis tick marks
-- denotes how often the tick marks occur 
-  - y-axis every 10
-  - x-axis every 1
+Axis tick marks
+- denotes how often the tick marks occur. 
+- y-axis every 10.
+- x-axis every 1.
 
-font size (range 0 to 100) 
-- text size 
-- number size 
+Font size (range 0 to 100) 
+- text size. 
+- number size. 
 
 ![](IMAGES/3.axis-parameters.png)
 
-## point parameters
+## Point parameters
 The size of the point can be altered (Default 3)
 
-Coloring the dots
-- no label (3 colors)
-    - Up-regulated (red), down-regulated (light blue) and non-significant (gray)
+Coloring the dots:
+- Up-regulated (red), down-regulated (light blue) and non-significant (gray).
     
 ![](IMAGES/3.point-parameters1.png)
     
-- "range of genes"and "own list" have up to 6 colors to differentiate the points
-    - list one (orange), list two (dark blue), list three (purple), up-regulated (red), down-regulated (light blue) and non-significant (gray)
-    - the legend lables for the list can be changed to: list: significant up, list: significant down and list: non-significant
+The "range of genes" and "own list" have up to 6 colors to differentiate the points. 
+- list one (orange), list two (dark blue), list three (purple), up-regulated (red), down-regulated (light blue) and non-significant (gray).
+- the legend lables for the list can be changed to: list: significant up, list: significant down and list: non-significant.
 
 ![](IMAGES/3.point-parameters2.png)
 
@@ -140,14 +140,13 @@ There are two download options:
 ## Table with links 
 Based on the labelling option selected the table will show the following:
 
-no labels - all imported gene IDs
+No labels - all imported gene IDs
 
-range of genes - top 1-x dysregulated genes
+Range of genes - top 1-x dysregulated genes
 
-own list - user defined list of genes
+Own list - user defined list of genes
 
 ![](IMAGES/5.Table_links.png)
-
 
 The table includes links to several databases:  
 - GeneCards 
@@ -157,19 +156,19 @@ The table includes links to several databases:
     * Using the Symbol_species, aided in finding the correct information. 
     
 - UniProt other species (UniProt_other)
-    * if a non-standard species is being used or uniprot ID's, use this column to find the related information. 
+    * If a non-standard species is being used or uniprot ID's, use this column to find the related information. 
 
 ![](IMAGES/5.uniprot.png)
 
-## summary table and exporting the filtered list
+## Summary table and exporting the filtered list
 
 The summary table contains the total number of differentially expressed genes (no labels and range of genes) or the number of significant and non-significant ID's in the list
 
 The following filtered data lists can be downloaded as csv files (note that significance is based on user defined parameters):
-- upregulated
-- downregualted
-- all significant dysregualted
-- own list (significant values only)
+- Upregulated
+- Downregualted
+- All significant dysregualted
+- Own list (significant values only)
 
 ![](IMAGES/5.summary.table.png)
 

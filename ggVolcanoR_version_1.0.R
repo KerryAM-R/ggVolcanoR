@@ -34,7 +34,7 @@ lab <- c("list: significant up","list: significant down","list: non-significant"
 ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                  tabPanel("Volcano plot",sidebarLayout(sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=3,
                                                                     popify(actionButton("btn3", "Uploading the file"), "R is a case sensitive language. Please ensure that the upper and lower cases are matched when uploading the file. ID and id are different", placement="bottom", trigger = "hover"),
-                                                                    checkboxInput("test", label = "Use test data", value = TRUE),
+                                                                    selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                                                     fileInput('file1', 'ID, logFC, Pvalue',
                                                                               accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                                                     radioButtons('sep', 'Separator', c( Tab='\t', Comma=','), ','),
@@ -79,17 +79,17 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                                                                     textInput(inputId = "col_lab1", label = "label one",value = "darkblue"),
                                                                     selectInput(inputId = "lab1", 
                                                                                 label = "select label 1", 
-                                                                                choices = lab, 
+                                                                                choices = lab[2], 
                                                                                 selected = "significant down"),
                                                                     textInput(inputId = "col_lab2", label = "label two",value = "orange"),
                                                                     selectInput(inputId = "lab2", 
                                                                                 label = "select label 2", 
-                                                                                choices = lab, 
+                                                                                choices = lab[1], 
                                                                                 selected = "significant up"),
                                                                     textInput(inputId = "col_lab3", label = "label three",value = "purple"),
                                                                     selectInput(inputId = "lab3", 
                                                                                 label = "select label 3", 
-                                                                                choices = lab, 
+                                                                                choices = lab[3], 
                                                                                 selected = "non-significant in list"),
                                                                     p("Label parameters"),
                                                                     numericInput("min", "label range (min)", value=1),
@@ -147,37 +147,45 @@ server <- function(input, output) {
   options(shiny.sanitize.errors = TRUE)
   
   vals <- reactiveValues(ggplot=NULL)
+  
+  
+  
   #summary_table=NULL,myoutput=NULL,file1=NULL
-  input.data <- reactive({
+  
+  #selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
+  
+  input.data <- reactive({switch(input$dataset,"test-data" = test.data(),"own" = own.data())})
+  
+  test.data <- reactive({
+        dataframe = read.csv("test-data/Proteomics data.csv") })
     
-    
-    
-    inFile <- input$file1
-    if (input$test==T) {  dataframe = read.csv("test-data/Proteomics data.csv") }
-    
-    else {
+    own.data <- reactive({
+      inFile <- input$file1 
+      if (is.null(inFile)) return(NULL)
+      
+      else {
       dataframe <- read.csv(
-        inFile$datapath,
-        header=TRUE,
-        sep=input$sep,
-        quote=input$quote
-      )}
-  })
-  
-  
-  
-  
-  
-  input.data2 <- function(){ 
+          inFile$datapath,
+          header=TRUE,
+          sep=input$sep,
+          quote=input$quote)}
+      
+    })
     
-    inFile2 <- input$file2
-    if (input$test==T) { dataframe2= read.csv("test-data/Refined list.csv")}
+  input.data2 <- reactive({switch(input$dataset,"test-data" = test.data2(),"own" = own.data2())})
     
-    else {
-      dataframe2 <- read.csv(
-        inFile2$datapath,
-        header=T)}
-  }
+  test.data2 <- reactive({ 
+    dataframe2= read.csv("test-data/Refined list.csv")})
+    
+    own.data2 <- reactive({
+      inFile2 <- input$file2
+      if (is.null(inFile2)) return(NULL)
+      else {
+        dataframe2 <- read.csv(
+          inFile2$datapath,
+          header=T)}
+      })
+    
   output$summary_table <-DT::renderDataTable({
     
     dat <- input.data();
@@ -285,7 +293,9 @@ server <- function(input, output) {
                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))))
     
     
+    colour_class <- c("NS","sig_down","sig_up","top_down","top_up")
     
+    sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour_class)
     
        ##### 
     

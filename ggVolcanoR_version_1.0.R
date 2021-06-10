@@ -14,6 +14,9 @@ require("plyr")
 require("dplyr")
 require("reshape2")
 
+
+
+
 filtered_table <- c("upregulated" = "upregulated",
                     "downregulated" ="downregulated",
                     "all significant values" = "all_significant",
@@ -129,7 +132,7 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                                                             choices = filtered_table, 
                                                             selected = filtered_table[1]),
                                                 downloadButton("downloadTABLE", "Filtered Table")),
-                                       tabPanel("session info", verbatimTextOutput("sessionInfo"))
+                                       tabPanel("Session info", verbatimTextOutput("sessionInfo"))
                  )))),
                  tabPanel("Read Me",includeMarkdown("README.md")))
 
@@ -141,16 +144,11 @@ server <- function(input, output) {
     print(sessionInfo())
   })
   
-  
-  
-  
   options(shiny.sanitize.errors = TRUE)
   
   vals <- reactiveValues(ggplot=NULL)
   
-  
-  
-  #summary_table=NULL,myoutput=NULL,file1=NULL
+    #summary_table=NULL,myoutput=NULL,file1=NULL
   
   #selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
   
@@ -758,7 +756,7 @@ server <- function(input, output) {
     
     validate(
       need(nrow(dat)>0,
-           "")
+           "no data inported yet")
     )
     
     dat2 <- input.data2();
@@ -772,10 +770,12 @@ server <- function(input, output) {
       
       SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
       names(SYMBOL_list) <- "list"
-      top$GeneCards <- paste("<a href='","https://www.genecards.org/cgi-bin/carddisp.pl?gene=",top$ID,"'>",top$ID,"</a>", sep="")
-      top$Protein_atlas <- paste("<a href='","https://www.proteinatlas.org/search/",top$ID,"'>",top$ID,"</a>", sep="")
-      top$UniProt_species <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",SYMBOL_list$list,"'>",SYMBOL_list$list,"</a>", sep="")
-      top$UniProt_other <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",top$ID,"'>",top$ID,"</a>", sep="")
+      
+       top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      
+      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/search/',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
+      top$UniProt_other <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
       df <- top
       df$Pvalue <- signif(df$Pvalue,3)
       df$logFC <- signif(df$logFC,3)
@@ -799,11 +799,11 @@ server <- function(input, output) {
       SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
       names(SYMBOL_list) <- "list"
       
-      top$GeneCards <- paste("<a href='","https://www.genecards.org/cgi-bin/carddisp.pl?gene=",top$ID,"'>",top$ID,"</a>", sep="")
-      top$Protein_atlas <- paste("<a href='","https://www.proteinatlas.org/search/",top$ID,"'>",top$ID,"</a>", sep="")
+      top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
       
-      top$UniProt_species <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",SYMBOL_list$list,"'>",SYMBOL_list$list,"</a>", sep="")
-      top$UniProt_other <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",top$ID,"'>",top$ID,"</a>", sep="")
+      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/search/',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
+      top$UniProt_other <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
       df <- top
       df$Pvalue <- signif(df$Pvalue,3)
       df$logFC <- signif(df$logFC,3)
@@ -831,10 +831,11 @@ server <- function(input, output) {
       SYMBOL_list <- as.data.frame(paste(selected_genes$ID,"_",input$species,sep=""))
       names(SYMBOL_list) <- "list"
       
-      selected_genes$genecardslink <- paste("<a href='","https://www.genecards.org/cgi-bin/carddisp.pl?gene=",selected_genes$ID,"'>",selected_genes$ID,"</a>", sep="")
-      selected_genes$proteinatlaslink <- paste("<a href='","https://www.proteinatlas.org/search/",selected_genes$ID,"'>",selected_genes$ID,"</a>", sep="")
-      selected_genes$UniProtlink_16_species <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",SYMBOL_list$list,"'>",SYMBOL_list$list,"</a>", sep="")
-      selected_genes$UniProtlink_other_species <- paste("<a href='","https://www.uniprot.org/uniprot/?query=",selected_genes$ID,"'>",selected_genes$ID,"</a>", sep="")
+      selected_genes$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',selected_genes$ID,' target="_blank" class="btn btn-link"','>',selected_genes$ID,'</a>',sep="")
+      
+      selected_genes$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/search/',selected_genes$ID,' target="_blank" class="btn btn-link"','>',selected_genes$ID,'</a>',sep="")
+      selected_genes$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
+      selected_genes$UniProt_other <- paste('<a href=https://www.uniprot.org/uniprot/?query=',selected_genes$ID,' target="_blank" class="btn btn-link"','>',selected_genes$ID,'</a>',sep="")
       selected_genes$Pvalue <- signif(selected_genes$Pvalue,3)
       selected_genes$logFC <- signif(selected_genes$logFC,3)
       selected_genes 
@@ -883,6 +884,13 @@ server <- function(input, output) {
   output$number_of_points <- renderPrint({
     
     dat <- input.data();
+    
+    validate(
+      need(nrow(dat)>0,
+           "no data inported yet")
+    )
+    
+    
     dat2 <- input.data2();
     dat <- as.data.frame(dat)
     dat <- dat[order(dat$Pvalue),]
@@ -893,6 +901,8 @@ server <- function(input, output) {
     subsetted <- subset(dat, dat$logP<input$yhigh)
     subsetted_2 <- subset(subsetted, subsetted$logFC>input$xlow)
     subsetted_3 <- subset(subsetted_2, subsetted_2$logFC<input$xhigh)
+    
+   
     points_displayed <- as.numeric(dim(subsetted_3)[1])
     cat(noquote(paste("There are ", points_displayed," points displayed out of ", total, " which represents ",round(points_displayed/total*100,2),"% of the data",sep="")))
     
@@ -900,6 +910,12 @@ server <- function(input, output) {
   output$sig_values_test <- renderPrint({
     
     dat <- input.data();
+    
+    validate(
+      need(nrow(dat)>0,
+           "Please import your own")
+    )
+    
     
     dat2 <- input.data2();
     dat <- as.data.frame(dat)

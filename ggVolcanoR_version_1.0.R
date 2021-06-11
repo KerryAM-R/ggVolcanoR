@@ -14,8 +14,7 @@ require("plyr")
 require("dplyr")
 require("reshape2")
 
-
-
+ID.conversion <- read.csv("ID/uniprot.d.anno.210611.csv",row.names = 1)
 
 filtered_table <- c("upregulated" = "upregulated",
                     "downregulated" ="downregulated",
@@ -36,17 +35,13 @@ lab <- c("list: significant up","list: significant down","list: non-significant"
 
 ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                  tabPanel("Volcano plot",sidebarLayout(sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=3,
-                                                                    popify(actionButton("btn3", "Uploading the file"), "R is a case sensitive language. Please ensure that the upper and lower cases are matched when uploading the file. ID and id are different", placement="bottom", trigger = "hover"),
-                                                                    selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
+                                                                   selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                                                     fileInput('file1', 'ID, logFC, Pvalue',
                                                                               accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                                                     radioButtons('sep', 'Separator', c( Tab='\t', Comma=','), ','),
                                                                     radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'),
                                                                     tags$hr(),
-                                                                    popify(actionButton("btn4", "Types of graphs"), "Three distinct graphs for customizable annotation option: (1) no label, (2) range of genes/proteins (3) user uploaded labels", 
-                                                                           placement="bottom", trigger = "hover"),
                                                                     selectInput('selected', 'type of output: header=ID', selected_present),
-                                                                    
                                                                     fileInput('file2', 'Choose selected gene file (.csv)',
                                                                               accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                                                     p("select font for graph"),
@@ -122,8 +117,6 @@ ui <- navbarPage(title = "ggVolcanoR Shiny App", id="main",
                                                 ),
                                        tabPanel("Table with links", 
                                                 p("Table rendering parameters"),
-                                                popify(actionButton("btn2", "Uniprot search species"), "List of 16 searchable species: https://www.uniprot.org/help/taxonomy", 
-                                                       placement="bottom", trigger = "hover"),
                                                 selectInput("species", label = "",species,selected = "HUMAN"),
                                                 div(DT::dataTableOutput("myoutput",height = "100px"))),
                                        tabPanel("Summary table",DT::dataTableOutput("summary_table"),
@@ -765,20 +758,28 @@ server <- function(input, output) {
     rownames(dat) <- 1:dim(dat)[1]
     
     if (input$selected=="range of genes") {
-      sig <- subset(dat, dat$Pvalue<input$Pvalue & abs(dat$logFC)>input$FC)
-      top <- sig[(input$min:input$max),]
+      head(ID.conversion)
+      names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","ID","Biotype")
       
+      dat <- subset(dat, dat$Pvalue<input$Pvalue & abs(dat$logFC)>input$FC)
+      
+      dat.top <- merge(dat,ID.conversion,by="ID", all.x=T)
+      dat.top[is.na(dat.top)] <- "No_ID"
+      
+      top <- dat.top[(input$min:input$max),]
       SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
       names(SYMBOL_list) <- "list"
       
-       top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
-      
-      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/search/',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/',top$Ensembl,' target="_blank" class="btn btn-link"','>',top$Ensembl,'</a>',sep="")
+      top$Human_Uniprot <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$UNIPROT,' target="_blank" class="btn btn-link"','>',top$UNIPROT,"</a>", sep="")
       top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
-      top$UniProt_other <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      
       df <- top
       df$Pvalue <- signif(df$Pvalue,3)
       df$logFC <- signif(df$logFC,3)
+      df <- df[-c(4,5,6,7)]
       datatable(df, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
         formatStyle(
           'logFC',
@@ -794,19 +795,26 @@ server <- function(input, output) {
       
     }
     else if (input$selected=="no labels") {
-      top <- dat
       
+      head(ID.conversion)
+      names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","ID","Biotype")
+      dat.top <- merge(dat,ID.conversion,by="ID", all.x=T)
+      dat.top[is.na(dat.top)] <- "No_ID"
+      
+      top <- dat.top
       SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
       names(SYMBOL_list) <- "list"
       
       top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
-      
-      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/search/',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      top$Human_Protein_atlas <- paste('<a href=https://www.proteinatlas.org/',top$Ensembl,' target="_blank" class="btn btn-link"','>',top$Ensembl,'</a>',sep="")
+      top$Human_Uniprot <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$UNIPROT,' target="_blank" class="btn btn-link"','>',top$UNIPROT,"</a>", sep="")
       top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
-      top$UniProt_other <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
       df <- top
       df$Pvalue <- signif(df$Pvalue,3)
       df$logFC <- signif(df$logFC,3)
+      df <- df[-c(4,5,6,7)]
+      
       
       datatable(df, escape = FALSE,filter = 'top', options=list(scrollX = T), selection = 'none') %>% 
         formatStyle(
@@ -825,22 +833,31 @@ server <- function(input, output) {
       
       
       list <- dat2$ID
+      head(ID.conversion)
+      names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","ID","Biotype")
       
-      selected_genes <- dat[dat$ID %in% list,]
-      datatable(selected_genes) %>% formatSignif('Pvalue',3) %>% formatRound('logFC',2)
-      SYMBOL_list <- as.data.frame(paste(selected_genes$ID,"_",input$species,sep=""))
+      dat <- dat[dat$ID %in% list,]
+      
+      dat.top <- merge(dat,ID.conversion,by.x="ID", by.y="ID", all.x=T)
+      dat.top[is.na(dat.top)] <- "No_ID"
+      
+      top <- dat.top[(input$min:input$max),]
+      SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
       names(SYMBOL_list) <- "list"
       
-      selected_genes$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',selected_genes$ID,' target="_blank" class="btn btn-link"','>',selected_genes$ID,'</a>',sep="")
+      top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/',top$Ensembl,' target="_blank" class="btn btn-link"','>',top$Ensembl,'</a>',sep="")
+      top$Human_Uniprot <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$UNIPROT,' target="_blank" class="btn btn-link"','>',top$UNIPROT,"</a>", sep="")
+      top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
+      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
       
-      selected_genes$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/search/',selected_genes$ID,' target="_blank" class="btn btn-link"','>',selected_genes$ID,'</a>',sep="")
-      selected_genes$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
-      selected_genes$UniProt_other <- paste('<a href=https://www.uniprot.org/uniprot/?query=',selected_genes$ID,' target="_blank" class="btn btn-link"','>',selected_genes$ID,'</a>',sep="")
-      selected_genes$Pvalue <- signif(selected_genes$Pvalue,3)
-      selected_genes$logFC <- signif(selected_genes$logFC,3)
-      selected_genes 
+      df <- top
       
-      datatable(selected_genes, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
+      df$Pvalue <- signif(df$Pvalue,3)
+      df$logFC <- signif(df$logFC,3)
+      df <- df[-c(4,5,6,7)]
+      
+      datatable(df, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
         formatStyle(
           'logFC',
           backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
@@ -971,3 +988,4 @@ server <- function(input, output) {
 }
 
 shinyApp(ui, server)
+

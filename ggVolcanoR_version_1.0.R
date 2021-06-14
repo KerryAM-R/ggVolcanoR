@@ -769,6 +769,7 @@ server <- function(input, output) {
       
       dat.top <- merge(dat,ID.conversion,by="ID", all.x=T)
       dat.top[is.na(dat.top)] <- "No_ID"
+      dat.top <- dat.top[order(dat.top$Pvalue),]
       
       top <- dat.top[(input$min:input$max),]
       SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
@@ -804,6 +805,7 @@ server <- function(input, output) {
       names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","ID","Biotype")
       dat.top <- merge(dat,ID.conversion,by="ID", all.x=T)
       dat.top[is.na(dat.top)] <- "No_ID"
+      dat.top <- dat.top[order(dat.top$Pvalue),]
       
       top <- dat.top
       SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
@@ -844,6 +846,7 @@ server <- function(input, output) {
       
       dat.top <- merge(dat,ID.conversion,by.x="ID", by.y="ID", all.x=T)
       dat.top[is.na(dat.top)] <- "No_ID"
+      dat.top <- dat.top[order(dat.top$Pvalue),]
       
       top <- dat.top[(input$min:input$max),]
       SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))

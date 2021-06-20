@@ -223,7 +223,9 @@ ui <- navbarPage("ggVolcanoR",
                                                               label = "",
                                                               value = "Correlation plot: x vs y"),
                                        
-                                       plotOutput("cor_graph",height = "600px")),
+                                       plotOutput("cor_graph",height = "600px"),
+                                       textOutput("cor_test")
+                                       ),
                               tabPanel("Merged datatable",DT::dataTableOutput("Table5"),
                                        downloadButton("downloadTABLE2", "Filtered Table")
                                        
@@ -1173,6 +1175,70 @@ server  <- function(input, output, session) {
       
       
     }
+  })
+  
+  output$cor_test <- renderPrint({
+    
+    neg1 <- -1*input$FC1
+    pos1 <- input$FC1
+    neg2 <- -1*input$FC2
+    pos2 <- input$FC2
+    dat4 <- input.data4();
+    dat3 <- input.data3();
+    
+    validate(
+      need(nrow(dat3)>0,
+           "no data inported yet")
+    ) 
+    
+    validate(
+      need(nrow(dat4)>0,
+           "no data inported yet")
+    ) 
+    
+    
+    if (input$name.conversion.required == "no" ) {
+      
+      dat5 <- merge(dat3,dat4,by="ID")
+      dat_all <- mutate(dat5,
+                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
+                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
+      pval <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$p.value)
+
+      R_value <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$estimate)
+      CI.95 <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$conf.int)
+      round(CI.95[[1]],3)
+      round(CI.95[[2]],3)
+      cat(noquote(paste("The data has a Pearsons correlation (R) of ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
+      
+    }
+   
+    
+    else {
+      
+      dat4_ID <- merge(ID.conversion[c(1:3,5)],dat4,by.x=input$conversion1,by.y="ID")
+      dat3_ID <- merge(ID.conversion[c(1:3,5)],dat3,by.x=input$conversion2,by.y="ID")
+      dat5 <- merge(dat3_ID,dat4_ID,by=c("Ensembl","Uniprot_human","UNIPROT","Gene.Name"))
+      dat_all <- mutate(dat5,
+                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
+                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
+      
+      dat_all <- mutate(dat5,
+                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
+                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
+      pval <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$p.value)
+      
+      R_value <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$estimate)
+      CI.95 <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$conf.int)
+      round(CI.95[[1]],3)
+      round(CI.95[[2]],3)
+      
+      signif(dat_all$Pvalue.x,3)
+      
+      cat(noquote(paste("The data has a Pearsons correlation (R) of ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
+
+    }
+    
   })
   
   

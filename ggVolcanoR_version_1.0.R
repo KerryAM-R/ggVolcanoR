@@ -13,7 +13,6 @@ require("DT")
 require("plyr")
 require("dplyr")
 require("reshape2")
-require("ggpubr")
 
 ID.conversion <- read.csv("ID/uniprot.d.anno.210611.csv",row.names = 1)
 names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","Gene.Name","Biotype")
@@ -921,10 +920,6 @@ server  <- function(input, output, session) {
               legend.text = element_text(size=input$legend_size,face="plain",family=input$font2),
               legend.position = input$legend_location,
               legend.justification = "top")+
-        stat_cor(aes(x=dat_all$logFC.x,y=dat_all$logFC.y), 
-                 p.digits = 5, family=input$font,size=input$Pearson_size,
-                 label.sep='\n',
-                 label.x = input$x_position,label.y = input$y_position,label.x.npc="centre")+
         scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
         scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks))
       
@@ -981,10 +976,7 @@ server  <- function(input, output, session) {
               legend.text = element_text(size=input$legend_size,face="plain",family=input$font2),
               legend.position = input$legend_location,
               legend.justification = "top")+
-        stat_cor(aes(x=dat_all$logFC.x,y=dat_all$logFC.y), 
-                 p.digits = 5, family=input$font,size=input$Pearson_size,
-                 label.sep='\n',
-                 label.x = input$x_position,label.y = input$y_position,label.x.npc="centre")+
+        
         scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$ybreaks))+
         scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$xbreaks))
       

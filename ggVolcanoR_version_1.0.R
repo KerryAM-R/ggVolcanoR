@@ -232,6 +232,7 @@ ui <- navbarPage("ggVolcanoR",
                                        
                                        ),
                               tabPanel("Merged datatable",DT::dataTableOutput("Table5"),
+                                       p("download the data that has significant overlap (logFC in the same direction)"),
                                        downloadButton("downloadTABLE2", "Filtered Table")
                                        
                                        

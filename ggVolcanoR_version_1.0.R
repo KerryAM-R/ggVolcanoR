@@ -992,8 +992,8 @@ server  <- function(input, output, session) {
               legend.position = input$legend_location,
               legend.justification = "top")+
         
-        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$ybreaks))+
-        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$xbreaks))
+        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
+        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks))
       
       vals2$cor_graph}
   }

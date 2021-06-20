@@ -38,7 +38,7 @@ name.conversion.required <- c("no","yes")
 ui <- navbarPage("ggVolcanoR",
                  tabPanel("Volano plot",
                           sidebarLayout(
-                            sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=3,
+                            sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=4,
                                          selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file1', 'ID, logFC, Pvalue',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
@@ -148,7 +148,7 @@ ui <- navbarPage("ggVolcanoR",
                  
                  tabPanel("Correlation graph",
                           sidebarLayout(
-                            sidebarPanel(id = "tPanel2",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=4,
+                            sidebarPanel(id = "tPanel2",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=4,
                                          p("this is the comparisons plot section"),
                                          selectInput("dataset2", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file3', 'ID, logFC, Pvalue (x-axis)',
@@ -224,7 +224,12 @@ ui <- navbarPage("ggVolcanoR",
                                                               value = "Correlation plot: x vs y"),
                                        
                                        plotOutput("cor_graph",height = "600px"),
-                                       textOutput("cor_test")
+                                       p(" "),
+                                       textOutput("cor_test"),
+                                       p(" "),
+                                       textOutput("cor_test_sig")
+                                       
+                                       
                                        ),
                               tabPanel("Merged datatable",DT::dataTableOutput("Table5"),
                                        downloadButton("downloadTABLE2", "Filtered Table")
@@ -238,11 +243,18 @@ ui <- navbarPage("ggVolcanoR",
                  ),
                  
                  navbarMenu("More",
-                            tabPanel("Read",
+                            tabPanel("Volcano plot Read Me file",
                                      fluidRow(includeMarkdown("README.md")
                                               
                                      )
                             ),
+                            
+                            tabPanel("Correlation plot plot Read Me file",
+                                     fluidRow(includeMarkdown("README_Correlationplot.md")
+                                              
+                                     )
+                            ),
+                            
                             tabPanel("Session info", 
                                      tabPanel("Session info", verbatimTextOutput("sessionInfo"))
                             )
@@ -1209,7 +1221,7 @@ server  <- function(input, output, session) {
       CI.95 <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$conf.int)
       round(CI.95[[1]],3)
       round(CI.95[[2]],3)
-      cat(noquote(paste("The data has a Pearsons correlation (R) of ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
+      cat(noquote(paste("The overall Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
       
     }
    
@@ -1235,11 +1247,77 @@ server  <- function(input, output, session) {
       
       signif(dat_all$Pvalue.x,3)
       
-      cat(noquote(paste("The data has a Pearsons correlation (R) of ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
+      cat(noquote(paste("The overall Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
 
     }
     
   })
+  
+  
+  
+  output$cor_test_sig <- renderPrint({
+    
+    neg1 <- -1*input$FC1
+    pos1 <- input$FC1
+    neg2 <- -1*input$FC2
+    pos2 <- input$FC2
+    dat4 <- input.data4();
+    dat3 <- input.data3();
+    
+    validate(
+      need(nrow(dat3)>0,
+           "no data inported yet")
+    ) 
+    
+    validate(
+      need(nrow(dat4)>0,
+           "no data inported yet")
+    ) 
+    
+    
+    if (input$name.conversion.required == "no" ) {
+      
+      dat5 <- merge(dat3,dat4,by="ID")
+      dat_all <- mutate(dat5,
+                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
+                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
+      
+      dat.sig <- subset(dat_all, dat_all$significance== "both_sig_up" | dat_all$significance== "both_sig_down")
+      
+      pval <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$p.value)
+      
+      R_value <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$estimate)
+      CI.95 <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$conf.int)
+      round(CI.95[[1]],3)
+      round(CI.95[[2]],3)
+      cat(noquote(paste("The overlap of significant values Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
+      
+    }
+    
+    
+    else {
+      
+      dat4_ID <- merge(ID.conversion[c(1:3,5)],dat4,by.x=input$conversion1,by.y="ID")
+      dat3_ID <- merge(ID.conversion[c(1:3,5)],dat3,by.x=input$conversion2,by.y="ID")
+      dat5 <- merge(dat3_ID,dat4_ID,by=c("Ensembl","Uniprot_human","UNIPROT","Gene.Name"))
+      dat_all <- mutate(dat5,
+                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
+                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
+      
+      dat.sig <- subset(dat_all, dat_all$significance== "both_sig_up" | dat_all$significance== "both_sig_down")
+      
+      pval <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$p.value)
+      
+      R_value <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$estimate)
+      CI.95 <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$conf.int)
+      round(CI.95[[1]],3)
+      round(CI.95[[2]],3)
+      cat(noquote(paste("The overlap of significant values Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
+      
+    }
+    
+  })
+  
   
   
   

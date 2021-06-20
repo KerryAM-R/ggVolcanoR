@@ -13,7 +13,6 @@ require("DT")
 require("plyr")
 require("dplyr")
 require("reshape2")
-require("ggpubr")
 
 ID.conversion <- read.csv("ID/uniprot.d.anno.210611.csv",row.names = 1)
 names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","Gene.Name","Biotype")

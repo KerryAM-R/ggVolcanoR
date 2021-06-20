@@ -256,7 +256,7 @@ server  <- function(input, output, session) {
     print(sessionInfo())
   })
   
-  options(shiny.sanitize.errors = TRUE)
+  #options(shiny.sanitize.errors = TRUE)
   
   input.data <- reactive({switch(input$dataset,"test-data" = test.data(),"own" = own.data())})
   

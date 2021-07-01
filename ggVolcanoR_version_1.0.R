@@ -22,17 +22,22 @@ filtered_table <- c("upregulated" = "upregulated",
                     "all significant values" = "all_significant",
                     "own list" = "own list")
 
+sort_by <- c("x-axis" = 2,
+             "y-axis" =4)
 fonts <- c("Arial" = "sans", 
            "Times New Roman" = "serif", 
            "Courier" = "mono")
 
-selected_present <- c("no labels","range of genes","own list")
+selected_present <- c("no labels","range (both directions)","range (up direction)","range (down direction)","own list")
 y_options <- c("-Log10(p-value)","FDR", "adjusted")
 legend_location <- c("right","bottom","left","top","none")
 species <- c("BOVIN","CHICK","ECOLI","HORSE","HUMAN","MAIZE","MOUSE","PEA", "PIG","RABIT","RAT","SHEEP","SOYBN","TOBAC","WHEAT","YEAST")
-lab <- c("list: significant up","list: significant down","list: non-significant")
+lab <- c("significant up","significant down","non-significant")
 names.conversion <- names(ID.conversion)[c(1:3,5)]
-name.conversion.required <- c("no","yes") 
+name.conversion.required <- c(TRUE,FALSE) 
+label3 <- c(TRUE,FALSE)
+direction <- c("all","up","down","same","opposite")
+sort_direction <- c(TRUE,FALSE)
 # user interface  ----
 
 ui <- navbarPage("ggVolcanoR",
@@ -42,80 +47,101 @@ ui <- navbarPage("ggVolcanoR",
                                          selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file1', 'ID, logFC, Pvalue',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         radioButtons('sep', 'Separator', c( Tab='\t', Comma=','), ','),
-                                         radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'),
+                                         fluidRow(
+                                           column(6,radioButtons('sep', 'Separator', c( Tab='\t', Comma=','), ',')),
+                                           column(6,radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                         ),
+                                         
                                          tags$hr(),
-                                         selectInput('selected', 'type of output: header=ID', selected_present),
+                                         h4("Type of graph"),
+                                         p("there are 5 labelling options: none, both, up, down or own list"),
+                                         selectInput('selected', 'type of output', selected_present),
                                          fileInput('file2', 'Choose selected gene file (.csv)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         p("select font for graph"),
+                                         h4("select font for graph"),
                                          selectInput('font',
                                                      'font type',
                                                      choices = fonts, 
                                                      selected = fonts[1]),
-                                         p("Cut-offs"),
-                                         numericInput("Pvalue", "p-value cut-off", value=0.05),
-                                         numericInput("FC", "absolute log2 fold change", value=0.58),
+                                         h4("Cut-offs"),
+                                         fluidRow(
+                                           column(6,numericInput("Pvalue", "p-value", value=0.05)),
+                                           column(6,numericInput("FC", "absolute logFC", value=0.58))
+                                         ),
                                          textInput(inputId = "sig_lines", label = "significance lines",value = "grey"),
-                                         p("Axis parameters"),
+                                         h4("Axis parameters"),
                                          textInput(inputId = "expression_y2", 
                                                    label = "Y-axis label",
                                                    value = "p-value"),
-                                         numericInput("yhigh","y-axis upper range",value = 100),
-                                         numericInput("ybreaks","y-axis tick marks",value = 10),
-                                         numericInput("xlow","x-axis lower range",value = -10),
-                                         numericInput("xhigh","x-axis upper range",value = 10),
-                                         numericInput("xbreaks","x-axis tick marks",value = 1),
+                                         
+                                         fluidRow(
+                                           column(4,numericInput("yhigh","y-axis upper range",value = 100)),
+                                           column(4,numericInput("ybreaks","y-axis tick marks",value = 10))
+                                           
+                                         ),
+                                         fluidRow(
+                                           column(4,numericInput("xlow","x-axis lower range",value = -10)),
+                                           column(4,numericInput("xhigh","x-axis upper range",value = 10)),
+                                           column(4, numericInput("xbreaks","x-axis tick marks",value = 1))
+                                         ),
                                          sliderInput("axis", "axis text size", min=0, max=100, value=30, step=0.1),
                                          sliderInput("axis_text", "axis numeric text size", min=0, max=100, value=30, step=0.1),
-                                         p("point size, shape and transparancy"),
+                                         h4("point size, shape and transparancy"),
                                          sliderInput("alpha1", "Transparency of significant (highlighted only)", min=0.01, max=1, value=1,step = 0.01),
                                          sliderInput("alpha2", "Transparency of significant", min=0.01, max=1, value=0.5,step = 0.01),
                                          sliderInput("alpha3", "Transparency of non-significant", min=0.01, max=1, value=0.25,step = 0.01),
                                          # img(class="img-polaroid", src = "http://www.sthda.com/sthda/RDoc/images/points-symbols.png",width=200,height=200),
-                                         numericInput("shape1","Shape of significant (highlighted only)",value = 19),
-                                         numericInput("shape2","Shape of significant",value = 19),
-                                         numericInput("shape3","Shape of non-significant",value = 1),
-                                         numericInput("size1","Size of significant (highlighted only)",value = 3),
-                                         numericInput("size2","Size of significant",value = 3),
-                                         numericInput("size3","Size of non-significant",value = 1),
-                                         p("Colour of points"),
-                                         textInput(inputId = "up", label = "up-regulated",value = "red"),
-                                         textInput(inputId = "down",  label = "down-regulated", value = "steelblue1"),
-                                         textInput(inputId = "NS", label = "Non-significant",value = "grey"),
-                                         textInput(inputId = "col_lab1", label = "label one",value = "darkblue"),
-                                         selectInput(inputId = "lab1", 
-                                                     label = "select label 1", 
-                                                     choices = lab, 
-                                                     selected = "significant down"),
-                                         textInput(inputId = "col_lab2", label = "label two",value = "orange"),
-                                         selectInput(inputId = "lab2", 
-                                                     label = "select label 2", 
-                                                     choices = lab, 
-                                                     selected = "significant up"),
-                                         textInput(inputId = "col_lab3", label = "label three",value = "purple"),
-                                         selectInput(inputId = "lab3", 
-                                                     label = "select label 3", 
-                                                     choices = lab, 
-                                                     selected = "non-significant in list"),
-                                         p("Label parameters"),
-                                         numericInput("min", "label range (min)", value=1),
-                                         numericInput("max", "label range (max)", value=20),
+                                         fluidRow(
+                                           column(4,numericInput("shape1","Shape of highlighted",value = 19)),
+                                           column(4,numericInput("shape2","Shape of significant",value = 19)),
+                                           column(4,numericInput("shape3","Shape of non-significant",value = 1))
+                                         ),
+                                         fluidRow(
+                                           column(4, numericInput("size1","Size of highlighted",value = 3)),
+                                           column(4,numericInput("size2","Size of significant",value = 3)),
+                                           column(4,numericInput("size3","Size of non-significant",value = 1))
+                                         ),
+                                         h4("Colour of points"),
+                                         fluidRow(
+                                           column(6,textInput(inputId = "up", label = "up-regulated",value = "red")),
+                                           column(6,textInput(inputId = "down",  label = "down-regulated", value = "steelblue1")),
+                                           column(6,textInput(inputId = "NS", label = "Non-significant",value = "grey")),
+                                           
+                                         ),
+                                         p(" "),
+                                         fluidRow(
+                                           column(6,textInput(inputId = "col_lab1", label = "label one",value = "darkblue")),
+                                           column(6,selectInput(inputId = "lab1", 
+                                                                label = "select label 1", 
+                                                                choices = lab, 
+                                                                selected = "significant down")),
+                                           column(6,textInput(inputId = "col_lab2", label = "label two",value = "orange")),
+                                           column(6,selectInput(inputId = "lab2", 
+                                                                label = "select label 2", 
+                                                                choices = lab, 
+                                                                selected = "significant up")),
+                                           column(6,textInput(inputId = "col_lab3", label = "label three",value = "purple")),
+                                           column(6,selectInput(inputId = "lab3", 
+                                                                label = "select label 3", 
+                                                                choices = lab, 
+                                                                selected = "non-significant in list"))
+                                         ),
+                                         
+                                         h4("Label parameters"),
+                                         fluidRow(
+                                           column(6,numericInput("min", "label range (min)", value=1)),
+                                           column(6, numericInput("max", "label range (max)", value=20))
+                                         ),
                                          sliderInput("dist", "distance of label", min=0, max=2, value=0.25,step = 0.01),
                                          sliderInput("label", "size of labels", min=0, max=60, value=8,step =0.1),
-                                         p("Legend parameters"),
-                                         selectInput('legend_location', 'Legend location', legend_location),
-                                         numericInput("col", "# of legend columns", value=1, step = 1),
-                                         sliderInput("legend_size", "legend text size", min=1, max=60, value=12),
+                                         h4("Legend parameters"),
+                                         fluidRow(
+                                           column(4,selectInput('legend_location', 'Legend location', legend_location)),
+                                           column(4,numericInput("col", "# of legend columns", value=1, step = 1)),
+                                           column(4, numericInput("legend_size", "legend text size", min=1, max=60, value=12))
+                                         ),
                                          
-                                         p("Exporting the ggVolcanoR plot"),
-                                         numericInput("width", "width of PDF", value=10),
-                                         numericInput("height", "height of PDF", value=8),
-                                         downloadButton('downloadPlot','Download PDF'),
-                                         numericInput("width_png","width of png", value = 1600),
-                                         numericInput("height_png","height of png", value = 1200),
-                                         numericInput("resolution_PNG","resolution of PNG", value = 144),
-                                         downloadButton('downloadPlotPNG','Download PNG') 
+                                         
                                          
                                          
                                          
@@ -126,7 +152,21 @@ ui <- navbarPage("ggVolcanoR",
                                                          value = "Volcano plot: x vs y"),
                                        textOutput("number_of_points"),
                                        textOutput("sig_values_test"),
-                                       plotOutput("ggplot",height = "600px")    
+                                       plotOutput("ggplot",height = "600px"),
+                                       h4("Exporting the ggVolcanoR plot"),
+                                       fluidRow(
+                                         column(4,numericInput("width", "width of PDF", value=10)),
+                                         column(4,numericInput("height", "height of PDF", value=8)),
+                                         column(4,downloadButton('downloadPlot','Download PDF'))
+                                       ),
+                                       
+                                       fluidRow(
+                                         column(3,numericInput("width_png","width of png", value = 1600)),
+                                         column(3,numericInput("height_png","height of png", value = 1200)),
+                                         column(3,numericInput("resolution_PNG","resolution of PNG", value = 144)),
+                                         column(3,downloadButton('downloadPlotPNG','Download PNG'))
+                                       ),
+                                       
                               ),
                               tabPanel("Table with links", 
                                        selectInput("species", label = "List of the 16 common species used in uniprot",species,selected = "HUMAN"),
@@ -150,93 +190,169 @@ ui <- navbarPage("ggVolcanoR",
                  tabPanel("Correlation graph",
                           sidebarLayout(
                             sidebarPanel(id = "tPanel2",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=4,
-                                         p("this is the comparisons plot section"),
+                                         h4("Corrleation plot parameters"),
                                          selectInput("dataset2", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file3', 'ID, logFC, Pvalue (x-axis)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         radioButtons('sep3', 'Separator', c( Tab='\t', Comma=','), ','),
-                                         radioButtons('quote3', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'),
+                                         fluidRow(
+                                           column(6, radioButtons('sep3', 'Separator', c( Tab='\t', Comma=','), ',')),
+                                           column(6,radioButtons('quote3', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                         ),
                                          tags$hr(),
-                                         
                                          fileInput('file4', 'ID, logFC, Pvalue (y-axis)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         radioButtons('sep4', 'Separator', c( Tab='\t', Comma=','), ','),
-                                         radioButtons('quote4', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'),
+                                         fluidRow(
+                                           column(6,radioButtons('sep4', 'Separator', c( Tab='\t', Comma=','), ',')),
+                                           column(6,radioButtons('quote4', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                         ),
+                                         
+                                         selectInput('font2',
+                                                     'font type',
+                                                     choices = fonts, 
+                                                     selected = fonts[1]),
+                                         h4("axis text labels in the brackets"),
+                                         fluidRow(column(6,textInput(inputId = "expression_x", 
+                                                                     label = "x-axis label",
+                                                                     value = "Proteomics")),
+                                                  column(6,textInput(inputId = "expression_y", 
+                                                                     label = "y-axis label",
+                                                                     value = "Transcriptomics"))
+                                                  
+                                         ),
+                                         h4("cut-off"),
+                                         fluidRow(
+                                           column(6,numericInput("Pvalue1", "p-value (x-axis)", value=0.05)),
+                                           column(6,numericInput("FC1", "absolute logFC (x-axis)", value=0.58)),
+                                           column(6,numericInput("Pvalue2", "p-value (y-axis)", value=0.05)),
+                                           column(6,numericInput("FC2", "absolute logFC (y-axis)", value=0.58))
+                                         ),
+                                         h4("axis text size"),
+                                         numericInput("axis2", "axis text size", min=0, value=30),
+                                         numericInput("axis_text2", "axis numeric text size", min=0, value=30),
+                                         h4("colour of points"),
+                                         fluidRow(
+                                           column(4,textInput(inputId = "col1", label = "same up",value = "red")),
+                                           column(4,textInput(inputId = "col2", label = "same down",value = "blue")),
+                                           column(4,textInput(inputId = "col3", label = "other",value = "grey"))
+                                         ),
+                                         h4("axis tick marks"),
+                                         fluidRow(
+                                           column(6,numericInput("cor_xbreaks","x-axis tick marks",value = 1)),
+                                           column(6,numericInput("cor_ybreaks","y-axis tick marks",value = 2))
+                                         ),
+                                         h4("colours of correlation line"),
+                                         fluidRow(
+                                           column(6,textInput(inputId = "cor_sig_lines", label = "significance lines",value = "grey")),
+                                           column(6,textInput(inputId = "linecolour", label = "Correlation line colour",value = "red")),
+                                           column(6,textInput(inputId = "CI95_fill", label = "95% CI colour",value = "grey"))
+                                         ),
+                                         h4("Data point"),
+                                         sliderInput("cor_alpha1", "transparency of significant up", min=0.01, max=1, value=1,step = 0.01),
+                                         sliderInput("cor_alpha2", "transparency of significant down", min=0.01, max=1, value=1,step = 0.01),
+                                         sliderInput("cor_alpha3", "transparency of non-sig ID", min=0.01, max=1, value=0.25,step = 0.01),
+                                         fluidRow(
+                                           column(4, numericInput("cor_shape1","shape of upregulated in both",value = 19)),
+                                           column(4,numericInput("cor_shape2","shape of downregulated in both",value = 19)),
+                                           column(4,numericInput("cor_shape3","shape of other",value = 1))
+                                         ),
+                                         
+                                         fluidRow(
+                                           column(4,numericInput("cor_size1","Size of upregulated in both",value = 3)),
+                                           column(4,numericInput("cor_size2","Size of downregulated in both",value = 3)),
+                                           column(4,numericInput("cor_size3","Size of other",value = 1))
+                                         ),
+                                         
+                                         
+                                         sliderInput("legend_size2", "legend text size", min=1, max=60, value=12),
+                                         
                                          selectInput("name.conversion.required","For human data, does the ID need to be converted to merge the two datasets?",
                                                      choices = name.conversion.required,
-                                                     selected = 'no'),
+                                                     selected = FALSE),
                                          selectInput("conversion1","Merge file 1 by ensemble, Symbol or Uniprot ID",
                                                      choices = names.conversion,
                                                      selected = "Gene.Name"),
                                          selectInput("conversion2","Merge file 2 by ensemble, Symbol or Uniprot ID",
                                                      choices = names.conversion,
                                                      selected = "Gene.Name"),
-                                         selectInput('font2',
-                                                     'font type',
-                                                     choices = fonts, 
-                                                     selected = fonts[1]),
-                                         textInput(inputId = "expression_x", 
-                                                   label = "x-axis label",
-                                                   value = "Proteomics"),
-                                         textInput(inputId = "expression_y", 
-                                                   label = "y-axis label",
-                                                   value = "Transcriptomics"),
-                                         numericInput("Pvalue1", "p-value cut-off (1)", value=0.05),
-                                         numericInput("FC1", "absolute log2 fold change (1)", value=0.58),
-                                         numericInput("Pvalue2", "p-value cut-off (2)", value=0.05),
-                                         numericInput("FC2", "absolute log2 fold change (2)", value=0.58),
-                                         numericInput("axis", "axis text size", min=0, value=30),
-                                         numericInput("axis_text", "axis numeric text size", min=0, value=30),
-                                         textInput(inputId = "col1", label = "upregulated in both",value = "red"),
-                                         textInput(inputId = "col2", label = "downregulated in both",value = "blue"),
-                                         textInput(inputId = "col3", label = "Not diffenerentially expressed in both",value = "grey"),
-                                         numericInput("cor_xbreaks","x-axis tick marks",value = 1),
-                                         numericInput("cor_ybreaks","y-axis tick marks",value = 2),
-                                         textInput(inputId = "cor_sig_lines", label = "significance lines",value = "grey"),
-                                         numericInput("Pearson_size", "Size of correlation test on graph", min=0, value=6),
-                                         textInput(inputId = "linecolour", label = "Correlation line colour",value = "red"),
-                                         textInput(inputId = "CI95_fill", label = "95% CI colour",value = "grey"),
-                                         numericInput("x_position", "Corrleation position (x-axis)", value=0),
-                                         numericInput("y_position", "Corrleation position (y-axis)", value=0),
-                                         sliderInput("cor_alpha1", "transparency of significant up", min=0.01, max=1, value=1,step = 0.01),
-                                         sliderInput("cor_alpha2", "transparency of significant down", min=0.01, max=1, value=1,step = 0.01),
-                                         sliderInput("cor_alpha3", "transparency of non-sig ID", min=0.01, max=1, value=0.25,step = 0.01),
-                                         #img(class="img-polaroid", src = "http://www.sthda.com/sthda/RDoc/images/points-symbols.png",width=200,height=200),
-                                         numericInput("cor_shape1","shape of upregulated in both",value = 19),
-                                         numericInput("cor_shape2","shape of downregulated in both",value = 19),
-                                         numericInput("cor_shape3","shape of other",value = 1),
-                                         numericInput("cor_size1","Size of upregulated in both",value = 3),
-                                         numericInput("cor_size2","Size of downregulated in both",value = 3),
-                                         numericInput("cor_size3","Size of other",value = 1),
-                                         p("Exporting the correlation plot"),
-                                         numericInput("cor_width", "width of PDF", value=10),
-                                         numericInput("cor_height", "height of PDF", value=8),
-                                         downloadButton('downloadPlot2','Download PDF'),
-                                         numericInput("cor_width_png","width of png", value = 1600),
-                                         numericInput("cor_height_png","height of png", value = 1200),
-                                         numericInput("cor_resolution_PNG","resolution of PNG", value = 144),
-                                         downloadButton('downloadPlotPNG2','Download PNG')
-                                         
-                                         
-                                         
                             ),
                             mainPanel(tabsetPanel(
-                              tabPanel("cor_graph", textInput(inputId = "title2", 
-                                                              label = "",
-                                                              value = "Correlation plot: x vs y"),
+                              tabPanel("correlation graph", 
+                                       fluidRow(
+                                         column(4, textInput(inputId = "title2", 
+                                                             label = "",
+                                                             value = "Correlation plot: x vs y")),
+                                         
+                                         column(2,checkboxInput("label3", label = "Display labels", value = FALSE)),
+                                         column(2,checkboxInput("sort_direction", label = "reverse direction", value = TRUE)),
+                                         column(2,sliderInput("sort_by","2=x-axis & 4=y-axis",min=2,max=4,value=2,step=2)),
+                                         column(2,numericInput("min2", "label range (min)", value=1)),
+                                         column(2,numericInput("max2", "label range (max)", value=20)),
+                                         column(2,numericInput("label2", "size of labels",value=8)),
+                                         column(2,numericInput("dist2", "distance of label", value=1))),
                                        
                                        plotOutput("cor_graph",height = "600px"),
                                        p(" "),
                                        textOutput("cor_test"),
                                        p(" "),
-                                       textOutput("cor_test_sig")
-                                       
-                                       
+                                       textOutput("cor_test_sig"),
+                                       h4("Exporting the correlation plot"),
+                                       fluidRow(
+                                         column(4,numericInput("cor_width", "width of PDF", value=10)),
+                                         column(4,numericInput("cor_height", "height of PDF", value=8)),
+                                         column(4,downloadButton('downloadPlot2','Download PDF'))
+                                         
                                        ),
-                              tabPanel("Merged datatable",DT::dataTableOutput("Table5"),
+                                       
+                                       fluidRow(
+                                         column(3,numericInput("cor_width_png","width of png", value = 1600)),
+                                         column(3,numericInput("cor_height_png","height of png", value = 1200)),
+                                         column(3,numericInput("cor_resolution_PNG","resolution of PNG", value = 144)),
+                                         column(3,downloadButton('downloadPlotPNG2','Download PNG'))
+                                       ),
+                                       
+                                       
+                                       
+                                       
+                              ),
+                              tabPanel("Datatable",DT::dataTableOutput("Table5"),
                                        p("download the data that has significant overlap (logFC in the same direction)"),
                                        downloadButton("downloadTABLE2", "Filtered Table")
                                        
+                                       
+                              ),
+                              tabPanel("Bar graph", 
+                                       
+                                       fluidRow(h4("bar graph parameters"),
+                                                
+                                                column(3, selectInput("direction","Select which direction to show",
+                                                                      choices = direction,
+                                                                      selected = "all")),
+                                                column(3,numericInput("bar_xbreaks","x-axis tick marks",value = 1)),
+                                                column(3,textInput(inputId = "col4", label = "dataset 1 (x-axis)",value = "lightgreen")),
+                                                column(3,textInput(inputId = "col5", label = "dataset 2 (y-axis)",value = "#ffa600"))
+                                                
+                                       ),
+                                       fluidRow(
+                                         column(4,sliderInput("axis3", "x-axis text size", min=0, max=100, value=30, step=0.1)),
+                                         column(4,sliderInput("bar_text_y", "Size of ID in bar graph", min=0, max=100, value=12, step=0.1)),
+                                         column(4,sliderInput("bar_text_x", "Size of number in bar graph", min=0, max=100, value=12, step=0.1))
+                                       ),
+                                       
+                                       
+                                       plotOutput("logFC_direction", height = "600px"),
+                                       
+                                       fluidRow(
+                                         column(3,numericInput("bar_width", "width of PDF", value=10)),
+                                         column(3,numericInput("bar_height", "height of PDF", value=8)),
+                                         downloadButton('downloadPlot3','Download PDF')
+                                       ),
+                                       
+                                       fluidRow(
+                                         column(3,numericInput("bar_width_png","width of png", value = 1600)),
+                                         column(3,numericInput("bar_height_png","height of png", value = 1200)),
+                                         column(3,numericInput("bar_resolution_PNG","resolution of PNG", value = 144)),
+                                         column(3,downloadButton('downloadPlotPNG3','Download PNG'))
+                                       ),
                                        
                               )
                               
@@ -252,7 +368,7 @@ ui <- navbarPage("ggVolcanoR",
                                      )
                             ),
                             
-                            tabPanel("Correlation plot plot Read Me file",
+                            tabPanel("Correlation plot Read Me file",
                                      fluidRow(includeMarkdown("README_Correlationplot.md")
                                               
                                      )
@@ -262,12 +378,14 @@ ui <- navbarPage("ggVolcanoR",
                                      tabPanel("Session info", verbatimTextOutput("sessionInfo"))
                             )
                  ))
-
+# sever -----
 server  <- function(input, output, session) {
   
   
   vals <- reactiveValues(ggplot=NULL)
   vals2 <- reactiveValues(cor_graph=NULL)
+  vals3 <- reactiveValues(logFC_direction=NULL)
+  
   output$sessionInfo <- renderPrint({
     print(sessionInfo())
   })
@@ -380,10 +498,7 @@ server  <- function(input, output, session) {
     dat <- dat[order(dat$Pvalue),]
     
     list <- dat2$ID
-    
     list2 <- dat2$ID
-    
-    #####
     neg <- -1*input$FC
     pos <- input$FC
     
@@ -432,7 +547,7 @@ server  <- function(input, output, session) {
     
     ##### 
     
-    if (input$selected=="range of genes") {
+    if (input$selected=="range (both directions)") {
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene2$logFC, y=-log10(sub.mutateddf.gene2$Pvalue),
                        col=sub.mutateddf.gene2$colour),shape=sub.mutateddf.gene2$shape,size=sub.mutateddf.gene2$size,alpha=sub.mutateddf.gene2$alpha) +
@@ -475,6 +590,144 @@ server  <- function(input, output, session) {
       vals$ggplot
       
     }
+    
+    else if (input$selected=="range (up direction)") {
+      
+      
+      mutateddf.gene2 <- subset(mutateddf.gene,mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue)
+      Ordered_df <-  mutateddf.gene2[order(mutateddf.gene2$Pvalue,decreasing = F),]
+      
+      top <- mutateddf.gene2[(input$min:input$max),]
+      gene_list <- top$ID
+      sub.mutateddf.gene2 <- mutate(mutateddf.gene,
+                                    colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "top_up",
+                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "top_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
+                                                                                                                                                                                                                                                                        ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")))),
+                                    alpha=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
+                                                 ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))),
+                                    size=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$size1,
+                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$size1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))),
+                                    shape=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,
+                                                 ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$shape2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3))))
+      )
+      
+      colour_class <- c("NS","sig_down","sig_up","top_down","top_up")
+      
+      sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour_class)
+      
+      vals$ggplot <- ggplot() + 
+        geom_point(aes(x=sub.mutateddf.gene2$logFC, y=-log10(sub.mutateddf.gene2$Pvalue),
+                       col=sub.mutateddf.gene2$colour),shape=sub.mutateddf.gene2$shape,size=sub.mutateddf.gene2$size,alpha=sub.mutateddf.gene2$alpha) +
+        geom_text_repel(data=sub.mutateddf.gene2[sub.mutateddf.gene2$ID %in% gene_list,]
+                        ,aes(x=sub.mutateddf.gene2$logFC[sub.mutateddf.gene2$ID %in% gene_list], 
+                             y=  -log10(sub.mutateddf.gene2$Pvalue)[sub.mutateddf.gene2$ID %in% gene_list],
+                             label= sub.mutateddf.gene2$ID[sub.mutateddf.gene2$ID %in% gene_list]),
+                        size=input$label,
+                        family=input$font, 
+                        segment.alpha = 0.5, 
+                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
+                        max.overlaps = Inf) +
+        scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab2),labels=c("non-significant","down-regulated","up-regulated",input$lab2)) +
+        guides(fill = guide_legend(override.aes = list(shape = NA))) +
+        theme_bw(base_size = 18)+
+        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
+        geom_vline(xintercept=pos, linetype="dashed", color = input$sig_lines) +
+        geom_vline(xintercept=neg, linetype="dashed", color = input$sig_lines) +
+        geom_hline(yintercept=-log10(input$Pvalue), linetype="dashed", color = input$sig_lines) +
+        theme(text=element_text(size=20,family=input$font),
+              axis.title = element_text(colour="black", size=input$axis,family=input$font),
+              axis.text.x = element_text(colour="black",size=input$axis_text,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
+              axis.text.y = element_text(colour="black",size=input$axis_text,angle=0,hjust=1,vjust=0,face="plain",family=input$font),
+              axis.title.x=element_text(colour="black",size=input$axis,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
+              axis.title.y = element_text(colour="black",size=input$axis,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font),
+              legend.title  =element_blank(),
+              legend.text = element_text(size=input$legend_size),
+              legend.position = input$legend_location, 
+              legend.box="vertical",
+              legend.margin=margin(),
+              legend.justification = "top")+
+        labs(y=y_lable1,
+             x=expression(Log[2]~Fold~Change),
+             title=input$title) +
+        guides(size=FALSE, col = guide_legend(ncol=input$col))+
+        scale_alpha(guide = 'none')+
+        scale_y_continuous(limits = c(0, input$yhigh) ,breaks = seq(0, input$yhigh, by = input$ybreaks))+
+        scale_x_continuous(limits = c(input$xlow, input$xhigh), breaks = seq(input$xlow, input$xhigh, by = input$xbreaks))
+      vals$ggplot
+      
+    }
+    
+    
+    else if (input$selected=="range (down direction)") {
+      
+      
+      mutateddf.gene2 <- subset(mutateddf.gene,mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue)
+      Ordered_df <-  mutateddf.gene2[order(mutateddf.gene2$Pvalue,decreasing = F),]
+      
+      top <- mutateddf.gene2[(input$min:input$max),]
+      gene_list <- top$ID
+      sub.mutateddf.gene2 <- mutate(mutateddf.gene,
+                                    colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "top_up",
+                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "top_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
+                                                                                                                                                                                                                                                                        ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")))),
+                                    alpha=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
+                                                 ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))),
+                                    size=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$size1,
+                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$size1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))),
+                                    shape=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,
+                                                 ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$shape2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3))))
+      )
+      
+      
+      colour_class <- c("NS","sig_down","sig_up","top_down","top_up")
+      
+      sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour_class)
+      
+      vals$ggplot <- ggplot() + 
+        geom_point(aes(x=sub.mutateddf.gene2$logFC, y=-log10(sub.mutateddf.gene2$Pvalue),
+                       col=sub.mutateddf.gene2$colour),shape=sub.mutateddf.gene2$shape,size=sub.mutateddf.gene2$size,alpha=sub.mutateddf.gene2$alpha) +
+        geom_text_repel(data=sub.mutateddf.gene2[sub.mutateddf.gene2$ID %in% gene_list,]
+                        ,aes(x=sub.mutateddf.gene2$logFC[sub.mutateddf.gene2$ID %in% gene_list], 
+                             y=  -log10(sub.mutateddf.gene2$Pvalue)[sub.mutateddf.gene2$ID %in% gene_list],
+                             label= sub.mutateddf.gene2$ID[sub.mutateddf.gene2$ID %in% gene_list]),
+                        size=input$label,
+                        family=input$font, 
+                        segment.alpha = 0.5, 
+                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
+                        max.overlaps = Inf) +
+        scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab1),labels=c("non-significant","down-regulated","up-regulated",input$lab1)) +
+        guides(fill = guide_legend(override.aes = list(shape = NA))) +
+        theme_bw(base_size = 18)+
+        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
+        geom_vline(xintercept=pos, linetype="dashed", color = input$sig_lines) +
+        geom_vline(xintercept=neg, linetype="dashed", color = input$sig_lines) +
+        geom_hline(yintercept=-log10(input$Pvalue), linetype="dashed", color = input$sig_lines) +
+        theme(text=element_text(size=20,family=input$font),
+              axis.title = element_text(colour="black", size=input$axis,family=input$font),
+              axis.text.x = element_text(colour="black",size=input$axis_text,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
+              axis.text.y = element_text(colour="black",size=input$axis_text,angle=0,hjust=1,vjust=0,face="plain",family=input$font),
+              axis.title.x=element_text(colour="black",size=input$axis,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
+              axis.title.y = element_text(colour="black",size=input$axis,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font),
+              legend.title  =element_blank(),
+              legend.text = element_text(size=input$legend_size),
+              legend.position = input$legend_location, 
+              legend.box="vertical",
+              legend.margin=margin(),
+              legend.justification = "top")+
+        labs(y=y_lable1,
+             x=expression(Log[2]~Fold~Change),
+             title=input$title) +
+        guides(size=FALSE, col = guide_legend(ncol=input$col))+
+        scale_alpha(guide = 'none')+
+        scale_y_continuous(limits = c(0, input$yhigh) ,breaks = seq(0, input$yhigh, by = input$ybreaks))+
+        scale_x_continuous(limits = c(input$xlow, input$xhigh), breaks = seq(input$xlow, input$xhigh, by = input$xbreaks))
+      vals$ggplot
+      
+    }
+    
+    
     else if (input$selected=="own list") {
       
       
@@ -601,7 +854,8 @@ server  <- function(input, output, session) {
     dat <- dat[order(dat$Pvalue),]
     rownames(dat) <- 1:dim(dat)[1]
     
-    if (input$selected=="range of genes") {
+    
+    if (input$selected=="range (both directions)") {
       head(ID.conversion)
       names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","ID","Biotype")
       
@@ -673,6 +927,83 @@ server  <- function(input, output, session) {
           backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
           color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
           fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
+      
+    }
+    else if (input$selected=="range (up direction)") {
+      head(ID.conversion)
+      names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","ID","Biotype")
+      
+      dat <- subset(dat, dat$Pvalue<input$Pvalue & dat$logFC>input$FC)
+      
+      dat.top <- merge(dat,ID.conversion,by="ID", all.x=T)
+      dat.top[is.na(dat.top)] <- "No_ID"
+      dat.top <- dat.top[order(dat.top$Pvalue),]
+      
+      top <- dat.top[(input$min:input$max),]
+      SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
+      names(SYMBOL_list) <- "list"
+      
+      top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/',top$Ensembl,' target="_blank" class="btn btn-link"','>',top$Ensembl,'</a>',sep="")
+      top$Human_Uniprot <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$UNIPROT,' target="_blank" class="btn btn-link"','>',top$UNIPROT,"</a>", sep="")
+      top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
+      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      
+      df <- top
+      df$Pvalue <- signif(df$Pvalue,3)
+      df$logFC <- signif(df$logFC,3)
+      df <- df[-c(4,5,6,7)]
+      datatable(df, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
+        formatStyle(
+          'logFC',
+          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
+          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
+          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
+        formatStyle(
+          'Pvalue',
+          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
+          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
+          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
+      
+      
+    }
+    
+    else if (input$selected=="range (down direction)") {
+      head(ID.conversion)
+      names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","ID","Biotype")
+      neg <- -1*input$FC
+      dat <- subset(dat, dat$Pvalue<input$Pvalue & dat$logFC<neg)
+      
+      dat.top <- merge(dat,ID.conversion,by="ID", all.x=T)
+      dat.top[is.na(dat.top)] <- "No_ID"
+      dat.top <- dat.top[order(dat.top$Pvalue),]
+      
+      top <- dat.top[(input$min:input$max),]
+      SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
+      names(SYMBOL_list) <- "list"
+      
+      top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/',top$Ensembl,' target="_blank" class="btn btn-link"','>',top$Ensembl,'</a>',sep="")
+      top$Human_Uniprot <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$UNIPROT,' target="_blank" class="btn btn-link"','>',top$UNIPROT,"</a>", sep="")
+      top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
+      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      
+      df <- top
+      df$Pvalue <- signif(df$Pvalue,3)
+      df$logFC <- signif(df$logFC,3)
+      df <- df[-c(4,5,6,7)]
+      datatable(df, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
+        formatStyle(
+          'logFC',
+          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
+          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
+          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
+        formatStyle(
+          'Pvalue',
+          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
+          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
+          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
+      
       
     }
     else {
@@ -887,7 +1218,7 @@ server  <- function(input, output, session) {
     ) 
     
     
-    if (input$name.conversion.required == "no" ) {
+    if (input$name.conversion.required == FALSE &&  input$label3 == TRUE) {
       dat5 <- merge(dat3,dat4,by="ID")
       dat_all <- mutate(dat5,
                         colour=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
@@ -905,16 +1236,25 @@ server  <- function(input, output, session) {
       colour_class <- c("both_sig_up","both_sig_down","other")
       
       dat_all$colour <- factor(dat_all$colour, levels = colour_class)
-      ##### 
       x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
-      x_lable1
-      
       y_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_y)))
-      y_lable1
+      
+      dat_all <- dat_all[order(dat_all[,input$sort_by],decreasing = input$sort_direction),]
+      
+      ID_sig <- subset(dat_all,dat_all$colour=="both_sig_up" | dat_all$colour=="both_sig_down")[input$min2:input$max2,]
       
       vals2$cor_graph <- ggplot() +
         geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour),shape=dat_all$shape_of_points,alpha=dat_all$alpha,size=dat_all$size_of_point) +
         theme_bw()+
+        geom_text_repel(data=dat_all[dat_all$ID %in% ID_sig$ID,],aes(x=dat_all$logFC.x[dat_all$ID %in% ID_sig$ID], 
+                                                                     y= dat_all$logFC.y[dat_all$ID %in% ID_sig$ID],
+                                                                     label= dat_all$ID[dat_all$ID %in% ID_sig$ID]),
+                        size=input$label2,
+                        family=input$font2, 
+                        segment.alpha = 0.5, 
+                        show.legend = F,box.padding = unit(input$dist2, 'lines'), 
+                        max.overlaps = Inf) +
+        
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
@@ -927,21 +1267,20 @@ server  <- function(input, output, session) {
              title=input$title2) +
         scale_color_manual(values=c(input$col1,input$col2,input$col3)) +
         geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  +
-        theme(text=element_text(size=20,family=input$font),
-              axis.title = element_text(colour="black", size=input$axis,family=input$font2),
-              axis.text.x = element_text(colour="black",size=input$axis_text,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.text.y = element_text(colour="black",size=input$axis_text,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
-              axis.title.x=element_text(colour="black",size=input$axis,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.title.y = element_text(colour="black",size=input$axis,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
+        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
+              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
+              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
               legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size,face="plain",family=input$font2),
+              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
               legend.position = input$legend_location,
               legend.justification = "top")+
         scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
         scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks))
       
       vals2$cor_graph}
-    else {
+    else if (input$name.conversion.required == TRUE &&  input$label3 == FALSE) {
       dat4_ID <- merge(ID.conversion,dat4,by.x=input$conversion1,by.y="ID")
       dat3_ID <- merge(ID.conversion,dat3,by.x=input$conversion2,by.y="ID")
       dat5 <- merge(dat3_ID,dat4_ID,by=c("Ensembl","Uniprot_human","UNIPROT","Gene.Name"))
@@ -961,7 +1300,6 @@ server  <- function(input, output, session) {
       colour_class <- c("both_sig_up","both_sig_down","other")
       
       dat_all$colour <- factor(dat_all$colour, levels = colour_class)
-      ##### 
       x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
       x_lable1
       
@@ -983,14 +1321,13 @@ server  <- function(input, output, session) {
              title=input$title2) +
         scale_color_manual(values=c(input$col1,input$col2,input$col3)) +
         geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  +
-        theme(text=element_text(size=20,family=input$font),
-              axis.title = element_text(colour="black", size=input$axis,family=input$font2),
-              axis.text.x = element_text(colour="black",size=input$axis_text,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.text.y = element_text(colour="black",size=input$axis_text,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
-              axis.title.x=element_text(colour="black",size=input$axis,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.title.y = element_text(colour="black",size=input$axis,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
+        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
+              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
+              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
               legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size,face="plain",family=input$font2),
+              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
               legend.position = input$legend_location,
               legend.justification = "top")+
         
@@ -998,14 +1335,135 @@ server  <- function(input, output, session) {
         scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks))
       
       vals2$cor_graph}
+    else if (input$name.conversion.required == TRUE &&  input$label3 == TRUE) {
+      dat4_ID <- merge(ID.conversion,dat4,by.x=input$conversion1,by.y="ID")
+      dat3_ID <- merge(ID.conversion,dat3,by.x=input$conversion2,by.y="ID")
+      dat5 <- merge(dat3_ID,dat4_ID,by=c("Ensembl","Uniprot_human","UNIPROT","Gene.Name"))
+      dat_all <- mutate(dat5,
+                        colour=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
+                                      ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")),
+                        alpha=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha1,
+                                     ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha2, input$cor_alpha3)),
+                        
+                        shape_of_points=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_shape1,
+                                               ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_shape2, input$cor_shape3)),
+                        size_of_point=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size1,
+                                             ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size2, input$cor_size3))
+      )
+      
+      
+      colour_class <- c("both_sig_up","both_sig_down","other")
+      
+      dat_all$colour <- factor(dat_all$colour, levels = colour_class)
+      x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
+      x_lable1
+      
+      y_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_y)))
+      y_lable1
+      
+      dat_all <- dat_all[order(dat_all[,input$sort_by],decreasing = input$sort_direction),]
+      
+      ID_sig <- subset(dat_all,dat_all$colour=="both_sig_up" | dat_all$colour=="both_sig_down")[input$min2:input$max2,]
+      
+      
+      
+      vals2$cor_graph <- ggplot() +
+        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour),shape=dat_all$shape_of_points,alpha=dat_all$alpha,size=dat_all$size_of_point) +
+        theme_bw()+
+        geom_text_repel(data=dat_all[dat_all$ID %in% ID_sig$ID,],aes(x=dat_all$logFC.x[dat_all$ID %in% ID_sig$ID], 
+                                                                     y= dat_all$logFC.y[dat_all$ID %in% ID_sig$ID],
+                                                                     label= dat_all$ID[dat_all$ID %in% ID_sig$ID]),
+                        size=input$label2,
+                        family=input$font2, 
+                        segment.alpha = 0.5, 
+                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
+                        max.overlaps = Inf) +
+        guides(fill = guide_legend(override.aes = list(shape = NA))) +
+        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
+        theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
+        
+        geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
+        geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
+        labs(y=y_lable1,
+             x=x_lable1, 
+             title=input$title2) +
+        scale_color_manual(values=c(input$col1,input$col2,input$col3)) +
+        geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  +
+        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
+              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
+              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              legend.title  =element_blank(),
+              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
+              legend.position = input$legend_location,
+              legend.justification = "top")+
+        
+        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
+        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks))
+      
+      vals2$cor_graph}
+    else {
+      dat5 <- merge(dat3,dat4,by="ID")
+      dat_all <- mutate(dat5,
+                        colour=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
+                                      ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")),
+                        alpha=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha1,
+                                     ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha2, input$cor_alpha3)),
+                        
+                        shape_of_points=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_shape1,
+                                               ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_shape2, input$cor_shape3)),
+                        size_of_point=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size1,
+                                             ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size2, input$cor_size3))
+      )
+      
+      
+      colour_class <- c("both_sig_up","both_sig_down","other")
+      
+      dat_all$colour <- factor(dat_all$colour, levels = colour_class)
+      x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
+      y_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_y)))
+      
+      vals2$cor_graph <- ggplot() +
+        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour),shape=dat_all$shape_of_points,alpha=dat_all$alpha,size=dat_all$size_of_point) +
+        theme_bw()+
+        
+        guides(fill = guide_legend(override.aes = list(shape = NA))) +
+        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
+        theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
+        
+        geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
+        geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
+        labs(y=y_lable1,
+             x=x_lable1,
+             title=input$title2) +
+        scale_color_manual(values=c(input$col1,input$col2,input$col3)) +
+        geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  +
+        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
+              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
+              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              legend.title  =element_blank(),
+              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
+              legend.position = input$legend_location,
+              legend.justification = "top")+
+        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
+        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks))
+      
+      vals2$cor_graph
+      
+    }
+    
+    
+    
   }
   
-  
-  # rendering the plots
   output$cor_graph <- renderPlot({
     print(plotInput2())
   })
-  
   output$Table5 <-DT::renderDataTable(escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), {
     neg1 <- -1*input$FC1
     pos1 <- input$FC1
@@ -1025,7 +1483,7 @@ server  <- function(input, output, session) {
     ) 
     
     
-    if (input$name.conversion.required == "no" ) {
+    if (input$name.conversion.required == FALSE ) {
       
       dat5 <- merge(dat3,dat4,by="ID")
       dat_all <- mutate(dat5,
@@ -1113,7 +1571,6 @@ server  <- function(input, output, session) {
       
     }
   }) 
-  
   output$text1 <- renderPrint({
     dat4 <- input.data4();
     dat3 <- input.data3();
@@ -1133,8 +1590,6 @@ server  <- function(input, output, session) {
     data5 <- as.numeric(dim(dat5)[1]) 
     cat(noquote(paste("There are ", data3," from ", input$expression_x, " and ", data4," from ", input$expression_y, "with", data5, "common to both")))
   })
-  
-  
   dataExpTable2 <- reactive({
     neg1 <- -1*input$FC1
     pos1 <- input$FC1
@@ -1191,7 +1646,6 @@ server  <- function(input, output, session) {
       
     }
   })
-  
   output$cor_test <- renderPrint({
     
     neg1 <- -1*input$FC1
@@ -1219,7 +1673,7 @@ server  <- function(input, output, session) {
                         significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
                                             ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
       pval <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$p.value)
-
+      
       R_value <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$estimate)
       CI.95 <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$conf.int)
       round(CI.95[[1]],3)
@@ -1227,7 +1681,7 @@ server  <- function(input, output, session) {
       cat(noquote(paste("The overall Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
       
     }
-   
+    
     
     else {
       
@@ -1251,13 +1705,10 @@ server  <- function(input, output, session) {
       signif(dat_all$Pvalue.x,3)
       
       cat(noquote(paste("The overall Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
-
+      
     }
     
   })
-  
-  
-  
   output$cor_test_sig <- renderPrint({
     
     neg1 <- -1*input$FC1
@@ -1296,8 +1747,6 @@ server  <- function(input, output, session) {
       cat(noquote(paste("The overlap of significant values Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
       
     }
-    
-    
     else {
       
       dat4_ID <- merge(ID.conversion[c(1:3,5)],dat4,by.x=input$conversion1,by.y="ID")
@@ -1320,8 +1769,177 @@ server  <- function(input, output, session) {
     }
     
   })
+  plotInput3 <- function() {
+    
+    dat3 <- input.data3();
+    dat4 <- input.data4();
+    dat3 <- as.data.frame(dat3)
+    dat4 <- as.data.frame(dat4)
+    
+    neg1 <- -1*input$FC1
+    pos1 <- input$FC1
+    
+    neg2 <- -1*input$FC2
+    pos2 <- input$FC2
+    
+    validate(
+      need(nrow(dat3)>0,
+           "no data inported yet")
+    ) 
+    
+    validate(
+      need(nrow(dat4)>0,
+           "no data inported yet")
+    ) 
+    
+    
+    
+    one <- merge(dat3,dat4,by="ID")
+    a2 <- subset(one,one$Pvalue.x<input$Pvalue1 & one$Pvalue.y<input$Pvalue2)
+    a <- subset(a2, abs(a2$logFC.x)>pos1 & abs(a2$logFC.y)>pos2)
+    a$direction <- ifelse(a$logFC.x>pos1 & a$logFC.y>pos2,"1_Sig_up_both",
+                          ifelse(a$logFC.x<neg1 & a$logFC.y<neg2,"2_sig_down_both","3_sig_opposite"))
+    
+    a$direction2 <- ifelse(a$logFC.x>pos1 & a$logFC.y>pos2 | a$logFC.x<neg1 & a$logFC.y<neg2,"1_sig_same","2_sig_opposite")
+    
+    a<- a[order(a$direction, decreasing = F),]
+    a$V1 <- 1:dim(a)[1]
+    
+    df_logFC <- melt(a[,c("ID","V1","direction","logFC.x","logFC.y")],id.vars = c(1:3))
+    
+    if (input$direction == "all" ) {
+      vals3$logFC_direction <- ggplot(df_logFC,aes(y =reorder(ID,-V1), x = value, fill=variable)) +
+        geom_bar(stat="identity", position = "dodge") +
+        
+        # set overall appearance of the plot
+        theme_bw()  +
+        theme(legend.title = element_blank(),
+              legend.position = "bottom") +
+        scale_fill_manual(values=c(input$col4,input$col5),labels=c(input$expression_x,input$expression_y))+
+        labs(y="",
+             x=expression(Log[2]~"FC"),
+             title="") +
+        # Add a line showing the alpha = 0.01 level
+        theme(
+          axis.text.y = element_text(colour="black",size=input$bar_text_y,family=input$font2),
+          axis.text.x = element_text(colour="black",size=input$bar_text_x,family=input$font2),
+          axis.title.x = element_text(colour="black",size=input$axis3,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2)
+        ) +
+        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$bar_xbreaks))
+      
+      
+      vals3$logFC_direction
+      
+    }
+    else if (input$direction == "up") {
+      
+      df_logFC_up <- subset(df_logFC,df_logFC$direction=="1_Sig_up_both")
+      
+      vals3$logFC_direction <- ggplot(df_logFC_up,aes(y =reorder(ID,-V1), x = value, fill=variable)) +
+        geom_bar(stat="identity", position = "dodge") +
+        
+        # set overall appearance of the plot
+        theme_bw()  +
+        theme(legend.title = element_blank(),
+              legend.position = "bottom") +
+        scale_fill_manual(values=c(input$col4,input$col5),labels=c(input$expression_x,input$expression_y))+
+        labs(y="",
+             x=expression(Log[2]~"FC"),
+             title="") +
+        # Add a line showing the alpha = 0.01 level
+        theme(
+          axis.text.y = element_text(colour="black",size=input$bar_text_y,family=input$font2),
+          axis.text.x = element_text(colour="black",size=input$bar_text_x,family=input$font2),
+          axis.title.x = element_text(colour="black",size=input$axis3,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2)
+        ) +
+        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$bar_xbreaks))
+      
+      vals3$logFC_direction
+      
+      
+    }
+    else if (input$direction == "down") {
+      
+      df_logFC_down <- subset(df_logFC,df_logFC$direction=="2_sig_down_both")
+      
+      vals3$logFC_direction <- ggplot(df_logFC_down,aes(y =reorder(ID,-V1), x = value, fill=variable)) +
+        geom_bar(stat="identity", position = "dodge") +
+        
+        # set overall appearance of the plot
+        theme_bw()  +
+        theme(legend.title = element_blank(),
+              legend.position = "bottom") +
+        scale_fill_manual(values=c(input$col4,input$col5),labels=c(input$expression_x,input$expression_y))+
+        labs(y="",
+             x=expression(Log[2]~"FC"),
+             title="") +
+        # Add a line showing the alpha = 0.01 level
+        theme(
+          axis.text.y = element_text(colour="black",size=input$bar_text_y,family=input$font2),
+          axis.text.x = element_text(colour="black",size=input$bar_text_x,family=input$font2),
+          axis.title.x = element_text(colour="black",size=input$axis3,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2)
+        ) +
+        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$bar_xbreaks))
+      
+      vals3$logFC_direction
+      
+      
+    }
+    else if (input$direction == "same") {
+      
+      df_logFC2 <- melt(a[,c("ID","V1","direction2","logFC.x","logFC.y")],id.vars = c(1:3))
+      
+      df_logFC_same <- subset(df_logFC2,df_logFC2$direction2=="1_sig_same")
+      
+      vals3$logFC_direction <- ggplot(df_logFC_same,aes(y =reorder(ID,-V1), x = value, fill=variable)) +
+        geom_bar(stat="identity", position = "dodge") +
+        
+        # set overall appearance of the plot
+        theme_bw()  +
+        theme(legend.title = element_blank(),
+              legend.position = "bottom") +
+        scale_fill_manual(values=c(input$col4,input$col5),labels=c(input$expression_x,input$expression_y))+
+        labs(y="",
+             x=expression(Log[2]~"FC"),
+             title="") +
+        # Add a line showing the alpha = 0.01 level
+        theme(
+          axis.text.y = element_text(colour="black",size=input$bar_text_y,family=input$font2),
+          axis.text.x = element_text(colour="black",size=input$bar_text_x,family=input$font2),
+          axis.title.x = element_text(colour="black",size=input$axis3,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2)
+        ) +
+        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$bar_xbreaks))
+      
+      vals3$logFC_direction
+      
+    }
+    else {
+      df_logFC_opposite <- subset(df_logFC,df_logFC$direction=="3_sig_opposite")
+      vals3$logFC_direction <- ggplot(df_logFC_opposite,aes(y =reorder(ID,-V1), x = value, fill=variable)) +
+        geom_bar(stat="identity") +
+        # set overall appearance of the plot
+        theme_bw()  +
+        theme(legend.title = element_blank(),
+              legend.position = "bottom") +
+        scale_fill_manual(values=c(input$col4,input$col5),labels=c(input$expression_x,input$expression_y))+
+        labs(y="",
+             x=expression(Log[2]~"FC"),
+             title="") +
+        # Add a line showing the alpha = 0.01 level
+        theme(
+          axis.text.y = element_text(colour="black",size=input$bar_text_y,family=input$font2),
+          axis.text.x = element_text(colour="black",size=input$bar_text_x,family=input$font2),
+          axis.title.x = element_text(colour="black",size=input$axis3,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2)
+        ) +
+        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$bar_xbreaks))
+      vals3$logFC_direction
+    }
+    
+  }
   
-  
+  output$logFC_direction <- renderPlot({
+    print(plotInput3())
+  })
   
   
   output$downloadTABLE2 <- downloadHandler(
@@ -1337,7 +1955,7 @@ server  <- function(input, output, session) {
   output$downloadPlot2 <- downloadHandler(
     filename = function() {
       x <- gsub(":", ".", Sys.time())
-      paste("correlation_",input$title, gsub("/", "-", x), ".pdf", sep = "")
+      paste("correlation_",input$title2, gsub("/", "-", x), ".pdf", sep = "")
     },
     content = function(file) {
       pdf(file, width=input$cor_width,height=input$cor_height, onefile = FALSE) # open the pdf device
@@ -1351,7 +1969,7 @@ server  <- function(input, output, session) {
   output$downloadPlotPNG2 <- downloadHandler(
     filename = function() {
       x <- gsub(":", ".", Sys.time())
-      paste("correlation_",input$title, gsub("/", "-", x), ".png", sep = "")
+      paste("correlation_",input$title2, gsub("/", "-", x), ".png", sep = "")
     },
     content = function(file) {
       
@@ -1363,6 +1981,34 @@ server  <- function(input, output, session) {
     
   )
   
+  output$downloadPlot3 <- downloadHandler(
+    filename = function() {
+      x <- gsub(":", ".", Sys.time())
+      paste("bar_",input$title2, gsub("/", "-", x), ".pdf", sep = "")
+    },
+    content = function(file) {
+      pdf(file, width=input$bar_width,height=input$bar_height, onefile = FALSE) # open the pdf device
+      grid.arrange(vals3$logFC_direction)
+      dev.off()},
+    
+    contentType = "application/pdf"
+    
+  )
+  
+  output$downloadPlotPNG3 <- downloadHandler(
+    filename = function() {
+      x <- gsub(":", ".", Sys.time())
+      paste("bar_", gsub("/", "-", x), ".png", sep = "")
+    },
+    content = function(file) {
+      
+      png(file, width = input$bar_width_png, height = input$bar_height_png, res = input$bar_resolution_PNG)
+      grid.arrange(vals3$logFC_direction)
+      dev.off()},
+    
+    contentType = "application/png" # MIME type of the image
+    
+  )
   
   
   

@@ -244,8 +244,10 @@ ui <- navbarPage("ggVolcanoR",
                                            column(6,numericInput("FC2", "absolute logFC (y-axis)", value=0.58))
                                          ),
                                          h4("axis text size"),
-                                         numericInput("axis2", "axis text size", min=0, value=30),
-                                         numericInput("axis_text2", "axis numeric text size", min=0, value=30),
+                                         fluidRow(
+                                           column(6,numericInput("axis2", "axis text size", min=0, value=24)),
+                                           column(6,numericInput("axis_text2", "axis numeric text size", min=0, value=24))
+                                         ),
                                          h4("colour of points"),
                                          fluidRow(
                                            column(3,textInput(inputId = "col1", label = "same up",value = "red")),

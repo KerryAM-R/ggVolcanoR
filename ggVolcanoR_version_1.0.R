@@ -50,7 +50,7 @@ legend_location <- c("right","bottom","left","top","none")
 species <- c("BOVIN","CHICK","ECOLI","HORSE","HUMAN","MAIZE","MOUSE","PEA", "PIG","RABIT","RAT","SHEEP","SOYBN","TOBAC","WHEAT","YEAST")
 lab <- c("significant up","significant down","non-significant")
 names.conversion <- names(ID.conversion)[c(1:3,5)]
-name.conversion.required <- c(TRUE,FALSE) 
+name.conversion.required <- c(FALSE,TRUE) 
 label3 <- c(TRUE,FALSE)
 direction <- c("all","up","down","same","opposite")
 sort_direction <- c(TRUE,FALSE)
@@ -162,11 +162,6 @@ ui <- navbarPage("ggVolcanoR",
                                            column(4,numericInput("col", "# of legend columns", value=1, step = 1)),
                                            column(4, numericInput("legend_size", "legend text size", min=1, max=60, value=12))
                                          ),
-                                         
-                                         
-                                         
-                                         
-                                         
                             ),
                             mainPanel(tabsetPanel(
                               tabPanel("Volcano plot", textInput(inputId = "title", 
@@ -277,14 +272,14 @@ ui <- navbarPage("ggVolcanoR",
                                          fluidRow(
                                            column(3, numericInput("cor_shape1","shape of up",value = 19)),
                                            column(3,numericInput("cor_shape2","shape of down",value = 19)),
-                                           column(3,numericInput("cor_shape3","shape of down",value = 19)),
+                                           column(3,numericInput("cor_shape3","shape of opposite",value = 19)),
                                            column(3,numericInput("cor_shape4","shape of other",value = 1))
                                          ),
                                          
                                          fluidRow(
                                            column(3,numericInput("cor_size1","Size of up",value = 3)),
                                            column(3,numericInput("cor_size2","Size of down",value = 3)),
-                                           column(3,numericInput("cor_size3","Size of down",value = 3)),
+                                           column(3,numericInput("cor_size3","Size of opposite",value = 3)),
                                            column(3,numericInput("cor_size4","Size of other",value = 1))
                                          ),
                                          
@@ -1215,7 +1210,7 @@ server  <- function(input, output, session) {
   )
   
   
-  
+  # correlation graph server ----
   input.data3 <- reactive({switch(input$dataset2,"test-data" = test.data3(),"own" = own.data3())})
   test.data3 <- reactive({
     dataframe = read.csv("test-data/Proteomics data.csv") })
@@ -1321,7 +1316,7 @@ server  <- function(input, output, session) {
              title=input$title2) +
         scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
         scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
-        
+        guides(shape = guide_legend(override.aes = list(size = 5))) +
         geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  +
         theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
               axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),

@@ -672,8 +672,8 @@ server  <- function(input, output, session) {
                         show.legend = F,box.padding = unit(input$dist, 'lines'), 
                         max.overlaps = Inf) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
-        scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab2),labels=c("non-significant","down-regulated","up-regulated",input$lab2)) +
-        scale_color_manual(values=c(input$shape3,input$shape2,input$shape2,input$shape1),labels=c("non-significant","down-regulated","up-regulated",input$lab2)) +
+        scale_color_manual(name= "legend",values=c(input$NS,input$down,input$up,input$col_lab2),labels=c("non-significant","down-regulated","up-regulated",input$lab2)) +
+        scale_shape_manual(name= "legend",values=c(input$shape3,input$shape2,input$shape2,input$shape1),labels=c("non-significant","down-regulated","up-regulated",input$lab2)) +
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme_bw(base_size = 18)+
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),

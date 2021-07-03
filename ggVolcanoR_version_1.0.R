@@ -357,7 +357,7 @@ ui <- navbarPage("ggVolcanoR",
                                                                       selected = "all")),
                                                 column(3,numericInput("bar_xbreaks","x-axis tick marks",value = 1)),
                                                 column(3,textInput(inputId = "col5", label = "dataset 1 (x-axis)",value = "lightgreen")),
-                                                column(3,textInput(inputId = "col6", label = "dataset 2 (y-axis)",value = "#ffa600"))
+                                                column(3,textInput(inputId = "col6", label = "dataset 2 (y-axis)",value = "grey"))
                                                 
                                        ),
                                        fluidRow(

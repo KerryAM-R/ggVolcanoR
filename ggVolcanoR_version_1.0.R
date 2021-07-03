@@ -2063,7 +2063,7 @@ server  <- function(input, output, session) {
   output$downloadPlot3 <- downloadHandler(
     filename = function() {
       x <- gsub(":", ".", Sys.time())
-      paste("bar_",input$title2, gsub("/", "-", x), ".pdf", sep = "")
+      paste("bar_", gsub("/", "-", x), ".pdf", sep = "")
     },
     content = function(file) {
       pdf(file, width=input$bar_width,height=input$bar_height, onefile = FALSE) # open the pdf device

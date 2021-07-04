@@ -302,7 +302,7 @@ ui <- navbarPage("ggVolcanoR",
                                          
                                          column(1,checkboxInput("label3", label = "Display labels", value = FALSE)),
                                          column(2,checkboxInput("reg.line", label = "Display regression line", value = FALSE)),
-                                         column(3,checkboxInput("sort_direction", label = "label: ticked=right to left", value = TRUE)),
+                                         column(2,checkboxInput("sort_direction", label = "label: ticked=right to left", value = TRUE)),
                                          column(2,sliderInput("sort_by","label: 2=top to bottom",min=2,max=4,value=2,step=2))),
                                        
                                        fluidRow(

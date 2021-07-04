@@ -26,9 +26,11 @@ test_fun2 <- function()
 {
   for (i in 1:15) {
     incProgress(1/15)
-    sum(runif(7500000,0,1))
+    sum(runif(2000000,0,1))
   }
 }
+
+error_message_1 <- c("No data found"," ","types of errors","    (1) Symbol doesn't match; in test-data MAR10 has been converted to Mar-10 in excel","    (2) Not using a human database","    (3) Not a characterised protein","    (4) Was added to the database after June 2021")
 
 ID.conversion <- read.csv("ID/uniprot.d.anno.210611.csv",row.names = 1)
 names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","Gene.Name","Biotype")
@@ -55,6 +57,9 @@ label3 <- c(TRUE,FALSE)
 direction <- c("all","up","down","same","opposite")
 sort_direction <- c(TRUE,FALSE)
 
+error_message_val1 <- "No data found"
+error_message_val2 <- "Suggest uploading file\nheaders=ID, logFC, Pvalue"
+error_message_val3 <- "No data found\n \nSuggest uploading file\nheaders=ID, logFC, Pvalue"
 # user interface  ----
 
 
@@ -65,7 +70,7 @@ ui <- navbarPage("ggVolcanoR",
                           sidebarLayout(
                             sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=4,
                                          tags$head(tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}"))),
-                                         tags$head(tags$style(HTML('.progress-bar {background-color: red;}'))),
+                                         tags$head(tags$style(HTML('.progress-bar {background-color: blue;}'))),
                                          selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file1', 'ID, logFC, Pvalue',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
@@ -187,13 +192,10 @@ ui <- navbarPage("ggVolcanoR",
                               ),
                               tabPanel("Table with links", 
                                        selectInput("species", label = "List of the 16 common species used in uniprot",species,selected = "HUMAN"),
-                                       div(DT::dataTableOutput("myoutput")),
-                                       p("If no ID is displayed this could be due to:"),
-                                       p("(1) Symbol doesn't match; in test-data MAR10 has been converted to Mar-10 in excel"),
-                                       p("(2) Not using a human database"),
-                                       p("(3) Not a characterised protein"),
-                                       p("(4) Was added to the database after June 2021")),
-                              tabPanel("Summary table",DT::dataTableOutput("summary_table"),
+                                       
+                                       div(DT::dataTableOutput("myoutput",height="600px"))),
+                              
+                              tabPanel("Summary table",DT::dataTableOutput("summary_table",height="300px"),
                                        selectInput(inputId = "export", 
                                                    label = "Selected Filtered csv file", 
                                                    choices = filtered_table, 
@@ -284,19 +286,12 @@ ui <- navbarPage("ggVolcanoR",
                                            column(3,numericInput("cor_size3","Size of opposite",value = 3)),
                                            column(3,numericInput("cor_size4","Size of other",value = 1))
                                          ),
+                                         fluidRow(
+                                           column(6,selectInput('legend_location2', 'Legend location', legend_location)),
+                                           column(6,numericInput("legend_size2", "legend text size", min=1, max=60, value=12))
+                                         )
                                          
                                          
-                                         sliderInput("legend_size2", "legend text size", min=1, max=60, value=12),
-                                         
-                                         selectInput("name.conversion.required","For human data, does the ID need to be converted to merge the two datasets?",
-                                                     choices = name.conversion.required,
-                                                     selected = FALSE),
-                                         selectInput("conversion1","Merge file 1 by ensemble, Symbol or Uniprot ID",
-                                                     choices = names.conversion,
-                                                     selected = "Gene.Name"),
-                                         selectInput("conversion2","Merge file 2 by ensemble, Symbol or Uniprot ID",
-                                                     choices = names.conversion,
-                                                     selected = "Gene.Name"),
                             ),
                             mainPanel(tabsetPanel(
                               tabPanel("correlation graph", 
@@ -305,8 +300,9 @@ ui <- navbarPage("ggVolcanoR",
                                                              label = "",
                                                              value = "Correlation plot: x vs y")),
                                          
-                                         column(3,checkboxInput("label3", label = "Display labels", value = FALSE)),
-                                         column(3,checkboxInput("sort_direction", label = "reverse direction", value = TRUE)),
+                                         column(2,checkboxInput("label3", label = "Display labels", value = FALSE)),
+                                         column(2,checkboxInput("reg.line", label = "Display regression line", value = FALSE)),
+                                         column(2,checkboxInput("sort_direction", label = "Swap direction", value = TRUE)),
                                          column(3,sliderInput("sort_by","2=x-axis & 4=y-axis",min=2,max=4,value=2,step=2))),
                                        
                                        fluidRow(
@@ -387,24 +383,33 @@ ui <- navbarPage("ggVolcanoR",
                  ),
                  
                  
-                 #     tabPanel("gProfiler: graphs",
-                 #              sidebarLayout(
-                 #                sidebarPanel(id = "tPanel3",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=4,
-                 #                             h4("Corrleation plot parameters"),
-                 #
-                 #               ),
-                 #              mainPanel(tabsetPanel(
-                 #               tabPanel("Panel1"
-                 #              ),
-                 #             tabPanel("Panel2"
-                 #            ),
-                 #           tabPanel("Panel3"
-                 #          )
-                 
-                 #       )
-                 #       )
-                 #    )
-                 #   ),
+                 tabPanel("Convert ID",
+                          sidebarLayout(
+                            sidebarPanel(id = "tPanel3",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=4,
+                                         h4("Corrleation plot parameters"),
+                                         
+                            ),
+                            mainPanel(tabsetPanel(
+                              tabPanel("Panel1",
+                                       selectInput("name.conversion.required","For human data, does the ID need to be converted to merge the two datasets?",
+                                                   choices = name.conversion.required,
+                                                   selected = FALSE),
+                                       selectInput("conversion1","Merge file 1 by ensemble, Symbol or Uniprot ID",
+                                                   choices = names.conversion,
+                                                   selected = "Gene.Name"),
+                                       selectInput("conversion2","Merge file 2 by ensemble, Symbol or Uniprot ID",
+                                                   choices = names.conversion,
+                                                   selected = "Gene.Name"),
+                              ),
+                              tabPanel("Panel2"
+                              ),
+                              tabPanel("Panel3"
+                              )
+                              
+                            )
+                            )
+                          )
+                 ),
                  
                  navbarMenu("More",
                             tabPanel("Volcano plot Read Me file",
@@ -474,7 +479,7 @@ server  <- function(input, output, session) {
     
     validate(
       need(nrow(dat)>0,
-           "Please import the data")
+           error_message_val1)
     )
     
     dat2 <- input.data2();
@@ -533,7 +538,7 @@ server  <- function(input, output, session) {
     
     validate(
       need(nrow(dat)>0,
-           "This is the ggVolcanoR Shiny app\nPlease upload file\nheaders=ID, logFC, Pvalue")
+           error_message_val2)
     )
     
     
@@ -883,9 +888,6 @@ server  <- function(input, output, session) {
                  detail = '', value = 0, {
                    test_fun()
                  })
-    
-    if (input$selected == "")
-      return(NULL)
     print(plotInput())
   })
   
@@ -895,7 +897,7 @@ server  <- function(input, output, session) {
     
     validate(
       need(nrow(dat)>0,
-           "no data inported yet")
+           error_message_1)
     )
     
     dat2 <- input.data2();
@@ -1131,7 +1133,7 @@ server  <- function(input, output, session) {
     
     validate(
       need(nrow(dat)>0,
-           "no data inported yet")
+           error_message_val1)
     )
     
     
@@ -1157,7 +1159,7 @@ server  <- function(input, output, session) {
     
     validate(
       need(nrow(dat)>0,
-           "Please import your own")
+           " ")
     )
     
     
@@ -1256,47 +1258,73 @@ server  <- function(input, output, session) {
     
     validate(
       need(nrow(dat3)>0,
-           "no data inported yet")
+           error_message_val3)
     ) 
     
     validate(
       need(nrow(dat4)>0,
-           "no data inported yet")
+           error_message_val3)
     ) 
     
+    dat5 <- merge(dat3,dat4,by="ID")
+    dat_all <- mutate(dat5,
+                      colour=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
+                                    ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down",
+                                           ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "opposite",
+                                                  ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "opposite",
+                                                          "other")))),
+                      alpha=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha1,
+                                   ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha2, 
+                                          ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,
+                                                 ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,input$cor_alpha4)))),
+                      size_of_point=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size1,
+                                           ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size2, 
+                                                  ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,
+                                                         ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,input$cor_size4))))
+    )
     
-    if (input$name.conversion.required == FALSE &&  input$label3 == TRUE) {
-      dat5 <- merge(dat3,dat4,by="ID")
-      dat_all <- mutate(dat5,
-                        colour=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                      ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down",
-                                             ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "opposite",
-                                                    ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "opposite",
-                                                            "other")))),
-                        alpha=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha1,
-                                     ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha2, 
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,
-                                                   ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,input$cor_alpha4)))),
-                        size_of_point=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size1,
-                                             ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size2, 
-                                                    ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,
-                                                           ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,input$cor_size4))))
-      )
-      
-      
-      colour_class <- c("both_sig_up","both_sig_down","opposite","other")
-      
-      dat_all$colour <- factor(dat_all$colour, levels = colour_class)
-      x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
-      y_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_y)))
-      
-      dat_all <- dat_all[order(dat_all[,input$sort_by],decreasing = input$sort_direction),]
-      
-      ID_sig <- subset(dat_all,dat_all$colour=="both_sig_up" | dat_all$colour=="both_sig_down")[input$min2:input$max2,]
+    
+    colour_class <- c("both_sig_up","both_sig_down","opposite","other")
+    
+    dat_all$colour <- factor(dat_all$colour, levels = colour_class)
+    x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
+    y_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_y)))
+    
+    dat_all <- dat_all[order(dat_all[,input$sort_by],decreasing = input$sort_direction),]
+    
+    ID_sig <- subset(dat_all,dat_all$colour=="both_sig_up" | dat_all$colour=="both_sig_down")[input$min2:input$max2,]
+    
+    
+    
+    if (input$label3 == TRUE && input$reg.line == FALSE) {
       
       vals2$cor_graph <- ggplot() +
         geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
         theme_bw()+
+        guides(fill = guide_legend(override.aes = list(shape = NA))) +
+        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
+        theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
+        
+        geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
+        geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
+        labs(y=y_lable1,
+             x=x_lable1,
+             title=input$title2) +
+        scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
+        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
+        guides(shape = guide_legend(override.aes = list(size = 5))) +
+        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
+              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
+              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
+              legend.title  =element_blank(),
+              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
+              legend.position = input$legend_location2,
+              legend.justification = "top")+
+        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
+        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks)) +
         geom_text_repel(data=dat_all[dat_all$ID %in% ID_sig$ID,],aes(x=dat_all$logFC.x[dat_all$ID %in% ID_sig$ID], 
                                                                      y= dat_all$logFC.y[dat_all$ID %in% ID_sig$ID],
                                                                      label= dat_all$ID[dat_all$ID %in% ID_sig$ID]),
@@ -1304,8 +1332,13 @@ server  <- function(input, output, session) {
                         family=input$font2, 
                         segment.alpha = 0.5, 
                         show.legend = F,box.padding = unit(input$dist2, 'lines'), 
-                        max.overlaps = Inf) +
-        
+                        max.overlaps = Inf) 
+      vals2$cor_graph}
+    else if (input$label3 == TRUE && input$reg.line == TRUE) {
+      
+      vals2$cor_graph <- ggplot() +
+        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
+        theme_bw()+
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
@@ -1319,7 +1352,6 @@ server  <- function(input, output, session) {
         scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
         scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
-        geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  +
         theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
               axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
               axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
@@ -1327,106 +1359,11 @@ server  <- function(input, output, session) {
               axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
               legend.title  =element_blank(),
               legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
-              legend.position = input$legend_location,
+              legend.position = input$legend_location2,
               legend.justification = "top")+
         scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
-        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks))
-      
-      vals2$cor_graph}
-    else if (input$name.conversion.required == TRUE &&  input$label3 == FALSE) {
-      dat4_ID <- merge(ID.conversion,dat4,by.x=input$conversion1,by.y="ID")
-      dat3_ID <- merge(ID.conversion,dat3,by.x=input$conversion2,by.y="ID")
-      dat5 <- merge(dat3_ID,dat4_ID,by=c("Ensembl","Uniprot_human","UNIPROT","Gene.Name"))
-      dat_all <- mutate(dat5,
-                        colour=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                      ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down",
-                                             ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "opposite",
-                                                    ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "opposite",
-                                                            "other")))),
-                        alpha=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha1,
-                                     ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha2, 
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,
-                                                   ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,input$cor_alpha4)))),
-                        size_of_point=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size1,
-                                             ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size2, 
-                                                    ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,
-                                                           ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,input$cor_size4))))
-      )
-      
-      
-      colour_class <- c("both_sig_up","both_sig_down","opposite","other")
-      
-      dat_all$colour <- factor(dat_all$colour, levels = colour_class)
-      x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
-      y_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_y)))
-      
-      dat_all <- dat_all[order(dat_all[,input$sort_by],decreasing = input$sort_direction),]
-      
-      ID_sig <- subset(dat_all,dat_all$colour=="both_sig_up" | dat_all$colour=="both_sig_down")[input$min2:input$max2,]
-      
-      vals2$cor_graph <- ggplot() +
-        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
-        theme_bw()+
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        labs(y=y_lable1,
-             x=x_lable1,
-             title=input$title2) +
-        scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
+        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks)) + 
         geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  +
-        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
-              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
-              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
-              legend.position = input$legend_location,
-              legend.justification = "top")+
-        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
-        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks))
-      vals2$cor_graph}
-    else if (input$name.conversion.required == TRUE &&  input$label3 == TRUE) {
-      dat4_ID <- merge(ID.conversion,dat4,by.x=input$conversion1,by.y="ID")
-      dat3_ID <- merge(ID.conversion,dat3,by.x=input$conversion2,by.y="ID")
-      dat5 <- merge(dat3_ID,dat4_ID,by=c("Ensembl","Uniprot_human","UNIPROT","Gene.Name"))
-      dat_all <- mutate(dat5,
-                        colour=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                      ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down",
-                                             ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "opposite",
-                                                    ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "opposite",
-                                                            "other")))),
-                        alpha=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha1,
-                                     ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha2, 
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,
-                                                   ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,input$cor_alpha4)))),
-                        size_of_point=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size1,
-                                             ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size2, 
-                                                    ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,
-                                                           ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,input$cor_size4))))
-      )
-      
-      
-      colour_class <- c("both_sig_up","both_sig_down","opposite","other")
-      
-      dat_all$colour <- factor(dat_all$colour, levels = colour_class)
-      x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
-      y_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_y)))
-      
-      dat_all <- dat_all[order(dat_all[,input$sort_by],decreasing = input$sort_direction),]
-      
-      ID_sig <- subset(dat_all,dat_all$colour=="both_sig_up" | dat_all$colour=="both_sig_down")[input$min2:input$max2,]
-      
-      vals2$cor_graph <- ggplot() +
-        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
-        theme_bw()+
         geom_text_repel(data=dat_all[dat_all$ID %in% ID_sig$ID,],aes(x=dat_all$logFC.x[dat_all$ID %in% ID_sig$ID], 
                                                                      y= dat_all$logFC.y[dat_all$ID %in% ID_sig$ID],
                                                                      label= dat_all$ID[dat_all$ID %in% ID_sig$ID]),
@@ -1434,8 +1371,13 @@ server  <- function(input, output, session) {
                         family=input$font2, 
                         segment.alpha = 0.5, 
                         show.legend = F,box.padding = unit(input$dist2, 'lines'), 
-                        max.overlaps = Inf) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
+                        max.overlaps = Inf) 
+      vals2$cor_graph}
+    else if (input$label3 == FALSE && input$reg.line == TRUE) {
+      
+      vals2$cor_graph <- ggplot() +
+        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
+        theme_bw()+
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
@@ -1448,8 +1390,7 @@ server  <- function(input, output, session) {
              title=input$title2) +
         scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
         scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
-        
-        geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  +
+        guides(shape = guide_legend(override.aes = list(size = 5))) +
         theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
               axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
               axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
@@ -1457,41 +1398,13 @@ server  <- function(input, output, session) {
               axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
               legend.title  =element_blank(),
               legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
-              legend.position = input$legend_location,
+              legend.position = input$legend_location2,
               legend.justification = "top")+
         scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
-        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks))
-      
+        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks)) + 
+        geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  
       vals2$cor_graph}
     else {
-      dat5 <- merge(dat3,dat4,by="ID")
-      dat_all <- mutate(dat5,
-                        colour=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                      ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down",
-                                             ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "opposite",
-                                                    ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "opposite",
-                                                            "other")))),
-                        alpha=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha1,
-                                     ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha2, 
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,
-                                                   ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,input$cor_alpha4)))),
-                        size_of_point=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size1,
-                                             ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size2, 
-                                                    ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,
-                                                           ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,input$cor_size4))))
-      )
-      
-      
-      colour_class <- c("both_sig_up","both_sig_down","opposite","other")
-      
-      dat_all$colour <- factor(dat_all$colour, levels = colour_class)
-      x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
-      y_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_y)))
-      
-      dat_all <- dat_all[order(dat_all[,input$sort_by],decreasing = input$sort_direction),]
-      
-      ID_sig <- subset(dat_all,dat_all$colour=="both_sig_up" | dat_all$colour=="both_sig_down")[input$min2:input$max2,]
-      
       vals2$cor_graph <- ggplot() +
         geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
         theme_bw()+
@@ -1508,7 +1421,6 @@ server  <- function(input, output, session) {
         scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
         scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
-        geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  +
         theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
               axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
               axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
@@ -1516,11 +1428,10 @@ server  <- function(input, output, session) {
               axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
               legend.title  =element_blank(),
               legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
-              legend.position = input$legend_location,
+              legend.position = input$legend_location2,
               legend.justification = "top")+
         scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
         scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks))
-      
       vals2$cor_graph
       
     }
@@ -1544,114 +1455,67 @@ server  <- function(input, output, session) {
     
     validate(
       need(nrow(dat3)>0,
-           "no data inported yet")
+           error_message_val1)
     ) 
     
     validate(
       need(nrow(dat4)>0,
-           "no data inported yet")
+           error_message_val1)
     ) 
     
     
-    if (input$name.conversion.required == FALSE ) {
-      
-      dat5 <- merge(dat3,dat4,by="ID")
-      dat_all <- mutate(dat5,
-                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
-      
-      dat_all$Pvalue.x <- signif(dat_all$Pvalue.x,3)
-      dat_all$logFC.x <- signif(dat_all$logFC.x,3)
-      dat_all$Pvalue.y <- signif(dat_all$Pvalue.y,3)
-      dat_all$logFC.y <- signif(dat_all$logFC.y,3)
-      dat_all <- dat_all[order(dat_all$Pvalue.x),]
-      
-      names(dat_all) <- gsub('.x','',names(dat_all))
-      names(dat_all)[2:3] <- paste(names(dat_all)[2:3],input$expression_x,sep="_")
-      names(dat_all) <- gsub('.y','',names(dat_all))
-      names(dat_all)[4:5] <- paste(names(dat_all)[4:5],input$expression_y,sep="_")
-      
-      datatable(dat_all, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
-        formatStyle(
-          paste("logFC",input$expression_x,sep="_"),
-          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
-          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
-          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
-        formatStyle(
-          paste("Pvalue",input$expression_x,sep="_"),
-          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
-          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
-          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) %>% 
-        formatStyle(
-          paste("logFC",input$expression_y,sep="_"),
-          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
-          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
-          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold')))%>% 
-        formatStyle(
-          paste("Pvalue",input$expression_y,sep="_"),
-          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
-          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
-          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
-      
-    }
-    else {
-      
-      dat4_ID <- merge(ID.conversion[c(1:3,5)],dat4,by.x=input$conversion1,by.y="ID")
-      dat3_ID <- merge(ID.conversion[c(1:3,5)],dat3,by.x=input$conversion2,by.y="ID")
-      dat5 <- merge(dat3_ID,dat4_ID,by=c("Ensembl","Uniprot_human","UNIPROT","Gene.Name"))
-      dat_all <- mutate(dat5,
-                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
-      
-      dat_all$Pvalue.x <- signif(dat_all$Pvalue.x,3)
-      dat_all$logFC.x <- signif(dat_all$logFC.x,3)
-      dat_all$Pvalue.y <- signif(dat_all$Pvalue.y,3)
-      dat_all$logFC.y <- signif(dat_all$logFC.y,3)
-      
-      dat_all <- dat_all[order(dat_all$Pvalue.x),]
-      
-      names(dat_all) <- gsub('.x','',names(dat_all))
-      names(dat_all)[5:6] <- paste(names(dat_all)[5:6],input$expression_x,sep="_")
-      names(dat_all) <- gsub('.y','',names(dat_all))
-      names(dat_all)[7:8] <- paste(names(dat_all)[7:8],input$expression_y,sep="_")
-      
-      
-      
-      datatable(dat_all, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
-        formatStyle(
-          paste("logFC",input$expression_x,sep="_"),
-          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
-          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
-          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
-        formatStyle(
-          paste("Pvalue",input$expression_x,sep="_"),
-          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
-          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
-          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) %>% 
-        formatStyle(
-          paste("logFC",input$expression_y,sep="_"),
-          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
-          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
-          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold')))%>% 
-        formatStyle(
-          paste("Pvalue",input$expression_y,sep="_"),
-          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
-          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
-          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
-      
-    }
+    dat5 <- merge(dat3,dat4,by="ID")
+    dat_all <- mutate(dat5,
+                      significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
+                                          ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
+    
+    dat_all$Pvalue.x <- signif(dat_all$Pvalue.x,3)
+    dat_all$logFC.x <- signif(dat_all$logFC.x,3)
+    dat_all$Pvalue.y <- signif(dat_all$Pvalue.y,3)
+    dat_all$logFC.y <- signif(dat_all$logFC.y,3)
+    dat_all <- dat_all[order(dat_all$Pvalue.x),]
+    
+    names(dat_all) <- gsub('.x','',names(dat_all))
+    names(dat_all)[2:3] <- paste(names(dat_all)[2:3],input$expression_x,sep="_")
+    names(dat_all) <- gsub('.y','',names(dat_all))
+    names(dat_all)[4:5] <- paste(names(dat_all)[4:5],input$expression_y,sep="_")
+    
+    datatable(dat_all, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
+      formatStyle(
+        paste("logFC",input$expression_x,sep="_"),
+        backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
+        color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
+        fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
+      formatStyle(
+        paste("Pvalue",input$expression_x,sep="_"),
+        backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
+        color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
+        fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) %>% 
+      formatStyle(
+        paste("logFC",input$expression_y,sep="_"),
+        backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
+        color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
+        fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold')))%>% 
+      formatStyle(
+        paste("Pvalue",input$expression_y,sep="_"),
+        backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
+        color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
+        fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
+    
+    
+    
   }) 
   output$text1 <- renderPrint({
     dat4 <- input.data4();
     dat3 <- input.data3();
     validate(
       need(nrow(dat3)>0,
-           "no data inported yet")
+           error_message_val1)
     ) 
     
     validate(
       need(nrow(dat4)>0,
-           "no data inported yet")
+           error_message_val1)
     ) 
     
     data3 <- as.numeric(dim(dat3)[1])
@@ -1670,51 +1534,31 @@ server  <- function(input, output, session) {
     
     validate(
       need(nrow(dat3)>0,
-           "no data inported yet")
+           error_message_val1)
     ) 
     
     validate(
       need(nrow(dat4)>0,
-           "no data inported yet")
+           error_message_val1)
     ) 
     
     
-    if (input$name.conversion.required == "no" ) {
-      
-      dat5 <- merge(dat3,dat4,by="ID")
-      dat_all <- mutate(dat5,
-                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
-      dat.sig <- subset(dat_all, dat_all$significance== "both_sig_up" | dat_all$significance== "both_sig_down")
-      
-      
-      names(dat_all) <- gsub('.x','',names(dat_all))
-      names(dat_all)[2:3] <- paste(names(dat_all)[2:3],input$expression_x,sep="_")
-      names(dat_all) <- gsub('.y','',names(dat_all))
-      names(dat_all)[4:5] <- paste(names(dat_all)[4:5],input$expression_y,sep="_")
-      dat.sig <- subset(dat_all, dat_all$significance== "both_sig_up" | dat_all$significance== "both_sig_down")
-      dat.sig
-      
-      
-    }
-    else {
-      
-      dat4_ID <- merge(ID.conversion[c(1:3,5)],dat4,by.x=input$conversion1,by.y="ID")
-      dat3_ID <- merge(ID.conversion[c(1:3,5)],dat3,by.x=input$conversion2,by.y="ID")
-      dat5 <- merge(dat3_ID,dat4_ID,by=c("Ensembl","Uniprot_human","UNIPROT","Gene.Name"))
-      dat_all <- mutate(dat5,
-                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
-      
-      names(dat_all) <- gsub('.x','',names(dat_all))
-      names(dat_all)[5:6] <- paste(names(dat_all)[5:6],input$expression_x,sep="_")
-      names(dat_all) <- gsub('.y','',names(dat_all))
-      names(dat_all)[7:8] <- paste(names(dat_all)[7:8],input$expression_y,sep="_")
-      dat.sig <- subset(dat_all, dat_all$significance== "both_sig_up" | dat_all$significance== "both_sig_down")
-      dat.sig
-      
-      
-    }
+    
+    
+    dat5 <- merge(dat3,dat4,by="ID")
+    dat_all <- mutate(dat5,
+                      significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
+                                          ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
+    dat.sig <- subset(dat_all, dat_all$significance== "both_sig_up" | dat_all$significance== "both_sig_down")
+    
+    
+    names(dat_all) <- gsub('.x','',names(dat_all))
+    names(dat_all)[2:3] <- paste(names(dat_all)[2:3],input$expression_x,sep="_")
+    names(dat_all) <- gsub('.y','',names(dat_all))
+    names(dat_all)[4:5] <- paste(names(dat_all)[4:5],input$expression_y,sep="_")
+    dat.sig <- subset(dat_all, dat_all$significance== "both_sig_up" | dat_all$significance== "both_sig_down")
+    dat.sig
+    
   })
   output$cor_test <- renderPrint({
     
@@ -1727,58 +1571,31 @@ server  <- function(input, output, session) {
     
     validate(
       need(nrow(dat3)>0,
-           "no data inported yet")
+           error_message_val1)
     ) 
     
     validate(
       need(nrow(dat4)>0,
-           "no data inported yet")
+           error_message_val1)
     ) 
     
     
-    if (input$name.conversion.required == "no" ) {
-      
-      dat5 <- merge(dat3,dat4,by="ID")
-      dat_all <- mutate(dat5,
-                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
-      pval <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$p.value)
-      
-      R_value <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$estimate)
-      CI.95 <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$conf.int)
-      round(CI.95[[1]],3)
-      round(CI.95[[2]],3)
-      cat(noquote(paste("The overall Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
-      
-    }
     
     
-    else {
-      
-      dat4_ID <- merge(ID.conversion[c(1:3,5)],dat4,by.x=input$conversion1,by.y="ID")
-      dat3_ID <- merge(ID.conversion[c(1:3,5)],dat3,by.x=input$conversion2,by.y="ID")
-      dat5 <- merge(dat3_ID,dat4_ID,by=c("Ensembl","Uniprot_human","UNIPROT","Gene.Name"))
-      dat_all <- mutate(dat5,
-                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
-      
-      dat_all <- mutate(dat5,
-                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
-      pval <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$p.value)
-      
-      R_value <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$estimate)
-      CI.95 <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$conf.int)
-      round(CI.95[[1]],3)
-      round(CI.95[[2]],3)
-      
-      signif(dat_all$Pvalue.x,3)
-      
-      cat(noquote(paste("The overall Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
-      
-    }
+    dat5 <- merge(dat3,dat4,by="ID")
+    dat_all <- mutate(dat5,
+                      significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
+                                          ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
+    pval <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$p.value)
+    
+    R_value <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$estimate)
+    CI.95 <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$conf.int)
+    round(CI.95[[1]],3)
+    round(CI.95[[2]],3)
+    cat(noquote(paste("The overall Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
     
   })
+  
   output$cor_test_sig <- renderPrint({
     
     neg1 <- -1*input$FC1
@@ -1790,53 +1607,30 @@ server  <- function(input, output, session) {
     
     validate(
       need(nrow(dat3)>0,
-           "no data inported yet")
+           error_message_val1)
     ) 
     
     validate(
       need(nrow(dat4)>0,
-           "no data inported yet")
+           error_message_val1)
     ) 
     
+    dat5 <- merge(dat3,dat4,by="ID")
+    dat_all <- mutate(dat5,
+                      significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
+                                          ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
     
-    if (input$name.conversion.required == "no" ) {
-      
-      dat5 <- merge(dat3,dat4,by="ID")
-      dat_all <- mutate(dat5,
-                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
-      
-      dat.sig <- subset(dat_all, dat_all$significance== "both_sig_up" | dat_all$significance== "both_sig_down")
-      
-      pval <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$p.value)
-      
-      R_value <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$estimate)
-      CI.95 <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$conf.int)
-      round(CI.95[[1]],3)
-      round(CI.95[[2]],3)
-      cat(noquote(paste("The overlap of significant values Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
-      
-    }
-    else {
-      
-      dat4_ID <- merge(ID.conversion[c(1:3,5)],dat4,by.x=input$conversion1,by.y="ID")
-      dat3_ID <- merge(ID.conversion[c(1:3,5)],dat3,by.x=input$conversion2,by.y="ID")
-      dat5 <- merge(dat3_ID,dat4_ID,by=c("Ensembl","Uniprot_human","UNIPROT","Gene.Name"))
-      dat_all <- mutate(dat5,
-                        significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
-      
-      dat.sig <- subset(dat_all, dat_all$significance== "both_sig_up" | dat_all$significance== "both_sig_down")
-      
-      pval <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$p.value)
-      
-      R_value <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$estimate)
-      CI.95 <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$conf.int)
-      round(CI.95[[1]],3)
-      round(CI.95[[2]],3)
-      cat(noquote(paste("The overlap of significant values Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
-      
-    }
+    dat.sig <- subset(dat_all, dat_all$significance== "both_sig_up" | dat_all$significance== "both_sig_down")
+    
+    pval <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$p.value)
+    
+    R_value <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$estimate)
+    CI.95 <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$conf.int)
+    round(CI.95[[1]],3)
+    round(CI.95[[2]],3)
+    cat(noquote(paste("The overlap of significant values Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
+    
+    
     
   })
   plotInput3 <- function() {
@@ -1854,12 +1648,12 @@ server  <- function(input, output, session) {
     
     validate(
       need(nrow(dat3)>0,
-           "no data inported yet")
+           error_message_val3)
     ) 
     
     validate(
       need(nrow(dat4)>0,
-           "no data inported yet")
+           error_message_val3)
     ) 
     
     
@@ -2006,7 +1800,6 @@ server  <- function(input, output, session) {
     }
     
   }
-  
   output$logFC_direction <- renderPlot({
     withProgress(message = 'Figure is being generated...',
                  detail = '', value = 0, {

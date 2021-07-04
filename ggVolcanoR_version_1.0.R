@@ -300,10 +300,10 @@ ui <- navbarPage("ggVolcanoR",
                                                              label = "",
                                                              value = "Correlation plot: x vs y")),
                                          
-                                         column(2,checkboxInput("label3", label = "Display labels", value = FALSE)),
+                                         column(1,checkboxInput("label3", label = "Display labels", value = FALSE)),
                                          column(2,checkboxInput("reg.line", label = "Display regression line", value = FALSE)),
-                                         column(2,checkboxInput("sort_direction", label = "Swap direction", value = TRUE)),
-                                         column(3,sliderInput("sort_by","2=x-axis & 4=y-axis",min=2,max=4,value=2,step=2))),
+                                         column(3,checkboxInput("sort_direction", label = "label: ticked=right to left", value = TRUE)),
+                                         column(2,sliderInput("sort_by","label: 2=top to bottom",min=2,max=4,value=2,step=2))),
                                        
                                        fluidRow(
                                          column(3,numericInput("min2", "label range (min)", value=1)),
@@ -383,33 +383,29 @@ ui <- navbarPage("ggVolcanoR",
                  ),
                  
                  
-                 tabPanel("Convert ID",
-                          sidebarLayout(
-                            sidebarPanel(id = "tPanel3",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=4,
-                                         h4("Corrleation plot parameters"),
-                                         
-                            ),
-                            mainPanel(tabsetPanel(
-                              tabPanel("Panel1",
-                                       selectInput("name.conversion.required","For human data, does the ID need to be converted to merge the two datasets?",
-                                                   choices = name.conversion.required,
-                                                   selected = FALSE),
-                                       selectInput("conversion1","Merge file 1 by ensemble, Symbol or Uniprot ID",
-                                                   choices = names.conversion,
-                                                   selected = "Gene.Name"),
-                                       selectInput("conversion2","Merge file 2 by ensemble, Symbol or Uniprot ID",
-                                                   choices = names.conversion,
-                                                   selected = "Gene.Name"),
-                              ),
-                              tabPanel("Panel2"
-                              ),
-                              tabPanel("Panel3"
-                              )
-                              
-                            )
-                            )
-                          )
-                 ),
+      #           tabPanel("Convert ID",
+        #                  sidebarLayout(
+         #                   sidebarPanel(id = "tPanel3",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=4,
+          #                               h4("Corrleation plot parameters"),
+           #                              
+            #                ),
+             #               mainPanel(tabsetPanel(
+              #                tabPanel("Panel1",
+               #                       
+                #                       selectInput("conversion1","Merge file 1 by ensemble, Symbol or Uniprot ID",
+                 #                                  choices = names.conversion,
+                  #                                 selected = "Gene.Name"),
+                   #                    downloadButton()
+                    #          ),
+                     #         tabPanel("Panel2"
+                      #        ),
+                    #          tabPanel("Panel3"
+                     #         )
+                  #            
+                   #         )
+                    #        )
+                     #     )
+              #   ),
                  
                  navbarMenu("More",
                             tabPanel("Volcano plot Read Me file",

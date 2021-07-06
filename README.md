@@ -23,7 +23,7 @@ See the test-data format in the GitHub repository or download by setting the sig
 
 Select browse and you can search your system for your differental expression file. 
 
-![](IMAGES/1.uploading.png)
+![](IMAGES/1.uploading.png) 
 
 ## Types of graphs
 

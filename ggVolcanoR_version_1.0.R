@@ -164,7 +164,7 @@ ui <- navbarPage("ggVolcanoR",
                                            column(6,numericInput("min", "label range (min)", value=1)),
                                            column(6, numericInput("max", "label range (max)", value=20))
                                          ),
-                                         sliderInput("dist", "distance of label", min=0, max=2, value=0.25,step = 0.01),
+                                         sliderInput("dist", "distance of label", min=0, max=2, value=0.8,step = 0.01),
                                          sliderInput("label", "size of labels", min=0, max=60, value=8,step =0.1),
                                          h4("Legend parameters"),
                                          fluidRow(
@@ -293,7 +293,7 @@ ui <- navbarPage("ggVolcanoR",
                                          ),
                                          h4("colours of correlation line"),
                                          fluidRow(
-                                           column(4,textInput(inputId = "cor_sig_lines", label = "significance lines",value = "grey")),
+                                           column(4,textInput(inputId = "cor_sig_lines", label = "x=0,y=0 line colour",value = "grey")),
                                            column(4,textInput(inputId = "linecolour", label = "Correlation line colour",value = "red")),
                                            column(4,textInput(inputId = "CI95_fill", label = "95% CI colour",value = "grey"))
                                          ),
@@ -302,7 +302,9 @@ ui <- navbarPage("ggVolcanoR",
                                          fluidRow(
                                            column(6,selectInput('legend_location2', 'Legend location', legend_location)),
                                            column(6,numericInput("legend_size2", "legend text size", min=1, max=60, value=12))
-                                         )
+                                         ),
+                                      downloadButton("downloadTABLE5","Corrlation and bar graph user inputs")
+                                      
                                          
                                          
                             ),
@@ -449,6 +451,7 @@ server  <- function(input, output, session) {
   vals2 <- reactiveValues(cor_graph=NULL)
   vals3 <- reactiveValues(logFC_direction=NULL)
   vals4 <- reactiveValues(savedInputs=NULL)
+  vals5 <- reactiveValues(savedInputs2=NULL)
   output$sessionInfo <- renderPrint({
     print(sessionInfo())
   })
@@ -459,7 +462,6 @@ server  <- function(input, output, session) {
   
   test.data <- reactive({
     dataframe = read.csv("test-data/Proteomics data.csv") })
-  
   own.data <- reactive({
     inFile <- input$file1 
     if (is.null(inFile)) return(NULL)
@@ -472,12 +474,9 @@ server  <- function(input, output, session) {
         quote=input$quote)}
     
   })
-  
   input.data2 <- reactive({switch(input$dataset,"test-data" = test.data2(),"own" = own.data2())})
-  
   test.data2 <- reactive({ 
     dataframe2= read.csv("test-data/Refined list.csv")})
-  
   own.data2 <- reactive({
     inFile2 <- input$file2
     if (is.null(inFile2)) return(NULL)
@@ -486,7 +485,6 @@ server  <- function(input, output, session) {
         inFile2$datapath,
         header=T)}
   })
-  
   output$summary_table <-DT::renderDataTable({
     
     dat <- input.data();
@@ -2217,7 +2215,7 @@ server  <- function(input, output, session) {
                             paste("The user used the ",input$expression_y2," of p-value",sep=""),
                             paste("The y-axis ranged from 0 to ", input$yhigh,sep=""),
                             paste("The x-axis ranged from ",input$xlow," to ",input$xhigh,sep=""),
-                            paste("The axix text size was ",input$axis," and the numberic size was ",input$axis_text,sep=""),
+                            paste("The axix text size was ",input$axis," and the numeric size was ",input$axis_text,sep=""),
                             paste("The sig. upregulated IDs were coloured: ",input$up," with the size of ",input$size1.1," and shape ",input$shape1.1,sep=""),
                             paste("The sig. downregulated IDs were coloured: ",input$down," with the size of ",input$size2," and shape ",input$shape2,sep=""),
                             paste("The non-significant IDs were coloured: ",input$NS," with the size of ",input$size3," and shape ",input$shape3,sep=""),
@@ -2235,15 +2233,53 @@ server  <- function(input, output, session) {
   })
   
   
+  savedInputs2 <- reactive({
+    
+    vals5$savedInputs2 <-  c("user inputs included for correlation graph:",
+                             paste("The x-axis is from dataset ",input$expression_x," and the y-axis represents ",input$expression_y,sep=""),
+                             paste("The labels  appeared on the graph (",input$label3,")",sep=""),
+                             paste("    The list display was the users own list (",input$ownlist.cor,")",sep=""),
+                             paste("    The displayed labels were sorted by column ",input$sort_by,"and if ticked were ordered from right to left (",input$sort_direction,")",sep=""),
+                             paste("    The range of labels on the graph was from ",input$min2, " to ", input$max2," at a distance of ",input$dist2," with the text size ",input$label2,sep=""),
+                             paste("The font used: ",input$font2,sep=""),
+                             paste("The x-axis p-value=",input$Pvalue1," and the logFC=",input$FC1,sep=""),
+                             paste("The y-axis p-value=",input$Pvalue2," and the logFC=",input$FC2,sep=""),
+                             paste("The axis text size was ",input$axis2," and the numeric size was ",input$axis_text2,sep=""),
+                             paste("For both datasets the sig. upregulated IDs were coloured: ",input$col1," with the size of ",input$cor_size1," and shape ",input$cor_shape1,sep=""),
+                             paste("For both datasets the sig. downregualted IDs were coloured: ",input$col2," with the size of ",input$cor_size2," and shape ",input$cor_shape2,sep=""),
+                             paste("For both datasets the sig. IDs with opposite logFC were coloured: ",input$col3," with the size of ",input$cor_size3," and shape ",input$cor_shape3,sep=""),
+                             paste("The remaining ID were coloured: ",input$col4," with the size of ",input$cor_size4," and shape ",input$cor_shape4,sep=""),
+                             paste("The significance lines appeared on the graph (",input$reg.line,") that was coloured ",input$linecolour," and the 95% confidence interval",input$CI95_fill,sep=""),
+                             paste("The legend was located to the ", input$legend_location2," with the text size: ",input$legend_size2,sep=""),
+                             paste(" ",sep=""),
+                             paste("The follow are the features of the bar graph",sep=""),
+                            
+                             paste("The user chose to display: ",input$direction,sep=""),
+                             paste("the colour of ", input$expression_x," was ", input$col5,sep=""),
+                             paste("the colour of ", input$expression_y," was ", input$col6,sep=""),
+                             paste("The axis text size was ",input$axis3,"and the numeric size was ",input$bar_text_x," and the label size was ",input$bar_text_y,sep="")
+                             
+    )
+    vals5$savedInputs2
+  })
+  
   
   output$downloadTABLE4 <- downloadHandler(
     filename = function(){
-      paste("User defined features_",gsub("-", ".", Sys.Date()),".csv", sep = "")
+      paste("User defined Volcano features_",gsub("-", ".", Sys.Date()),".csv", sep = "")
     },
     content = function(file){
-      write.csv(savedInputs(),file, row.names = FALSE, quote = F)
+      write.table(savedInputs(),file, row.names = FALSE, quote = F, sep=",",  col.names=FALSE)
     })
   
+  
+  output$downloadTABLE5 <- downloadHandler(
+    filename = function(){
+      paste("User defined corrleation graph and bar plot features_",gsub("-", ".", Sys.Date()),".csv", sep = "")
+    },
+    content = function(file){
+      write.table(savedInputs2(),file, row.names = FALSE, quote = F, sep=",",  col.names=FALSE)
+    })
   
   
 }

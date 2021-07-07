@@ -308,6 +308,10 @@ ui <- navbarPage("ggVolcanoR",
                             ),
                             mainPanel(tabsetPanel(
                               tabPanel("correlation graph", 
+                                       textInput(inputId = "title2", 
+                                                 label = "",
+                                                 value = "Correlation plot: x vs y"),
+                                       plotOutput("cor_graph",height = "600px"),
                                        p(" "),
                                        p("If order of file is ID, logFC, P-value sort column to sort by logFC by 2 and 4 or p-value by 3 and 5"),
                                        fluidRow(
@@ -323,10 +327,7 @@ ui <- navbarPage("ggVolcanoR",
                                          column(2,numericInput("label2", "size of labels",value=8)),
                                          column(2,numericInput("dist2", "distance of label", value=1))),
                                        
-                                     textInput(inputId = "title2", 
-                                                           label = "",
-                                                           value = "Correlation plot: x vs y"),
-                                       plotOutput("cor_graph",height = "600px"),
+                                     
                                        h5("Correlation of all data points"),
                                        textOutput("cor_test"),
                                        h5("Correlation of all in positive direction"),

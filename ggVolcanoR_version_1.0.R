@@ -116,14 +116,14 @@ ui <- navbarPage("ggVolcanoR",
                                          sliderInput("axis_text", "axis numeric text size", min=0, max=100, value=30, step=0.1),
                                          h4("Point colour, size, shape and transparancy"),
                                          fluidRow(
-                                           column(4,textInput(inputId = "up", label = "up-regulated",value = "red")),
+                                           column(4,textInput(inputId = "up", label = "colour up",value = "red")),
                                            column(4,numericInput("shape1.1","Shape of up",value = 19)),
-                                           column(4, numericInput("size1","Size of highlighted",value = 3))
+                                           column(4, numericInput("size1.1","Size of up",value = 3))
                                                    ),
                                          fluidRow(
-                                           column(4,textInput(inputId = "down",  label = "down-regulated", value = "steelblue1")),
+                                           column(4,textInput(inputId = "down",  label = "colour down", value = "steelblue1")),
                                            column(4,numericInput("shape2","Shape of down",value = 19)),
-                                           column(4,numericInput("size2","Size of significant",value = 3)),
+                                           column(4,numericInput("size2","Size of down",value = 3)),
                                            
                                          ),
                                          sliderInput("alpha2", "Transparency of up- down-regulated", min=0.01, max=1, value=0.5,step = 0.01),
@@ -135,8 +135,12 @@ ui <- navbarPage("ggVolcanoR",
                                          sliderInput("alpha3", "Transparency of non-significant", min=0.01, max=1, value=0.25,step = 0.01),
                                          p(" "),
                                           h4("Selected points labels, colour and shape"),
-                                         numericInput("shape1","Shape of selected",value = 19),
-                                         sliderInput("alpha1", "Transparency of selected", min=0.01, max=1, value=1,step = 0.01),
+                                         fluidRow(
+                                           column(4,numericInput("shape1","Shape of selected",value = 19)),
+                                           column(4, numericInput("size1","Size of selected",value = 3))
+                                           
+                                         ),
+                                           sliderInput("alpha1", "Transparency of selected", min=0.01, max=1, value=1,step = 0.01),
                                          fluidRow(
                                            column(6,textInput(inputId = "col_lab1", label = "label one",value = "darkblue")),
                                            column(6,selectInput(inputId = "lab1", 
@@ -189,6 +193,9 @@ ui <- navbarPage("ggVolcanoR",
                                          column(3,numericInput("resolution_PNG","resolution of PNG", value = 144)),
                                          column(3,downloadButton('downloadPlotPNG','Download PNG'))
                                        ),
+                                       fluidRow(
+                                         column(3, downloadButton("downloadTABLE4","User defined features"))
+                                       )
                                        
                               ),
                               tabPanel("Table with links", 
@@ -345,7 +352,7 @@ ui <- navbarPage("ggVolcanoR",
                                        
                                        
                               ),
-                              tabPanel("Datatable",DT::dataTableOutput("Table5"),
+                              tabPanel("correlation table",DT::dataTableOutput("Table5"),
                                        p("download the data that has significant overlap"),
                                        downloadButton("downloadTABLE2", "Filtered Table")
                                        
@@ -440,7 +447,7 @@ server  <- function(input, output, session) {
   vals <- reactiveValues(ggplot=NULL)
   vals2 <- reactiveValues(cor_graph=NULL)
   vals3 <- reactiveValues(logFC_direction=NULL)
-  
+  vals4 <- reactiveValues(savedInputs=NULL)
   output$sessionInfo <- renderPrint({
     print(sessionInfo())
   })
@@ -576,7 +583,7 @@ server  <- function(input, output, session) {
                                               ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)),
                                  shape=ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$shape2,
                                               ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3)),
-                                 size=ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size2,
+                                 size=ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size1.1,
                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))
     # range of genes
     sub.mutateddf.gene2 <- mutate(mutateddf.gene,
@@ -586,10 +593,13 @@ server  <- function(input, output, session) {
                                   alpha=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))),
                                   size=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$size1,
-                                              ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$size1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))),
+                                              ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$size1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size1.1,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))),
                                   shape=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,
                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$shape2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3))))
     )
+    
+    
+    
     
     
     colour_class <- c("NS","sig_down","sig_up","top_down","top_up")
@@ -658,7 +668,7 @@ server  <- function(input, output, session) {
                                     alpha=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))),
                                     size=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$size1,
-                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$size1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))),
+                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$size1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size1.1,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))),
                                     shape=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,
                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$shape2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3))))
       )
@@ -726,7 +736,7 @@ server  <- function(input, output, session) {
                                     alpha=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))),
                                     size=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$size1,
-                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$size1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))),
+                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$size1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size1.1,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))),
                                     shape=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,
                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$shape2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3))))
       )
@@ -804,7 +814,7 @@ server  <- function(input, output, session) {
                                                      ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,input$alpha2,
                                                             ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC<neg,input$alpha2,input$alpha3))),
                                         size=ifelse(mutateddf.gene$ID %in% list2, input$size1, 
-                                                    ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,input$size2,
+                                                    ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,input$size1.1,
                                                            ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC<neg,input$size2,input$size3))),
                                         shape=ifelse(mutateddf.gene$ID %in% list2, input$shape1, 
                                                      ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,input$shape2,
@@ -2195,6 +2205,45 @@ server  <- function(input, output, session) {
     contentType = "application/png" # MIME type of the image
     
   )
+  
+  savedInputs <- reactive({
+   
+    vals4$savedInputs <-  c("user inputs included",
+                            paste("The graph output selected: ",input$selected,sep=""),
+                            paste("The following parameters were used for the graph titled: ",input$title),
+                            paste("The font used: ",input$font,sep=""),
+                            paste("The p-value=",input$Pvalue," and the logFC=",input$FC,sep=""),
+                            paste("The user used the ",input$expression_y2," of p-value",sep=""),
+                            paste("The y-axis ranged from 0 to ", input$yhigh,sep=""),
+                            paste("The x-axis ranged from ",input$xlow," to ",input$xhigh,sep=""),
+                            paste("The axix text size was ",input$axis," and the numberic size was ",input$axis_text,sep=""),
+                            paste("The sig. upregulated IDs were coloured: ",input$up," with the size of ",input$size1.1," and shape ",input$shape1.1,sep=""),
+                            paste("The sig. downregulated IDs were coloured: ",input$down," with the size of ",input$size2," and shape ",input$shape2,sep=""),
+                            paste("The non-significant IDs were coloured: ",input$NS," with the size of ",input$size3," and shape ",input$shape3,sep=""),
+                            " ",
+                            paste("The follow parameters used with the labelled graph",sep=""),
+                            paste("    label 1 (",input$lab1,") was coloured ",input$col_lab1," with the size of ",input$size1," and shape ",input$shape1,sep=""),
+                            paste("    label 2 (",input$lab2,") was coloured ",input$col_lab2," with the size of ",input$size1," and shape ",input$shape1,sep=""),
+                            paste("    label 3 (",input$lab3,") was coloured ",input$col_lab3," with the size of ",input$size1," and shape ",input$shape1,sep=""),
+                            paste("    The range of labels on the graph was from ",input$min, " to ", input$max," at a distance of ",input$dist," with the text size ",input$label,sep=""),
+                            paste(" ",sep=""),
+                            paste("The legend was located to the ", input$legend_location ," with the text size: ",input$legend_size,sep="")
+                            
+                            )
+    vals4$savedInputs
+  })
+  
+  
+  
+  output$downloadTABLE4 <- downloadHandler(
+    filename = function(){
+      paste("User defined features_",gsub("-", ".", Sys.Date()),".csv", sep = "")
+    },
+    content = function(file){
+      write.csv(savedInputs(),file, row.names = FALSE, quote = F)
+    })
+  
+  
   
 }
 

@@ -28,7 +28,13 @@ This includes **Arial (Default)**, Times New Roman and Courier.
 
 ## Axis labels and cut-offs
 
+The user can changed the x- and y-axis label 
 
+They can also change the cut-offs (p-value and logFC) that may be unique to each dataset. 
+
+<img src="IMAGES/lab.cutoff.png" width="400">
+
+## 
 
 ## Packages cited 
 Auguie, B., A. Antonov and M. B. Auguie (2017). "gridExtra: Miscellaneous Functions for "Grid" Graphics. R package version 2.3. https://CRAN.R-project.org/package=gridExtra."

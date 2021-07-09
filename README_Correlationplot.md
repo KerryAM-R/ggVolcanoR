@@ -20,6 +20,9 @@ The test-data includes 'proteomics.csv' and 'Transcriptomics.csv' files from Gon
 
 <img src="IMAGES/uploading.cor.png" width="400">
 
+## Example plot
+<img src="IMAGES/Example of labelling of graph .png" width="800">
+
 ## Font Available
 
 This includes **Arial (Default)**, Times New Roman and Courier.

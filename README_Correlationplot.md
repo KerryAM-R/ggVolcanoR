@@ -16,7 +16,18 @@ Unique ID names are preferred especially when labelling the graph.
 
 This needs to be in the form of either a **.csv** or **.txt** file.
 
-See the test-data format in the GitHub repository or download by setting the significance thresholds to 0. 
+The test-data includes 'proteomics.csv' and 'Transcriptomics.csv' files from Gonglaves et al. (2021)
+
+<img src="IMAGES/uploading.cor.png" width="400">
+
+## Font Available
+
+This includes **Arial (Default)**, Times New Roman and Courier.
+
+<img src="IMAGES/font.png" width="400">
+
+## Axis labels and cut-offs
+
 
 
 ## Packages cited 

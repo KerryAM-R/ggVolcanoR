@@ -76,7 +76,11 @@ There are two download options:
 
 ## The bar graph features
 
-there are
+There are only a few features in the bar graph. 
+
+All the adjustable parameters, apart from the cut-offs and importing the files, are located above the graph. 
+
+
 
 ## Packages cited 
 Auguie, B., A. Antonov and M. B. Auguie (2017). "gridExtra: Miscellaneous Functions for "Grid" Graphics. R package version 2.3. https://CRAN.R-project.org/package=gridExtra."

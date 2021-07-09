@@ -28,13 +28,27 @@ This includes **Arial (Default)**, Times New Roman and Courier.
 
 ## Axis labels and cut-offs
 
-The user can changed the x- and y-axis label 
+The user can changed the x- and y-axis label. 
 
 They can also change the cut-offs (p-value and logFC) that may be unique to each dataset. 
 
 <img src="IMAGES/lab.cutoff.png" width="400">
 
-## 
+## Point parameters
+
+The user can select the colour, shape, size and transparancy of the datapoints. 
+
+There are 4 categories that can be labelled: up/down (overlap of all significant in the same logFC), opposite (logFC is oppostie directions) and other.
+
+<img src="IMAGES/Point.cor.png" width="400">
+
+## The correlation line and legend
+
+The correlation line colours and 95%CI colour can be changed
+
+Like the Volcano plot the user can show where the legend will be placed. 
+
+
 
 ## Packages cited 
 Auguie, B., A. Antonov and M. B. Auguie (2017). "gridExtra: Miscellaneous Functions for "Grid" Graphics. R package version 2.3. https://CRAN.R-project.org/package=gridExtra."

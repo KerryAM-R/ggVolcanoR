@@ -27,8 +27,8 @@ See the test-data format in the GitHub repository or download by setting the sig
 
 <img src="IMAGES/importing files.png" width="400">
 
-#### example plot
-<img src="IMAGES/Example of labelling of graph .png" width="400">
+#### Example plot
+<img src="IMAGES/Example of labelling of graph .png" width="800">
 
 ## Font Available
 
@@ -96,7 +96,9 @@ The user can also download these features if desired for future reference.
 The graph will be exported with the current user defined parameters.
 
 There are two download options: 
+
 1. PDF (default: height=8 and width=10)
+
 2. png (default assumes legend is present at the 1200 by 1600; recommended to change to 1200 by 1200)
     - if the user wishes to increase the resolution, all point parameters will be affected. 
 

@@ -29,7 +29,7 @@ See the test-data format in the GitHub repository or download by setting the sig
 
 ## Example plot
 
-<img src="IMAGES/top 20 proteins" width="800">
+<img src="IMAGES/20_proteins.png" width="800">
 
 ## Font Available
 

@@ -83,7 +83,7 @@ The "range of genes" and "own list" have up to 6 colors to differentiate the poi
 The legend can be altered in the following ways:
 - Size of text
 - location of legend (default=right)
-- If the legend is to be displayed below the text, it will be presented in one column. We recommend changing this to 3 to fit all under the graph. 
+- If the legend is to be displayed below the text, it will be presented in one column. We recommend changing this to 3 to fit all under the graph. 
 
 <img src="IMAGES/label and legend.png" width="400"> 
 
@@ -100,7 +100,7 @@ There are two download options:
 2. png (default assumes legend is present at the 1200 by 1600; recommended to change to 1200 by 1200)
     - if the user wishes to increase the resolution, all point parameters will be affected. 
 
-<img src="IMAGES/explorting.exporting.png"> 
+<img src="IMAGES/explorting.exporting.png" width="800"> 
 
 ## Table with links 
 Based on the labelling option selected the table will show the following:

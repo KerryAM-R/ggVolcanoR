@@ -220,7 +220,7 @@ ui <- navbarPage("ggVolcanoR",
                  tabPanel("Correlation graph",
                           sidebarLayout(
                             sidebarPanel(id = "tPanel2",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=4,
-                                         h4("Corrleation plot parameters"),
+                                         h4("Correlation plot parameters"),
                                          selectInput("dataset2", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file3', 'ID, logFC, Pvalue (x-axis)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),

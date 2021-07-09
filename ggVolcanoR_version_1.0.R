@@ -365,7 +365,7 @@ ui <- navbarPage("ggVolcanoR",
                               ),
                               tabPanel("Bar graph", 
                                        
-                                       fluidRow(h4("bar graph parameters"),
+                                       fluidRow(h4("Bar graph parameters"),
                                                 
                                                 column(3, selectInput("direction","Select which direction to show",
                                                                       choices = direction,

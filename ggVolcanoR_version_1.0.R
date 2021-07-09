@@ -173,7 +173,7 @@ ui <- navbarPage("ggVolcanoR",
                                            column(4, numericInput("legend_size", "Legend text size", min=1, max=60, value=12))
                                          ),
                                          fluidRow(
-                                           column(3, downloadButton("downloadTABLE4","Download user inputs"))
+                                           column(3, downloadButton("downloadTABLE4","Download parameters"))
                                          )
                             ),
                             mainPanel(tabsetPanel(
@@ -306,7 +306,7 @@ ui <- navbarPage("ggVolcanoR",
                                            column(6,selectInput('legend_location2', 'Legend location', legend_location)),
                                            column(6,numericInput("legend_size2", "Legend text size", min=1, max=60, value=12))
                                          ),
-                                      downloadButton("downloadTABLE5","Download user inputs")
+                                      downloadButton("downloadTABLE5","Download parameters")
                             ),
                             mainPanel(tabsetPanel(
                               tabPanel("correlation graph", 

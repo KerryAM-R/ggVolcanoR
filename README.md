@@ -19,62 +19,35 @@ This needs to be in the form of either a **.csv** or **.txt** file.
 
 See the test-data format in the GitHub repository or download by setting the significance thresholds to 0. 
 
-## Uploading the file
+## Uploading the file and types of graphs
 
-Select browse and you can search your system for your differental expression file. 
+### Select browse and you can search your system for your differental expression file. 
 
-![](IMAGES/1.uploading.png) 
+### Five labelling options are available for plotting. 
 
-## Types of graphs
+<img src="IMAGES/importing files.png" width="400">
 
-### Three labelling options are available for plotting. 
-
-![](IMAGES/2.types.png)
-
-### Unlabeled graph
-Shows all data points without any text labels. 
-
-![](IMAGES/2.Nolabs.png)
-  
-### Range of genes
- - The most dysregulated genes are selected, by default the top 20 most dysregulated genes/proteins are selected. This can be modified by the user. 
-  - This of list is based on p-value and not direction of logFC. 
-  - The range can be from x to y.
-  - Do not recommend more than 30 points labelled.
-
-![](IMAGES/2.top20.png)
-  
-### Own list
-
-  ![](IMAGES/2.Uploading.png)
-
-- This will label the uploaded list of genes/proteins if they meet the significance threshold.  
-- By default, the 20 most dysregualted genes/proteins in the list will be annotated with text in the graph. This can be modified by the user. 
-- A user can chose the range (x to y) .
-- Do not recommend more than 30 points labelled.
-
-  ![](IMAGES/2.zoomSelected.png)
-
-## Font types
-There are three font types available for the plot.
+## Font Available
 
 This includes **Arial (Default)**, Times New Roman and Courier.
 
-![](IMAGES/3.fonts.png)
+<img src="IMAGES/font.png" width="400">
 
 ## Cut-offs
 Thresholds for significance can be altered (Default: Pvalue=0.05 and absolute logFC=0.58).
 
 These are represented by the horizontal and vertical dotted lines on the graph (Default=grey).
 
-![](IMAGES/3.cut-offs.png)
+<img src="IMAGES/cut-offs.png" width="400">
 
-## Axis parameters 
-Select label
-- p-value, FDR (false discovery rate; out-put of EdgeR) or adj p-value (which could include other p-value corrections)
+## Axis Parameters 
+Type in y-axis label which could be:
+- p-value
+- FDR (false discovery rate; out-put of EdgeR) 
+- adj p-value (which could include other p-value corrections)
 
 Axis 
-- y-axis from 0 onward with the default being 100. To identify the top hit, look at the exponent on the P-value (i.e. 1e-50) and then add 5 to cover that point i.e. 55
+- y-axis from 0 onward with the default being 100. 
 - x-axis default from -10 to 10. 
 
 Axis tick marks
@@ -86,46 +59,35 @@ Font size (range 0 to 100)
 - text size. 
 - number size. 
 
-![](IMAGES/3.axis-parameters.png)
+<img src="IMAGES/Axis parameters.png" width="400">
 
-## Point parameters
-The size of the point can be altered (Default 3)
+## Point Parameters
 
-Coloring the dots:
-- Up-regulated (red), down-regulated (light blue) and non-significant (gray).
-    
-![](IMAGES/3.point-parameters1.png)
-    
+For each of the datapoints, the colour, shape, size and transparency
+
+<img src="IMAGES/standard point parameters.png" width="400"> 
+
+### The user can also colour the genes based on the addition of the labelled points
+
 The "range of genes" and "own list" have up to 6 colors to differentiate the points. 
 - list one (orange), list two (dark blue), list three (purple), up-regulated (red), down-regulated (light blue) and non-significant (gray).
 - the legend lables for the list can be changed to: list: significant up, list: significant down and list: non-significant.
 
-![](IMAGES/3.point-parameters2.png)
+<img src="IMAGES/selected point parameters.png" width="400"> 
 
-Transparency of points
-- There are 3 transparencies that can be altered: 
-  - Non-significant (default = 0.25)
-  - significant (default = 0.5)
-  - labeled  (default = 1)
-
-![](IMAGES/3.Transparency.png)
-
-## Legend Parameters
-
-![](IMAGES/3.legend.png)
+## Label and Legend Parameters
 
 The legend can be altered in the following ways:
 - Size of text
 - location of legend (default=right)
 - If the legend is to be displayed below the text, it will be presented in one column. We recommend changing this to 3 to fit all under the graph. 
 
-![](IMAGES/3.legend_right.png)
-![](IMAGES/3.legend_bottom.png)
+<img src="IMAGES/label and legend.png" width="400"> 
 
 ## Other features
 The title of the graph can be changed for export purposes
 
-![](IMAGES/3.title.png)
+The user can also download these features if desired for future reference. 
 
 ## Exporting the graph
 The graph will be exported with the current user defined parameters.
@@ -135,7 +97,7 @@ There are two download options:
 2. png (default assumes legend is present at the 1200 by 1600; recommended to change to 1200 by 1200)
     - if the user wishes to increase the resolution, all point parameters will be affected. 
 
-![](IMAGES/4.explorting.png)
+<img src="IMAGES/explorting.exporting.png" width="400"> 
 
 ## Table with links 
 Based on the labelling option selected the table will show the following:

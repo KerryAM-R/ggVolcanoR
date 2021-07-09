@@ -303,8 +303,9 @@ ui <- navbarPage("ggVolcanoR",
                                         
                                        
                                          fluidRow(
-                                           column(6,selectInput('legend_location2', 'Legend location', legend_location)),
-                                           column(6,numericInput("legend_size2", "Legend text size", min=1, max=60, value=12))
+                                           column(4,selectInput('legend_location2', 'Legend location', legend_location)),
+                                           column(4,numericInput("col.cor", "# of legend columns", value=1, step = 1)),
+                                           column(4,numericInput("legend_size2", "Legend text size", min=1, max=60, value=12))
                                          ),
                                       downloadButton("downloadTABLE5","Download parameters")
                             ),
@@ -1337,7 +1338,7 @@ server  <- function(input, output, session) {
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
         theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        
+        guides(col = guide_legend(ncol=input$col.cor)) +
         geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         labs(y=y_lable1,
@@ -1375,7 +1376,7 @@ server  <- function(input, output, session) {
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
         theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        
+        guides(col = guide_legend(ncol=input$col.cor)) +
         geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         labs(y=y_lable1,
@@ -1414,7 +1415,7 @@ server  <- function(input, output, session) {
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
         theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        
+        guides(col = guide_legend(ncol=input$col.cor)) +
         geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         labs(y=y_lable1,
@@ -1456,7 +1457,7 @@ server  <- function(input, output, session) {
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
         theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        
+        guides(col = guide_legend(ncol=input$col.cor)) +
         geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         labs(y=y_lable1,
@@ -1508,7 +1509,7 @@ server  <- function(input, output, session) {
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
         theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        
+        guides(col = guide_legend(ncol=input$col.cor)) +
         geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         labs(y=y_lable1,
@@ -1553,7 +1554,7 @@ server  <- function(input, output, session) {
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
         theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        
+        guides(col = guide_legend(ncol=input$col.cor)) +
         geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         labs(y=y_lable1,
@@ -1606,7 +1607,7 @@ server  <- function(input, output, session) {
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
         theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        
+        guides(col = guide_legend(ncol=input$col.cor)) +
         geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         labs(y=y_lable1,
@@ -1647,7 +1648,7 @@ server  <- function(input, output, session) {
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
         theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        
+        guides(col = guide_legend(ncol=input$col.cor)) +
         geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
         labs(y=y_lable1,

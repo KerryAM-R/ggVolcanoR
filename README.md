@@ -100,7 +100,7 @@ There are two download options:
 2. png (default assumes legend is present at the 1200 by 1600; recommended to change to 1200 by 1200)
     - if the user wishes to increase the resolution, all point parameters will be affected. 
 
-<img src="IMAGES/explorting.exporting.png" width="800"> 
+![](IMAGES/explorting.exporting.png)
 
 ## Table with links 
 Based on the labelling option selected the table will show the following:

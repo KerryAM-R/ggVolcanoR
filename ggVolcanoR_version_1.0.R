@@ -361,8 +361,6 @@ ui <- navbarPage("ggVolcanoR",
                                        p(" "),
                                        h5("Download the data that has significant overlap"),
                                        downloadButton("downloadTABLE2", "Filtered Table")
-                                       
-                                       
                               ),
                               tabPanel("Bar graph", 
                                        

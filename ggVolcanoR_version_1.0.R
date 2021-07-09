@@ -358,7 +358,8 @@ ui <- navbarPage("ggVolcanoR",
                                        
                               ),
                               tabPanel("correlation table",DT::dataTableOutput("Table5"),
-                                       p("download the data that has significant overlap"),
+                                       p(" "),
+                                       h5("Download the data that has significant overlap"),
                                        downloadButton("downloadTABLE2", "Filtered Table")
                                        
                                        

@@ -48,7 +48,35 @@ The correlation line colours and 95%CI colour can be changed
 
 Like the Volcano plot the user can show where the legend will be placed. 
 
+<img src="IMAGES/cor.line.legend.png" width="400">
 
+## Other features
+
+### Below the graph there are additional features that include:
+- Displaying labels
+    - Labels can be order from dataset 1 or 2. 
+    - This may ordered based on LogFC or p-value
+
+<img src="IMAGES/cor.other.labels.png" width="400">
+
+- we also included the correlation statistics below the graph.
+
+<img src="IMAGES/cor.stat.png" width="400">
+
+## exporting the correlation graph
+
+The graph will be exported with the current user defined parameters.
+
+There are two download options: 
+1. PDF (default: height=8 and width=10)
+2. png (default assumes legend is present at the 1200 by 1600; recommended to change to 1200 by 1200)
+    - if the user wishes to increase the resolution, all point parameters will be affected. 
+
+![](IMAGES/explorting.exporting.png)
+
+## The bar graph features
+
+there are
 
 ## Packages cited 
 Auguie, B., A. Antonov and M. B. Auguie (2017). "gridExtra: Miscellaneous Functions for "Grid" Graphics. R package version 2.3. https://CRAN.R-project.org/package=gridExtra."

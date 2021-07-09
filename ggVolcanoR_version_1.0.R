@@ -289,7 +289,7 @@ ui <- navbarPage("ggVolcanoR",
                                         column(4,numericInput("cor_size4","Size of other",value = 1))
                                       ),
                                       sliderInput("cor_alpha4", "Transparency of other", min=0.01, max=1, value=0.25,step = 0.01),
-                                           h4("axis tick marks"),
+                                           h4("Axis tick marks"),
                                          fluidRow(
                                            column(6,numericInput("cor_xbreaks","x-axis tick marks",value = 1)),
                                            column(6,numericInput("cor_ybreaks","y-axis tick marks",value = 2))

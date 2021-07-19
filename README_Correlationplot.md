@@ -57,7 +57,7 @@ Like the Volcano plot the user can show where the legend will be placed.
 
 ### Below the graph there are additional features that include:
 - Displaying labels
-    - Labels can be order from dataset 1 or 2. 
+    - Labels can be ordered from dataset 1 or 2. 
     - This may ordered based on LogFC or p-value
 
 ![](IMAGES/cor.other.labels.png)

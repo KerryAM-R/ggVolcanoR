@@ -21,7 +21,7 @@ See the test-data format in the GitHub repository or download by setting the sig
 
 ## Uploading the file and types of graphs
 
-### Select browse and you can search your system for your differental expression file. 
+### Select browse and you can search your system for your differential expression file. 
 
 ### Five labelling options are available for plotting. 
 
@@ -31,7 +31,7 @@ See the test-data format in the GitHub repository or download by setting the sig
 
 <img src="IMAGES/20_proteins.png" width="800">
 
-## Font Available
+## Fonts Available
 
 This includes **Arial (Default)**, Times New Roman and Courier.
 
@@ -118,7 +118,7 @@ Own list - user defined list of genes
 
 The table includes links to several databases:  
 - GeneCards 
-- The human protein atlas (atlas)
+- The Human Protein Atlas (atlas)
 - UniProt 16 species (UniProt_species)
     * If the user is using one of the 16 common species, they can select this from the list. 
     * Using the Symbol_species, aided in finding the correct information. 
@@ -132,10 +132,10 @@ The table includes links to several databases:
 
 The summary table contains the total number of differentially expressed genes (no labels and range of genes) or the number of significant and non-significant ID's in the list
 
-The following filtered data lists can be downloaded as csv files (note that significance is based on user defined parameters):
+The following filtered data lists can be downloaded as .csv files (note that significance is based on user defined parameters):
 - Upregulated
-- Downregualted
-- All significant dysregualted
+- Downregulated
+- All significantly dysregulated
 - Own list (significant values only)
 
 ![](IMAGES/5.summary.table.png)

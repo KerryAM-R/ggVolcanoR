@@ -54,7 +54,7 @@ lab <- c("significant up","significant down","non-significant")
 names.conversion <- names(ID.conversion)[c(1:3,5)]
 name.conversion.required <- c(FALSE,TRUE) 
 label3 <- c(TRUE,FALSE)
-direction <- c("all","up","down","same","opposite","own list")
+direction <- c("all.sig","up","down","same","opposite","own list")
 sort_direction <- c(TRUE,FALSE)
 
 error_message_val1 <- "No data found"
@@ -67,7 +67,7 @@ error_message_val4 <- "no own list found\n \nSuggest uploading file\nheaders=ID"
 ui <- navbarPage("ggVolcanoR",
                  # Volcano plot ----
                  
-                 tabPanel("Volano plot",
+                 tabPanel("Volcano plot",
                           sidebarLayout(
                             sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=4,
                                          tags$head(tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}"))),
@@ -112,7 +112,7 @@ ui <- navbarPage("ggVolcanoR",
                                            column(4,numericInput("xhigh","x-axis upper range",value = 10)),
                                            column(4, numericInput("xbreaks","x-axis tick marks",value = 1))
                                          ),
-                                         sliderInput("axis", "Axis text size", min=0, max=100, value=30, step=0.1),
+                                         sliderInput("axis", "Axis label text size", min=0, max=100, value=30, step=0.1),
                                          sliderInput("axis_text", "Axis numeric text size", min=0, max=100, value=30, step=0.1),
                                          h4("Point colour, size, shape and transparancy"),
                                          fluidRow(
@@ -126,13 +126,14 @@ ui <- navbarPage("ggVolcanoR",
                                            column(4,numericInput("size2","Size of down",value = 3)),
                                            
                                          ),
-                                         sliderInput("alpha2", "Transparency of up and down", min=0.01, max=1, value=0.5,step = 0.01),
+                                         sliderInput("alpha2", "Transparency of up and down", min=0, max=1, value=0.5,step = 0.01),
                                          fluidRow(
                                            column(4,textInput(inputId = "NS", label = "Colour of non-significant",value = "grey")),
                                            column(4,numericInput("shape3","Shape of non-significant",value = 1)),
                                            column(4,numericInput("size3","Size of non-significant",value = 1))
                                          ),
-                                         sliderInput("alpha3", "Transparency of non-significant", min=0.01, max=1, value=0.25,step = 0.01),
+                                         
+                                         sliderInput("alpha3", "Transparency of non-significant", min=0, max=1, value=0.25,step = 0.01),
                                          p(" "),
                                           h4("Selected points labels, colour and shape"),
                                          fluidRow(
@@ -140,19 +141,19 @@ ui <- navbarPage("ggVolcanoR",
                                            column(4, numericInput("size1","Size of selected",value = 3))
                                            
                                          ),
-                                           sliderInput("alpha1", "Transparency of selected", min=0.01, max=1, value=1,step = 0.01),
+                                           sliderInput("alpha1", "Transparency of selected", min=0.00, max=1, value=1,step = 0.01),
                                          fluidRow(
-                                           column(6,textInput(inputId = "col_lab1", label = "Colour of label one",value = "darkblue")),
+                                           column(6,textInput(inputId = "col_lab1", label = "Colour of label 1",value = "darkblue")),
                                            column(6,selectInput(inputId = "lab1", 
                                                                 label = "label 1", 
                                                                 choices = lab, 
                                                                 selected = "significant down")),
-                                           column(6,textInput(inputId = "col_lab2", label = "Colour oflabel two",value = "orange")),
+                                           column(6,textInput(inputId = "col_lab2", label = "Colour oflabel 2",value = "orange")),
                                            column(6,selectInput(inputId = "lab2", 
                                                                 label = "label 2", 
                                                                 choices = lab, 
                                                                 selected = "significant up")),
-                                           column(6,textInput(inputId = "col_lab3", label = "Colour of label three",value = "purple")),
+                                           column(6,textInput(inputId = "col_lab3", label = "Colour of label 3",value = "purple")),
                                            column(6,selectInput(inputId = "lab3", 
                                                                 label = "label 3", 
                                                                 choices = lab, 
@@ -189,29 +190,29 @@ ui <- navbarPage("ggVolcanoR",
                                          column(3,numericInput("width", "Width of PDF", value=10)),
                                          column(3,numericInput("height", "Height of PDF", value=8)),
                                          column(3),
-                                         column(3,downloadButton('downloadPlot','Download PDF'))
+                                         column(3,style = "margin-top: 25px;",downloadButton('downloadPlot','Download PDF'))
                                        ),
                                        
                                        fluidRow(
-                                         column(3,numericInput("width_png","Width of png", value = 1600)),
-                                         column(3,numericInput("height_png","Height of png", value = 1200)),
+                                         column(3,numericInput("width_png","Width of PNG", value = 1600)),
+                                         column(3,numericInput("height_png","Height of PNG", value = 1200)),
                                          column(3,numericInput("resolution_PNG","Resolution of PNG", value = 144)),
-                                         column(3,downloadButton('downloadPlotPNG','Download PNG'))
+                                         column(3,style = "margin-top: 25px;",downloadButton('downloadPlotPNG','Download PNG'))
                                        ),
                                       
                                        
                               ),
                               tabPanel("Table with links", 
-                                       selectInput("species", label = "List of the 16 common species used in uniprot",species,selected = "HUMAN"),
+                                       selectInput("species", label = "Select relevant species",species,selected = "HUMAN"),
                                        
                                        div(DT::dataTableOutput("myoutput",height="600px"))),
                               
                               tabPanel("Summary table",DT::dataTableOutput("summary_table",height="300px"),
                                        selectInput(inputId = "export", 
-                                                   label = "Types of filtered for download", 
+                                                   label = "Filtered lists for download", 
                                                    choices = filtered_table, 
                                                    selected = filtered_table[1]),
-                                       downloadButton("downloadTABLE", "Filtered Table"))
+                                       downloadButton("downloadTABLE", "Download filtered Table"))
                               
                             ))
                           )
@@ -259,7 +260,7 @@ ui <- navbarPage("ggVolcanoR",
                                          ),
                                          h4("Axis text size"),
                                          fluidRow(
-                                           column(6,numericInput("axis2", "Axis text size", min=0, value=24)),
+                                           column(6,numericInput("axis2", "Axis label text size", min=0, value=24)),
                                            column(6,numericInput("axis_text2", "Axis numeric text size", min=0, value=24))
                                          ),
                                          h4("Point parameters"),
@@ -268,27 +269,27 @@ ui <- navbarPage("ggVolcanoR",
                                                   column(4,numericInput("cor_size1","Size of up",value = 3))
                                                   ),
                                          
-                                         sliderInput("cor_alpha1", "Transparency of up", min=0.01, max=1, value=1,step = 0.01),
+                                         sliderInput("cor_alpha1", "Transparency of up", min=0.00, max=1, value=1,step = 0.01),
                                          fluidRow(
                                                   column(4,textInput(inputId = "col2", label = "Colour of down",value = "blue")),
                                                   column(4,numericInput("cor_shape2","Shape of down",value = 19)),
                                                   column(4,numericInput("cor_size2","Size of down",value = 3)),
                                                    ),
-                                         sliderInput("cor_alpha2", "Transparency of down", min=0.01, max=1, value=1,step = 0.01),
+                                         sliderInput("cor_alpha2", "Transparency of down", min=0.0, max=1, value=1,step = 0.01),
                                          
                                             fluidRow(
                                         column(4, textInput(inputId = "col3", label = "Colour of opposite",value = "orange")),
                                         column(4,numericInput("cor_shape3","Shape of opposite",value = 19)),
                                         column(4,numericInput("cor_size3","Size of opposite",value = 3)),
                                       ),
-                                      sliderInput("cor_alpha3", "Transparency of opposite", min=0.01, max=1, value=1,step = 0.01),
+                                      sliderInput("cor_alpha3", "Transparency of opposite", min=0.0, max=1, value=1,step = 0.01),
                                       
                                       fluidRow(
                                         column(4,textInput(inputId = "col4", label = "Colour of other",value = "grey")),
                                         column(4,numericInput("cor_shape4","Shape of other",value = 1)),
                                         column(4,numericInput("cor_size4","Size of other",value = 1))
                                       ),
-                                      sliderInput("cor_alpha4", "Transparency of other", min=0.01, max=1, value=0.25,step = 0.01),
+                                      sliderInput("cor_alpha4", "Transparency of other", min=0.0, max=1, value=0.25,step = 0.01),
                                            h4("Axis tick marks"),
                                          fluidRow(
                                            column(6,numericInput("cor_xbreaks","x-axis tick marks",value = 1)),
@@ -310,7 +311,7 @@ ui <- navbarPage("ggVolcanoR",
                                       downloadButton("downloadTABLE5","Download parameters")
                             ),
                             mainPanel(tabsetPanel(
-                              tabPanel("correlation graph", 
+                              tabPanel("Correlation graph", 
                                        textInput(inputId = "title2", 
                                                  label = "",
                                                  value = "Correlation plot: x vs y"),
@@ -342,15 +343,15 @@ ui <- navbarPage("ggVolcanoR",
                                          column(3,numericInput("cor_width", "Width of PDF", value=10)),
                                          column(3,numericInput("cor_height", "Height of PDF", value=8)),
                                          column(3),
-                                         column(3,downloadButton('downloadPlot2','Download PDF'))
+                                         column(3,style = "margin-top: 25px;",downloadButton('downloadPlot2','Download PDF'))
                                          
                                        ),
                                        
                                        fluidRow(
-                                         column(3,numericInput("cor_width_png","Width of png", value = 1600)),
-                                         column(3,numericInput("cor_height_png","Height of png", value = 1200)),
+                                         column(3,numericInput("cor_width_png","Width of PNG", value = 1600)),
+                                         column(3,numericInput("cor_height_png","Height of PNG", value = 1200)),
                                          column(3,numericInput("cor_resolution_PNG","Resolution of PNG", value = 144)),
-                                         column(3,downloadButton('downloadPlotPNG2','Download PNG'))
+                                         column(3,style = "margin-top: 25px;",downloadButton('downloadPlotPNG2','Download PNG'))
                                        ),
                                        
                                        
@@ -387,14 +388,14 @@ ui <- navbarPage("ggVolcanoR",
                                          column(3,numericInput("bar_width", "Width of PDF", value=10)),
                                          column(3,numericInput("bar_height", "Height of PDF", value=8)),
                                          column(3),
-                                         column(3, downloadButton('downloadPlot3','Download PDF'))
+                                         column(3,style = "margin-top: 25px;",downloadButton('downloadPlot3','Download PDF'))
                                        ),
                                        
                                        fluidRow(
-                                         column(3,numericInput("bar_width_png","Width of png", value = 1600)),
-                                         column(3,numericInput("bar_height_png","Height of png", value = 1200)),
+                                         column(3,numericInput("bar_width_png","Width of PND", value = 1600)),
+                                         column(3,numericInput("bar_height_png","Height of PNG", value = 1200)),
                                          column(3,numericInput("bar_resolution_PNG","Resolution of PNG", value = 144)),
-                                         column(3,downloadButton('downloadPlotPNG3','Download PNG'))
+                                         column(3,style = "margin-top: 25px;",downloadButton('downloadPlotPNG3','Download PNG'))
                                        ),
                                        
                               )
@@ -1832,7 +1833,7 @@ server  <- function(input, output, session) {
     CI.95 <- as.list(cor.test(dat_all$logFC.x,dat_all$logFC.y)$conf.int)
     round(CI.95[[1]],3)
     round(CI.95[[2]],3)
-    cat(noquote(paste("The overall Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
+    cat(noquote(paste("The overall Pearson's correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
     
   })
   output$cor_test_sig <- renderPrint({
@@ -1962,7 +1963,7 @@ server  <- function(input, output, session) {
     
     df_logFC <- melt(a[,c("ID","V1","direction","logFC.x","logFC.y")],id.vars = c(1:3))
     
-    if (input$direction == "all" ) {
+    if (input$direction == "all.sig" ) {
       vals3$logFC_direction <- ggplot(df_logFC,aes(y =reorder(ID,-V1), x = value, fill=variable)) +
         geom_bar(stat="identity", position = "dodge") +
         

@@ -1876,7 +1876,7 @@ server  <- function(input, output, session) {
     CI.95 <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$conf.int)
     round(CI.95[[1]],3)
     round(CI.95[[2]],3)
-    cat(noquote(paste("The overlap of significant values for the positive Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
+    cat(noquote(paste("The overlap of significant values for the positive Pearson's correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
     
     }
       })
@@ -1920,7 +1920,7 @@ server  <- function(input, output, session) {
       CI.95 <- as.list(cor.test(dat.sig$logFC.x,dat.sig$logFC.y)$conf.int)
       round(CI.95[[1]],3)
       round(CI.95[[2]],3)
-      cat(noquote(paste("The overlap of significant negative correlation Pearsons correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
+      cat(noquote(paste("The overlap of significant negative correlation Pearson's correlation (R) is ", round(R_value[[1]],3)," with a 95% confidence interval from ", round(CI.95[[1]],3), " to ",round(CI.95[[2]],3)," and a p-value of ", signif(pval[[1]],3),sep="")))
       
     }
   })

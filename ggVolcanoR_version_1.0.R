@@ -64,12 +64,13 @@ error_message_val4 <- "no own list found\n \nSuggest uploading file\nheaders=ID"
 # user interface  ----
 
 
-ui <- navbarPage("ggVolcanoR",
+ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                  # Volcano plot ----
                  
                  tabPanel("Volcano plot",
                           sidebarLayout(
                             sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=4,
+                                         tags$style(type="text/css", "body {padding-top: 70px; padding-left: 10px;}"),
                                          tags$head(tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}"))),
                                          tags$head(tags$style(HTML('.progress-bar {background-color: blue;}'))),
                                          selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),

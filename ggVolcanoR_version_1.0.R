@@ -126,9 +126,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          )
                             ),
                             mainPanel(tabsetPanel(
-                              tabPanel("Volcano plot", textInput(inputId = "title", 
-                                                                 label = "",
-                                                                 value = "Volcano plot: x vs y"),
+                                        uiOutput("title.volc"),
                                        textOutput("number_of_points"),
                                        textOutput("sig_values_test"),
                                        plotOutput("ggplot",height = "600px"),

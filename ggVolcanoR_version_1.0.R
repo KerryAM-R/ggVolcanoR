@@ -91,7 +91,101 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          ),
                                          
                                          tags$hr(),
-                                        
+                                         h4("Type of graph"),
+                                         p("there are 5 labelling options: none, both, up, down or own list"),
+                                         selectInput('selected', 'Type of output', selected_present),
+                                         fileInput('file2', 'Choose selected gene file (.csv)',
+                                                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                         h4("Select font for graph"),
+                                         selectInput('font',
+                                                     'Font type',
+                                                     choices = fonts, 
+                                                     selected = fonts[1]),
+                                         h4("Cut-offs"),
+                                         fluidRow(
+                                           column(6,numericInput("Pvalue", "p-value", value=0.05)),
+                                           column(6,numericInput("FC", "Absolute logFC", value=0.58))
+                                         ),
+                                         textInput(inputId = "sig_lines", label = "Significance lines",value = "grey"),
+                                         h4("Axis parameters"),
+                                         textInput(inputId = "expression_y2", 
+                                                   label = "Y-axis label",
+                                                   value = "p-value"),
+                                         
+                                         fluidRow(
+                                           column(4,numericInput("yhigh","y-axis upper range",value = 100)),
+                                           column(4,numericInput("ybreaks","y-axis tick marks",value = 10))
+                                           
+                                         ),
+                                         fluidRow(
+                                           column(4,numericInput("xlow","x-axis lower range",value = -10)),
+                                           column(4,numericInput("xhigh","x-axis upper range",value = 10)),
+                                           column(4, numericInput("xbreaks","x-axis tick marks",value = 1))
+                                         ),
+                                         sliderInput("axis", "Axis label text size", min=0, max=100, value=30, step=0.1),
+                                         sliderInput("axis_text", "Axis numeric text size", min=0, max=100, value=30, step=0.1),
+                                         h4("Point colour, size, shape and transparancy"),
+                                         fluidRow(
+                                           column(4,textInput(inputId = "up", label = "Colour up",value = "red")),
+                                           column(4,numericInput("shape1.1","Shape of up",value = 19)),
+                                           column(4, numericInput("size1.1","Size of up",value = 3))
+                                                   ),
+                                         fluidRow(
+                                           column(4,textInput(inputId = "down",  label = "Colour down", value = "steelblue1")),
+                                           column(4,numericInput("shape2","Shape of down",value = 19)),
+                                           column(4,numericInput("size2","Size of down",value = 3)),
+                                           
+                                         ),
+                                         sliderInput("alpha2", "Transparency of up and down", min=0, max=1, value=0.5,step = 0.01),
+                                         fluidRow(
+                                           column(4,textInput(inputId = "NS", label = "Colour of non-significant",value = "grey")),
+                                           column(4,numericInput("shape3","Shape of non-significant",value = 1)),
+                                           column(4,numericInput("size3","Size of non-significant",value = 1))
+                                         ),
+                                         
+                                         sliderInput("alpha3", "Transparency of non-significant", min=0, max=1, value=0.25,step = 0.01),
+                                         p(" "),
+                                          h4("Selected points labels, colour and shape"),
+                                         fluidRow(
+                                           column(4,numericInput("shape1","Shape of selected",value = 19)),
+                                           column(4, numericInput("size1","Size of selected",value = 3))
+                                           
+                                         ),
+                                           sliderInput("alpha1", "Transparency of selected", min=0.00, max=1, value=1,step = 0.01),
+                                         fluidRow(
+                                           column(6,textInput(inputId = "col_lab1", label = "Colour of label 1",value = "darkblue")),
+                                           column(6,selectInput(inputId = "lab1", 
+                                                                label = "label 1", 
+                                                                choices = lab, 
+                                                                selected = "significant down")),
+                                           column(6,textInput(inputId = "col_lab2", label = "Colour of label 2",value = "orange")),
+                                           column(6,selectInput(inputId = "lab2", 
+                                                                label = "label 2", 
+                                                                choices = lab, 
+                                                                selected = "significant up")),
+                                           column(6,textInput(inputId = "col_lab3", label = "Colour of label 3",value = "purple")),
+                                           column(6,selectInput(inputId = "lab3", 
+                                                                label = "label 3", 
+                                                                choices = lab, 
+                                                                selected = "non-significant"))
+                                         ),
+                                         
+                                         h4("Label parameters"),
+                                         fluidRow(
+                                           column(6,numericInput("min", "Label range (min)", value=1)),
+                                           column(6, numericInput("max", "Label range (max)", value=20))
+                                         ),
+                                         sliderInput("dist", "Distance of label", min=0, max=2, value=0.8,step = 0.01),
+                                         sliderInput("label", "Size of labels", min=0, max=60, value=8,step =0.1),
+                                         h4("Legend parameters"),
+                                         fluidRow(
+                                           column(4,selectInput('legend_location', 'Legend location', legend_location)),
+                                           column(4,numericInput("col", "# of legend columns", value=1, step = 1)),
+                                           column(4, numericInput("legend_size", "Legend text size", min=1, max=60, value=12))
+                                         ),
+                                         fluidRow(
+                                           column(3, downloadButton("downloadTABLE4","Download parameters"))
+                                         )
                             ),
                             mainPanel(tabsetPanel(
                               tabPanel("Volcano plot", 

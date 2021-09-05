@@ -152,6 +152,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                        
                               ),
                               tabPanel("Table with links", 
+                                       selectInput("data.name.type","select initial ID type",choices = c("Symbol","Ensembl","human-uniprot","non-human")),
                                        selectInput("species", label = "Select relevant species",species,selected = "HUMAN"),
                                        
                                        div(DT::dataTableOutput("myoutput",height="600px"))),
@@ -1073,219 +1074,207 @@ server  <- function(input, output, session) {
   })
   
   
- 
-  
-  output$myoutput <-DT::renderDataTable(escape = FALSE, {
+  type.of.data <- function () {
     
     dat <- input.data();
-    
-    validate(
-      need(nrow(dat)>0,
-           error_message_1)
-    )
-    
-    dat2 <- input.data2();
     
     dat <- as.data.frame(dat)
     dat <- dat[order(dat$Pvalue),]
     rownames(dat) <- 1:dim(dat)[1]
+    names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","Gene.Name","Biotype")
+    head(ID.conversion)
+    head(dat)
     
+    
+    if (input$data.name.type == "Symbol") {
+      
+      dat.top <- merge(dat,ID.conversion,by.x="ID",by.y="Gene.Name", all.x=T)
+      dat.top[is.na(dat.top)] <- "No_ID"
+      head(dat.top)
+      names(dat.top) <- c("ID","logFC","Pvalue","protein_atlas","UniProt_ID","UniProt_human","chrom","Biotype")
+      dat.top
+      
+      
+    }
+    
+    else if (input$data.name.type == "Ensembl") {
+      ID.conversion$E2 <- ID.conversion$Ensembl
+      head(ID.conversion)
+      dat.top <- merge(dat,ID.conversion,by.x="ID",by.y="E2", all.x=T)
+      head(dat.top)
+      ID.conversion <- ID.conversion[-c(7)]
+      dat.top[is.na(dat.top)] <- "No_ID"
+      names(dat.top) <- c("ID","logFC","Pvalue","protein_atlas","UniProt_ID","UniProt_human","chrom","Gene.Name","Biotype")
+      dat.top
+      
+      
+    }
+    
+    else if (input$data.name.type == "human-uniprot") {
+      ID.conversion$P2 <- ID.conversion$Uniprot_human
+      head(ID.conversion)
+      dat.top <- merge(dat,ID.conversion,by.x="ID",by.y="P2", all.x=T)
+      #dat.top <- dat.top[-c(9)]    ID.conversion <- ID.conversion[-c(7)]
+      dat.top[is.na(dat.top)] <- "No_ID"
+      names(dat.top) <- c("ID","logFC","Pvalue","protein_atlas","UniProt_ID","UniProt_human","chrom","Gene.Name","Biotype")
+      head(dat.top)
+      dat.top
+      
+    }
+    
+    
+    else {
+      dat <- input.data();
+      dat
+      
+    }
+    
+  }
+  type.of.filter <- function (){
+    dat <- type.of.data()
+    dat <- as.data.frame(dat)
+    dat <- dat[order(dat$Pvalue),]
+    rownames(dat) <- 1:dim(dat)[1]
     
     if (input$selected=="range (both directions)") {
-      head(ID.conversion)
-      names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","ID","Biotype")
-      
       dat <- subset(dat, dat$Pvalue<input$Pvalue & abs(dat$logFC)>input$FC)
-      
-      dat.top <- merge(dat,ID.conversion,by="ID", all.x=T)
-      dat.top[is.na(dat.top)] <- "No_ID"
-      dat.top <- dat.top[order(dat.top$Pvalue),]
-      
-      top <- dat.top[(input$min:input$max),]
-      SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
-      names(SYMBOL_list) <- "list"
-      
-      top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
-      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/',top$Ensembl,' target="_blank" class="btn btn-link"','>',top$Ensembl,'</a>',sep="")
-      top$Human_Uniprot <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$UNIPROT,' target="_blank" class="btn btn-link"','>',top$UNIPROT,"</a>", sep="")
-      top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
-      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
-      
-      df <- top
-      df$Pvalue <- signif(df$Pvalue,3)
-      df$logFC <- signif(df$logFC,3)
-      df <- df[-c(4,5,6,7)]
-      datatable(df, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
-        formatStyle(
-          'logFC',
-          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
-          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
-          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
-        formatStyle(
-          'Pvalue',
-          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
-          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
-          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
-      
-      
+      dat <- dat[order(dat$Pvalue),]
+      rownames(dat) <- 1:dim(dat)[1]
+      top <- dat[(input$min:input$max),]
+      top
     }
+    
     else if (input$selected=="no labels") {
-      
-      head(ID.conversion)
-      names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","ID","Biotype")
-      dat.top <- merge(dat,ID.conversion,by="ID", all.x=T)
-      dat.top[is.na(dat.top)] <- "No_ID"
-      dat.top <- dat.top[order(dat.top$Pvalue),]
-      
-      top <- dat.top
-      SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
-      names(SYMBOL_list) <- "list"
-      
-      top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
-      top$Human_Protein_atlas <- paste('<a href=https://www.proteinatlas.org/',top$Ensembl,' target="_blank" class="btn btn-link"','>',top$Ensembl,'</a>',sep="")
-      top$Human_Uniprot <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$UNIPROT,' target="_blank" class="btn btn-link"','>',top$UNIPROT,"</a>", sep="")
-      top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
-      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
-      df <- top
-      df$Pvalue <- signif(df$Pvalue,3)
-      df$logFC <- signif(df$logFC,3)
-      df <- df[-c(4,5,6,7)]
-      
-      
-      datatable(df, escape = FALSE,filter = 'top', options=list(scrollX = T), selection = 'none') %>% 
-        formatStyle(
-          'logFC',
-          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
-          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
-          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
-        formatStyle(
-          'Pvalue',
-          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
-          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
-          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
+      dat
       
     }
+    
     else if (input$selected=="range (up direction)") {
-      head(ID.conversion)
-      names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","ID","Biotype")
-      
       dat <- subset(dat, dat$Pvalue<input$Pvalue & dat$logFC>input$FC)
-      
-      dat.top <- merge(dat,ID.conversion,by="ID", all.x=T)
-      dat.top[is.na(dat.top)] <- "No_ID"
-      dat.top <- dat.top[order(dat.top$Pvalue),]
-      
-      top <- dat.top[(input$min:input$max),]
-      SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
-      names(SYMBOL_list) <- "list"
-      
-      top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
-      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/',top$Ensembl,' target="_blank" class="btn btn-link"','>',top$Ensembl,'</a>',sep="")
-      top$Human_Uniprot <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$UNIPROT,' target="_blank" class="btn btn-link"','>',top$UNIPROT,"</a>", sep="")
-      top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
-      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
-      
-      df <- top
-      df$Pvalue <- signif(df$Pvalue,3)
-      df$logFC <- signif(df$logFC,3)
-      df <- df[-c(4,5,6,7)]
-      datatable(df, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
-        formatStyle(
-          'logFC',
-          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
-          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
-          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
-        formatStyle(
-          'Pvalue',
-          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
-          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
-          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
-      
+      dat <- dat[order(dat$Pvalue),]
+      top <- dat[(input$min:input$max),]
+      top
       
     }
     
     else if (input$selected=="range (down direction)") {
-      head(ID.conversion)
-      names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","ID","Biotype")
       neg <- -1*input$FC
       dat <- subset(dat, dat$Pvalue<input$Pvalue & dat$logFC<neg)
-      
-      dat.top <- merge(dat,ID.conversion,by="ID", all.x=T)
-      dat.top[is.na(dat.top)] <- "No_ID"
-      dat.top <- dat.top[order(dat.top$Pvalue),]
-      
-      top <- dat.top[(input$min:input$max),]
-      SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
-      names(SYMBOL_list) <- "list"
-      
-      top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
-      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/',top$Ensembl,' target="_blank" class="btn btn-link"','>',top$Ensembl,'</a>',sep="")
-      top$Human_Uniprot <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$UNIPROT,' target="_blank" class="btn btn-link"','>',top$UNIPROT,"</a>", sep="")
-      top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
-      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
-      
-      df <- top
-      df$Pvalue <- signif(df$Pvalue,3)
-      df$logFC <- signif(df$logFC,3)
-      df <- df[-c(4,5,6,7)]
-      datatable(df, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
-        formatStyle(
-          'logFC',
-          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
-          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
-          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
-        formatStyle(
-          'Pvalue',
-          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
-          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
-          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
-      
-      
-    }
-    else {
-      
-      
-      list <- dat2$ID
-      head(ID.conversion)
-      names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","ID","Biotype")
-      
-      dat <- dat[dat$ID %in% list,]
-      
-      dat.top <- merge(dat,ID.conversion,by.x="ID", by.y="ID", all.x=T)
-      dat.top[is.na(dat.top)] <- "No_ID"
-      dat.top <- dat.top[order(dat.top$Pvalue),]
-      
-      top <- dat.top
-      SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
-      names(SYMBOL_list) <- "list"
-      
-      top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
-      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/',top$Ensembl,' target="_blank" class="btn btn-link"','>',top$Ensembl,'</a>',sep="")
-      top$Human_Uniprot <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$UNIPROT,' target="_blank" class="btn btn-link"','>',top$UNIPROT,"</a>", sep="")
-      top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
-      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
-      
-      df <- top
-      
-      df$Pvalue <- signif(df$Pvalue,3)
-      df$logFC <- signif(df$logFC,3)
-      df <- df[-c(4,5,6,7)]
-      
-      datatable(df, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
-        formatStyle(
-          'logFC',
-          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
-          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
-          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
-        formatStyle(
-          'Pvalue',
-          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
-          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
-          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
+      top <- dat[(input$min:input$max),]
+      top
       
     }
     
+    else { # selected ID
+      dat2 <- input.data2();
+      list <- dat2$ID
+      dat <- dat[dat$ID %in% list,]
+      dat
+      
+    }
+    
+  }
+  output$myoutput <-DT::renderDataTable(escape = FALSE, {
+    
+    dat_req <- input.data();
+    
+    validate(
+      need(nrow(dat_req)>0,
+           error_message_1)
+    )
+    
+    if (input$species == "HUMAN") {
+      top <- type.of.filter()
+      SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
+      names(SYMBOL_list) <- "list"
+      
+      top$GeneCards <- paste('<a href=https://www.genecards.org/cgi-bin/carddisp.pl?gene=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      top$Protein_atlas <- paste('<a href=https://www.proteinatlas.org/',top$protein_atlas,' target="_blank" class="btn btn-link"','>',top$protein_atlas,'</a>',sep="")
+      top$Human_Uniprot <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$UniProt_human,' target="_blank" class="btn btn-link"','>',top$UniProt_human,"</a>", sep="")
+      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$UniProt_ID,' target="_blank" class="btn btn-link"','>',top$UniProt_ID,'</a>',sep="")
+      
+      df <- top
+      df$Pvalue <- signif(df$Pvalue,3)
+      df$logFC <- signif(df$logFC,3)
+      df <- df[,!names(df) %in% c("protein_atlas","UniProt_ID","UniProt_human","Gene.Name","chrom","Biotype")]
+      datatable(df, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
+        formatStyle(
+          'logFC',
+          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
+          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
+          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
+        formatStyle(
+          'Pvalue',
+          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
+          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
+          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
+    }
+    
+    
+    else if (input$species == "Other") {
+      top <- type.of.filter()
+      SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
+      names(SYMBOL_list) <- "list"
+      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      
+      df <- top
+      df$Pvalue <- signif(df$Pvalue,3)
+      df$logFC <- signif(df$logFC,3)
+      
+      df <- df[,!names(df) %in% c("protein_atlas","UniProt_ID","UniProt_human","Gene.Name","chrom","Biotype")]
+      
+      datatable(df, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
+        formatStyle(
+          'logFC',
+          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
+          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
+          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
+        formatStyle(
+          'Pvalue',
+          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
+          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
+          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
+    }
+    
+    
+    
+    
+    else { 
+      top <- type.of.filter()
+      SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
+      names(SYMBOL_list) <- "list"
+      top$UniProt_species <- paste('<a href=https://www.uniprot.org/uniprot/?query=',SYMBOL_list$list,' target="_blank" class="btn btn-link"','>',SYMBOL_list$list,"</a>", sep="")
+      top$UniProt <- paste('<a href=https://www.uniprot.org/uniprot/?query=',top$ID,' target="_blank" class="btn btn-link"','>',top$ID,'</a>',sep="")
+      
+      df <- top
+      df$Pvalue <- signif(df$Pvalue,3)
+      df$logFC <- signif(df$logFC,3)
+      df <- df[,!names(df) %in% c("protein_atlas","UniProt_ID","UniProt_human","Gene.Name","chrom","Biotype")]
+      datatable(df, escape = FALSE,filter = 'top', options=list(extensions="Buttons", scrollX = T), selection = 'none') %>% 
+        formatStyle(
+          'logFC',
+          backgroundColor = styleInterval(c(-input$FC,input$FC), c('#abd7eb', '#D2D2CF',"#ff6961")),
+          color = styleInterval(c(-input$FC,input$FC), c('#181A18', '#181A18', '#181A18')),
+          fontWeight = styleInterval(c(-input$FC,input$FC), c('bold', 'normal','bold'))) %>% 
+        formatStyle(
+          'Pvalue',
+          backgroundColor = styleInterval(c(input$Pvalue), c('#181A18', '#D2D2CF')),
+          color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
+          fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
   })
+  
+
   
   
   dataExpTable <- reactive({

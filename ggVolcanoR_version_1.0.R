@@ -50,7 +50,7 @@ fonts <- c("Arial" = "sans",
 selected_present <- c("no labels","range (both directions)","range (up direction)","range (down direction)","own list")
 y_options <- c("-Log10(p-value)","FDR", "adjusted")
 legend_location <- c("right","bottom","left","top","none")
-species <- c("BOVIN","CHICK","ECOLI","HORSE","HUMAN","MAIZE","MOUSE","PEA", "PIG","RABIT","RAT","SHEEP","SOYBN","TOBAC","WHEAT","YEAST")
+species <- c("BOVIN","CHICK","ECOLI","HORSE","HUMAN","MAIZE","MOUSE","PEA", "PIG","RABIT","RAT","SHEEP","SOYBN","TOBAC","WHEAT","YEAST","Other")
 lab <- c("significant up","significant down","non-significant")
 names.conversion <- names(ID.conversion)[c(1:3,5)]
 name.conversion.required <- c(FALSE,TRUE) 

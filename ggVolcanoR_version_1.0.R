@@ -91,42 +91,11 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          ),
                                          
                                          tags$hr(),
-                                         h4("Type of graph"),
-                                         p("there are 5 labelling options: none, both, up, down or own list"),
-                                         uiOutput("label.graph.type"),
-                                         fileInput('file2', 'Choose selected gene file (.csv)',
-                                                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         h4("Select font for graph"),
-                                         uiOutput("font.type"),
-                                         h4("Cut-offs"),
-                                         uiOutput("cut.offs"),
-                                         h4("Axis parameters"),
-                                         uiOutput("axis.parameters"),
-                                         h4("Point colour, size, shape and transparancy"),
-                                         uiOutput("up.parameters"),
-                                         uiOutput("down.parameters"),
-                                         uiOutput("transparancy1"),
-                                         uiOutput("NS.parameters"),
-                                         uiOutput("transparancy2"),
-                                         p(" "),
-                                         h4("Selected points labels, colour and shape"),
-                                         uiOutput("shape.size.selected"),
-                                         uiOutput("transparancy3"),
-                                         uiOutput("labelled.parameters"),
-                                         h4("Label parameters"),
-                                         uiOutput("label.range"),
-                                         uiOutput("dist.size.label"),
-                                         
-                                         
-                                         h4("Legend parameters"),
-                                         uiOutput("legend.parameters"),
-                                         
-                                         fluidRow(
-                                           column(3, downloadButton("downloadTABLE4","Download parameters"))
-                                         )
+                                        
                             ),
                             mainPanel(tabsetPanel(
-                                        uiOutput("title.volc"),
+                              tabPanel("Volcano plot", 
+                                       uiOutput("title.volc"),
                                        textOutput("number_of_points"),
                                        textOutput("sig_values_test"),
                                        plotOutput("ggplot",height = "600px"),

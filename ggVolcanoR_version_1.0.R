@@ -62,7 +62,7 @@ error_message_val2 <- "Suggest uploading file\nheaders=ID, logFC, Pvalue"
 error_message_val3 <- "No data found\n \nSuggest uploading file\nheaders=ID, logFC, Pvalue"
 error_message_val4 <- "no own list found\n \nSuggest uploading file\nheaders=ID"
 # user interface  ----
-
+style.volcano.type <- c("default","all.datapoints","up.ID","down.ID","selected.ID")
 
 ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                  # Volcano plot ----
@@ -73,6 +73,15 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          tags$style(type="text/css", "body {padding-top: 70px; padding-left: 10px;}"),
                                          tags$head(tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}"))),
                                          tags$head(tags$style(HTML('.progress-bar {background-color: blue;}'))),
+                                         selectInput("dataset_parameters","select preset or user uploaded style",choices = c("preset","user-uploaded")),
+                                         downloadButton("downloadTABLE.parameters","download style guide"),
+                                         fileInput('file.style', 'upload-style',
+                                                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                         fluidRow(
+                                           column(6,radioButtons('sep.style', 'Separator', c( Tab='\t', Comma=','), ',')),
+                                           column(6,radioButtons('quote.style', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                         ),
+                                         selectInput("user.defined","types of styles",choices = style.volcano.type),
                                          selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file1', 'ID, logFC, Pvalue',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
@@ -84,96 +93,34 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          tags$hr(),
                                          h4("Type of graph"),
                                          p("there are 5 labelling options: none, both, up, down or own list"),
-                                         selectInput('selected', 'Type of output', selected_present),
+                                         uiOutput("label.graph.type"),
                                          fileInput('file2', 'Choose selected gene file (.csv)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          h4("Select font for graph"),
-                                         selectInput('font',
-                                                     'Font type',
-                                                     choices = fonts, 
-                                                     selected = fonts[1]),
+                                         uiOutput("font.type"),
                                          h4("Cut-offs"),
-                                         fluidRow(
-                                           column(6,numericInput("Pvalue", "p-value", value=0.05)),
-                                           column(6,numericInput("FC", "Absolute logFC", value=0.58))
-                                         ),
-                                         textInput(inputId = "sig_lines", label = "Significance lines",value = "grey"),
+                                         uiOutput("cut.offs"),
                                          h4("Axis parameters"),
-                                         textInput(inputId = "expression_y2", 
-                                                   label = "Y-axis label",
-                                                   value = "p-value"),
-                                         
-                                         fluidRow(
-                                           column(4,numericInput("yhigh","y-axis upper range",value = 100)),
-                                           column(4,numericInput("ybreaks","y-axis tick marks",value = 10))
-                                           
-                                         ),
-                                         fluidRow(
-                                           column(4,numericInput("xlow","x-axis lower range",value = -10)),
-                                           column(4,numericInput("xhigh","x-axis upper range",value = 10)),
-                                           column(4, numericInput("xbreaks","x-axis tick marks",value = 1))
-                                         ),
-                                         sliderInput("axis", "Axis label text size", min=0, max=100, value=30, step=0.1),
-                                         sliderInput("axis_text", "Axis numeric text size", min=0, max=100, value=30, step=0.1),
+                                         uiOutput("axis.parameters"),
                                          h4("Point colour, size, shape and transparancy"),
-                                         fluidRow(
-                                           column(4,textInput(inputId = "up", label = "Colour up",value = "red")),
-                                           column(4,numericInput("shape1.1","Shape of up",value = 19)),
-                                           column(4, numericInput("size1.1","Size of up",value = 3))
-                                                   ),
-                                         fluidRow(
-                                           column(4,textInput(inputId = "down",  label = "Colour down", value = "steelblue1")),
-                                           column(4,numericInput("shape2","Shape of down",value = 19)),
-                                           column(4,numericInput("size2","Size of down",value = 3)),
-                                           
-                                         ),
-                                         sliderInput("alpha2", "Transparency of up and down", min=0, max=1, value=0.5,step = 0.01),
-                                         fluidRow(
-                                           column(4,textInput(inputId = "NS", label = "Colour of non-significant",value = "grey")),
-                                           column(4,numericInput("shape3","Shape of non-significant",value = 1)),
-                                           column(4,numericInput("size3","Size of non-significant",value = 1))
-                                         ),
-                                         
-                                         sliderInput("alpha3", "Transparency of non-significant", min=0, max=1, value=0.25,step = 0.01),
+                                         uiOutput("up.parameters"),
+                                         uiOutput("down.parameters"),
+                                         uiOutput("transparancy1"),
+                                         uiOutput("NS.parameters"),
+                                         uiOutput("transparancy2"),
                                          p(" "),
-                                          h4("Selected points labels, colour and shape"),
-                                         fluidRow(
-                                           column(4,numericInput("shape1","Shape of selected",value = 19)),
-                                           column(4, numericInput("size1","Size of selected",value = 3))
-                                           
-                                         ),
-                                           sliderInput("alpha1", "Transparency of selected", min=0.00, max=1, value=1,step = 0.01),
-                                         fluidRow(
-                                           column(6,textInput(inputId = "col_lab1", label = "Colour of label 1",value = "darkblue")),
-                                           column(6,selectInput(inputId = "lab1", 
-                                                                label = "label 1", 
-                                                                choices = lab, 
-                                                                selected = "significant down")),
-                                           column(6,textInput(inputId = "col_lab2", label = "Colour of label 2",value = "orange")),
-                                           column(6,selectInput(inputId = "lab2", 
-                                                                label = "label 2", 
-                                                                choices = lab, 
-                                                                selected = "significant up")),
-                                           column(6,textInput(inputId = "col_lab3", label = "Colour of label 3",value = "purple")),
-                                           column(6,selectInput(inputId = "lab3", 
-                                                                label = "label 3", 
-                                                                choices = lab, 
-                                                                selected = "non-significant"))
-                                         ),
-                                         
+                                         h4("Selected points labels, colour and shape"),
+                                         uiOutput("shape.size.selected"),
+                                         uiOutput("transparancy3"),
+                                         uiOutput("labelled.parameters"),
                                          h4("Label parameters"),
-                                         fluidRow(
-                                           column(6,numericInput("min", "Label range (min)", value=1)),
-                                           column(6, numericInput("max", "Label range (max)", value=20))
-                                         ),
-                                         sliderInput("dist", "Distance of label", min=0, max=2, value=0.8,step = 0.01),
-                                         sliderInput("label", "Size of labels", min=0, max=60, value=8,step =0.1),
+                                         uiOutput("label.range"),
+                                         uiOutput("dist.size.label"),
+                                         
+                                         
                                          h4("Legend parameters"),
-                                         fluidRow(
-                                           column(4,selectInput('legend_location', 'Legend location', legend_location)),
-                                           column(4,numericInput("col", "# of legend columns", value=1, step = 1)),
-                                           column(4, numericInput("legend_size", "Legend text size", min=1, max=60, value=12))
-                                         ),
+                                         uiOutput("legend.parameters"),
+                                         
                                          fluidRow(
                                            column(3, downloadButton("downloadTABLE4","Download parameters"))
                                          )
@@ -449,8 +396,222 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                             )
                  ))
 # sever -----
+
+# style file upload ... (download CSV and change numbers or colours)
+# preselected styles 
 server  <- function(input, output, session) {
+  # style parameters -----
+  input.data_parameters <- reactive({switch(input$dataset_parameters,"preset" = test.data_parameters(),"user-uploaded" = own.data_parameters())})
+  test.data_parameters <- reactive({
+    dataframe = read.csv("test-data/test-parameters.csv") })
+  own.data_parameters <- reactive({
+    inFile.style <- input$file.style 
+    if (is.null(inFile.style)) return(NULL)
+    
+    else {
+      dataframe <- read.csv(
+        inFile.style$datapath,
+        header=TRUE,
+        sep=input$sep.style,
+        quote=input$quote.style)}
+  })
   
+  table.parameters <- function (){
+    df <- input.data_parameters()
+    df
+  }
+  
+  output$downloadTABLE.parameters <- downloadHandler(
+    filename = function(){
+      paste("preset-style",".csv", sep = "")
+    },
+    content = function(file){
+      write.csv(test.data_parameters(),file, row.names = FALSE)
+    }
+  )
+  
+  values.cut.off <- function(){
+    
+    df <- input.data_parameters()
+    
+    if (input$user.defined == "all.datapoints") {
+      
+      subset(df,df$style.type=="all.datapoints")
+      
+    }
+    else if (input$user.defined == "up.ID") {
+      subset(df,df$style.type=="up.ID")
+      
+      
+    }
+    else if (input$user.defined == "down.ID") {
+      subset(df,df$style.type=="down.ID")
+      
+      
+    }
+    else if (input$user.defined == "selected.ID") {
+      subset(df,df$style.type=="selected.ID")
+    }
+    else {
+      subset(df,df$style.type=="default")
+    }
+  }
+
+  
+  #  output$x <- renderUI({
+  # df <- values.cut.off()
+  #})
+  output$font.type <- renderUI({
+    df <- values.cut.off()
+    selectInput('font','Font type',choices = fonts, selected = fonts[df$font.type])
+    
+  })
+  output$label.graph.type <- renderUI({
+    
+    df <- values.cut.off()
+    
+    selectInput('selected', 'Type of output', 
+                choices = selected_present, 
+                selected= selected_present[df$label.type])
+    
+  })
+  output$cut.offs <- renderUI({
+    
+    df <- values.cut.off()
+    
+    fluidRow(
+      column(6,numericInput("Pvalue", "p-value", value=df$Pvalue)),
+      column(6,numericInput("FC", "Absolute logFC", value=df$FC))
+    )
+    
+  })
+  output$axis.parameters <- renderUI({
+    df <- values.cut.off()
+    fluidRow(
+      textInput(inputId = "sig_lines", label = "Significance lines",value = df$sig.col.line),
+      textInput(inputId = "expression_y2", 
+                label = "Y-axis label",
+                value = df$x.axis.lab),
+      numericInput("axis", "Axis label text size", min=0, value=df$axis.text.size),
+      numericInput("axis_text", "Axis numeric text size", min=0, value=df$axis.numeric.size),
+      column(4,numericInput("xlow","x-axis lower range",value = df$x.min)),
+      column(4,numericInput("xhigh","x-axis upper range",value = df$x.max)),
+      column(4, numericInput("xbreaks","x-axis tick marks",value = df$x.tick.marks)),
+      column(4,numericInput("yhigh","y-axis upper range",value = df$y.max)),
+      column(4,numericInput("ybreaks","y-axis tick marks",value = df$y.tick.marks)),
+      
+    )
+    
+    
+    
+    
+  })
+  output$up.parameters <- renderUI({
+    df <- values.cut.off()
+    
+    fluidRow(
+      column(4,textInput(inputId = "up", label = "Colour up",value = df$up.colour)),
+      column(4,numericInput("shape1.1","Shape of up",value = df$up.symbol)),
+      column(4, numericInput("size1.1","Size of up",value = df$up.size))
+    )
+    
+  })
+  output$down.parameters <- renderUI({
+    
+    df <- values.cut.off()
+    
+    fluidRow(
+      column(4,textInput(inputId = "down",  label = "Colour down", value = df$down.colour)),
+      column(4,numericInput("shape2","Shape of down",value = df$down.symbol)),
+      column(4,numericInput("size2","Size of down",value = df$down.size)),
+      
+    )
+    
+  })
+  output$transparancy1 <- renderUI({
+    df <- values.cut.off()
+    
+    sliderInput("alpha2", "Transparency of up and down", min=0, max=1, value=df$up.down.transparancy,step = 0.01)
+  })
+  output$NS.parameters <- renderUI({
+    
+    df <- values.cut.off()
+    fluidRow(
+      column(4,textInput(inputId = "NS", label = "Colour of non-significant",value = df$NS.colour)),
+      column(4,numericInput("shape3","Shape of non-significant",value = df$NS.shape)),
+      column(4,numericInput("size3","Size of non-significant",value = df$NS.size))
+    )
+  })
+  output$transparancy2 <- renderUI({
+    df <- values.cut.off()
+    sliderInput("alpha3", "Transparency of non-significant", min=0, max=1, value=df$NS.transparancy,step = 0.01)
+  })
+  output$shape.size.selected <- renderUI({
+    df <- values.cut.off()
+    
+    fluidRow(
+      column(4,numericInput("shape1","Shape of selected",value = df$shape.labelled)),
+      column(4, numericInput("size1","Size of selected",value = df$size.labelled))
+      
+    )
+  })
+  output$transparancy3 <- renderUI({
+    df <- values.cut.off()
+    sliderInput("alpha1", "Transparency of selected", min=0.00, max=1, value=df$transparancy.labelled,step = 0.01)
+  })
+  output$labelled.parameters <- renderUI({
+    df <- values.cut.off()
+    fluidRow(
+      column(6,textInput(inputId = "col_lab1", label = "Colour of label 1",value = df$lab1.colour)),
+      column(6,selectInput(inputId = "lab1", 
+                           label = "label 1", 
+                           choices = lab, 
+                           selected = lab[df$lab1])),
+      column(6,textInput(inputId = "col_lab2", label = "Colour of label 2",value = df$lab2.colour)),
+      column(6,selectInput(inputId = "lab2", 
+                           label = "label 2", 
+                           choices = lab, 
+                           selected = lab[df$lab2])),
+      column(6,textInput(inputId = "col_lab3", label = "Colour of label 3",value = df$lab3.colour)),
+      column(6,selectInput(inputId = "lab3", 
+                           label = "label 3", 
+                           choices = lab, 
+                           selected = lab[df$lab3]))
+    )
+    
+  })
+  output$label.range <- renderUI({
+    df <- values.cut.off()
+    
+    fluidRow(
+      column(6,numericInput("min", "Label range (min)", value=df$label.range.min)),
+      column(6, numericInput("max", "Label range (max)", value=df$label.range.max))
+    )
+  })
+  output$dist.size.label <- renderUI({
+    df <- values.cut.off()
+    fluidRow(
+      column(6,numericInput("dist", "Distance of label", min=0, value=df$dist.label)), 
+      column(6,numericInput("label", "Size of labels", min=0, value=df$size.label),
+      ))
+  })
+  output$legend.parameters <- renderUI({
+    df <- values.cut.off()
+    
+    fluidRow(
+      column(4,selectInput('legend_location', 'Legend location', legend_location[df$legend.location])),
+      column(4,numericInput("col", "# of legend columns", value=df$legend.col )),
+      column(4, numericInput("legend_size", "Legend text size", value=df$legend.size))
+    )
+  })
+  output$title.volc <- renderUI({
+    df <- values.cut.off()
+    textInput(inputId = "title", 
+              label = "",
+              value = df$title.volcano.plot)
+  })
+  
+  # reactive values -----
   vals <- reactiveValues(ggplot=NULL)
   vals2 <- reactiveValues(cor_graph=NULL)
   vals3 <- reactiveValues(logFC_direction=NULL)
@@ -1246,7 +1407,7 @@ server  <- function(input, output, session) {
         inFile3$datapath,
         header=TRUE,
         sep=input$sep3,
-        quote=input$quote4)}
+        quote=input$quote3)}
     
   })
   input.data4 <- reactive({switch(input$dataset2,"test-data" = test.data4(),"own" = own.data4())})

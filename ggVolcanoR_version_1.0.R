@@ -1458,12 +1458,18 @@ server  <- function(input, output, session) {
     
     
     dat5 <- merge(dat3,dat4,by="ID")
+    
+    
+    
+    
     dat_all <- mutate(dat5,
-                      colour=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                    ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down",
-                                           ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "opposite",
-                                                  ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "opposite",
-                                                          "other")))),
+                      sig=ifelse(dat5$Pvalue.x<input$Pvalue1 & dat5$Pvalue.y<input$Pvalue2,"sig","NS"),
+                      direction=ifelse(dat5$logFC.x>pos1 & dat5$logFC.y>pos2,"both_up",
+                                       ifelse(dat5$logFC.x<neg1 & dat5$logFC.y<neg2,"both_down",
+                                              ifelse(dat5$logFC.x<neg1 &  dat5$logFC.y>pos2, "opposite",
+                                                     ifelse(dat5$logFC.x>pos1 & dat5$logFC.y<neg2, "opposite",
+                                                            "other")))),
+
                       alpha=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha1,
                                    ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha2, 
                                           ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,
@@ -1472,15 +1478,25 @@ server  <- function(input, output, session) {
                                            ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size2, 
                                                   ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,
                                                          ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,input$cor_size4)))))
+    dat_all$colour <- paste(dat_all$sig,dat_all$direction,sep="_")
+    
+    unique(dat_all$colour)
+    
+    dat_all$colour <-gsub("NS_other","other",dat_all$colour)
+    dat_all$colour <-gsub("NS_opposite","other",dat_all$colour)  
+    dat_all$colour <-gsub("NS_both_up","other",dat_all$colour)  
+    dat_all$colour <-gsub("NS_both_down","other",dat_all$colour)  
+    dat_all$colour <-gsub("sig_other","other",dat_all$colour)  
     
     
-    colour_class <- c("both_sig_up","both_sig_down","opposite","other")
+    
+    colour_class <- c("sig_both_up","sig_both_down","sig_opposite","other")
     
     dat_all$colour <- factor(dat_all$colour, levels = colour_class)
     x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
     y_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_y)))
 
-    ID_sig <- subset(dat_all,dat_all$colour=="both_sig_up" | dat_all$colour=="both_sig_down" | dat_all$colour=="opposite")
+    ID_sig <- subset(dat_all,dat_all$colour=="sig_both_up" | dat_all$colour=="sig_both_down" | dat_all$colour=="sig_opposite")
     ID_sig <-  ID_sig[order(ID_sig[,input$sort_by],decreasing = input$sort_direction),] 
     ID_sig <- ID_sig[input$min2:input$max2,]
     
@@ -1842,6 +1858,8 @@ server  <- function(input, output, session) {
     
     print(plotInput2())
   })
+  
+  # correlation table displayed -----
   output$Table5 <-DT::renderDataTable( {
     neg1 <- -1*input$FC1
     pos1 <- input$FC1
@@ -1863,10 +1881,26 @@ server  <- function(input, output, session) {
     
     dat5 <- merge(dat3,dat4,by="ID")
     dat_all <- mutate(dat5,
-                      significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                          ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", 
-                                                 ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2,"opposite",
-                                                        ifelse( dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "opposite","other")))))
+                      sig=ifelse(dat5$Pvalue.x<input$Pvalue1 & dat5$Pvalue.y<input$Pvalue2,"sig","NS"),
+                      direction=ifelse(dat5$logFC.x>pos1 & dat5$logFC.y>pos2,"both_up",
+                                       ifelse(dat5$logFC.x<neg1 & dat5$logFC.y<neg2,"both_down",
+                                              ifelse(dat5$logFC.x<neg1 &  dat5$logFC.y>pos2, "opposite",
+                                                     ifelse(dat5$logFC.x>pos1 & dat5$logFC.y<neg2, "opposite",
+                                                            "other")))))
+    
+    dat_all$colour <- paste(dat_all$sig,dat_all$direction,sep="_")
+    
+    unique(dat_all$colour)
+    
+    dat_all$colour <-gsub("NS_other","other",dat_all$colour)
+    dat_all$colour <-gsub("NS_opposite","other",dat_all$colour)  
+    dat_all$colour <-gsub("NS_both_up","other",dat_all$colour)  
+    dat_all$colour <-gsub("NS_both_down","other",dat_all$colour)  
+    dat_all$colour <-gsub("sig_other","other",dat_all$colour)  
+    
+    
+    
+    
     
     dat_all$Pvalue.x <- signif(dat_all$Pvalue.x,3)
     dat_all$logFC.x <- signif(dat_all$logFC.x,3)
@@ -1901,6 +1935,9 @@ server  <- function(input, output, session) {
         color = styleInterval(c(input$Pvalue2), c('#d99058',  '#181A18')),
         fontWeight = styleInterval(input$Pvalue2, c('bold', 'normal'))) 
   }) 
+  
+  
+  # test that isnt used? -----
   output$text1 <- renderPrint({
     dat4 <- input.data4();
     dat3 <- input.data3();
@@ -1920,6 +1957,8 @@ server  <- function(input, output, session) {
     data5 <- as.numeric(dim(dat5)[1]) 
     cat(noquote(paste("There are ", data3," from ", input$expression_x, " and ", data4," from ", input$expression_y, "with", data5, "common to both")))
   })
+  
+  
   dataExpTable2 <- reactive({
     neg1 <- -1*input$FC1
     pos1 <- input$FC1
@@ -1944,20 +1983,33 @@ server  <- function(input, output, session) {
     dat5 <- merge(dat3,dat4,by="ID")
     
     dat_all <- mutate(dat5,
-                      significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                          ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", 
-                                                 ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2,"opposite",
-                                                        ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2,"opposite","other")))))
+                      sig=ifelse(dat5$Pvalue.x<input$Pvalue1 & dat5$Pvalue.y<input$Pvalue2,"sig","NS"),
+                      direction=ifelse(dat5$logFC.x>pos1 & dat5$logFC.y>pos2,"both_up",
+                                       ifelse(dat5$logFC.x<neg1 & dat5$logFC.y<neg2,"both_down",
+                                              ifelse(dat5$logFC.x<neg1 &  dat5$logFC.y>pos2, "opposite",
+                                                     ifelse(dat5$logFC.x>pos1 & dat5$logFC.y<neg2, "opposite",
+                                                            "other")))))
     
+    dat_all$signficance <- paste(dat_all$sig,dat_all$direction,sep="_")
+    
+    unique(dat_all$colour)
+    
+    dat_all$colour <-gsub("NS_other","other",dat_all$colour)
+    dat_all$colour <-gsub("NS_opposite","other",dat_all$colour)  
+    dat_all$colour <-gsub("NS_both_up","other",dat_all$colour)  
+    dat_all$colour <-gsub("NS_both_down","other",dat_all$colour)  
+    dat_all$colour <-gsub("sig_other","other",dat_all$colour)  
     dat.sig <- subset(dat_all, dat_all$Pvalue.x<input$Pvalue1 & dat5$Pvalue.x<input$Pvalue2)
     names(dat_all) <- gsub('.x','',names(dat_all))
     names(dat_all)[2:3] <- paste(names(dat_all)[2:3],input$expression_x,sep="_")
     names(dat_all) <- gsub('.y','',names(dat_all))
     names(dat_all)[4:5] <- paste(names(dat_all)[4:5],input$expression_y,sep="_")
-    dat.sig <- subset(dat_all, dat_all$significance== "both_sig_up" | dat_all$significance== "both_sig_down" | dat_all$significance== "opposite")
+    dat.sig <- subset(dat_all, dat_all$significance== "sig_both_up" | dat_all$significance== "sig_both_down" | dat_all$significance== "sig_opposite")
     dat.sig
     
   })
+  
+  # overall correlation test -----
   
   output$cor_test <- renderPrint({
     
@@ -2015,10 +2067,24 @@ server  <- function(input, output, session) {
     
     dat5 <- merge(dat3,dat4,by="ID")
     dat_all <- mutate(dat5,
-                      significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_up",
-                                          ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "both_sig_down", "other")))
+                      sig=ifelse(dat5$Pvalue.x<input$Pvalue1 & dat5$Pvalue.y<input$Pvalue2,"sig","NS"),
+                      direction=ifelse(dat5$logFC.x>pos1 & dat5$logFC.y>pos2,"both_up",
+                                       ifelse(dat5$logFC.x<neg1 & dat5$logFC.y<neg2,"both_down",
+                                              ifelse(dat5$logFC.x<neg1 &  dat5$logFC.y>pos2, "opposite",
+                                                     ifelse(dat5$logFC.x>pos1 & dat5$logFC.y<neg2, "opposite",
+                                                            "other")))))
     
-    dat.sig <- subset(dat_all, dat_all$significance== "both_sig_up" | dat_all$significance== "both_sig_down")
+    dat_all$significance <- paste(dat_all$sig,dat_all$direction,sep="_")
+    
+    unique(dat_all$colour)
+    
+    dat_all$significance <-gsub("NS_other","other",dat_all$significance)
+    dat_all$significance <-gsub("NS_opposite","other",dat_all$significance)  
+    dat_all$significance <-gsub("NS_both_up","other",dat_all$significance)  
+    dat_all$significance <-gsub("NS_both_down","other",dat_all$significance)  
+    dat_all$significance <-gsub("sig_other","other",dat_all$significance)  
+    
+    dat.sig <- subset(dat_all, dat_all$significance== "sig_both_up" | dat_all$significance== "sig_both_down")
     
     
     if (dim(dat.sig)[1] < 4) {
@@ -2061,11 +2127,24 @@ server  <- function(input, output, session) {
     
     dat5 <- merge(dat3,dat4,by="ID")
     dat_all <- mutate(dat5,
-                      significance=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, "opposite_up",
-                                          ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, "opposite_down", "other")))
+                      sig=ifelse(dat5$Pvalue.x<input$Pvalue1 & dat5$Pvalue.y<input$Pvalue2,"sig","NS"),
+                      direction=ifelse(dat5$logFC.x>pos1 & dat5$logFC.y>pos2,"both_up",
+                                       ifelse(dat5$logFC.x<neg1 & dat5$logFC.y<neg2,"both_down",
+                                              ifelse(dat5$logFC.x<neg1 &  dat5$logFC.y>pos2, "opposite",
+                                                     ifelse(dat5$logFC.x>pos1 & dat5$logFC.y<neg2, "opposite",
+                                                            "other")))))
     
-    dat.sig <- subset(dat_all, dat_all$significance== "opposite_up" | dat_all$significance== "opposite_down" )
+    dat_all$significance <- paste(dat_all$sig,dat_all$direction,sep="_")
     
+    unique(dat_all$colour)
+    
+    dat_all$significance <-gsub("NS_other","other",dat_all$significance)
+    dat_all$significance <-gsub("NS_opposite","other",dat_all$significance)  
+    dat_all$significance <-gsub("NS_both_up","other",dat_all$significance)  
+    dat_all$significance <-gsub("NS_both_down","other",dat_all$significance)  
+    dat_all$significance <-gsub("sig_other","other",dat_all$significance)  
+    
+    dat.sig <- subset(dat_all, dat_all$significance== "sig_opposite" )
     
     if (dim(dat.sig)[1] < 4) {
       cat("There are", noquote(paste(dim(dat.sig)[1]," observations and cannot calculate correlation <4",sep="")))
@@ -2100,7 +2179,7 @@ server  <- function(input, output, session) {
       need(nrow(dat3)>0,
            error_message_val3)
     ) 
-    
+    # sasdfdas
     validate(
       need(nrow(dat4)>0,
            error_message_val3)

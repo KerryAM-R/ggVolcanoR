@@ -1994,17 +1994,20 @@ server  <- function(input, output, session) {
     
     unique(dat_all$colour)
     
-    dat_all$colour <-gsub("NS_other","other",dat_all$colour)
-    dat_all$colour <-gsub("NS_opposite","other",dat_all$colour)  
-    dat_all$colour <-gsub("NS_both_up","other",dat_all$colour)  
-    dat_all$colour <-gsub("NS_both_down","other",dat_all$colour)  
-    dat_all$colour <-gsub("sig_other","other",dat_all$colour)  
+    dat_all$signficance <-gsub("NS_other","other",dat_all$signficance)
+    dat_all$signficance <-gsub("NS_opposite","other",dat_all$signficance)  
+    dat_all$signficance <-gsub("NS_both_up","other",dat_all$signficance)  
+    dat_all$signficance <-gsub("NS_both_down","other",dat_all$signficance)  
+    dat_all$signficance <-gsub("sig_other","other",dat_all$signficance)
+    
+    
     dat.sig <- subset(dat_all, dat_all$Pvalue.x<input$Pvalue1 & dat5$Pvalue.x<input$Pvalue2)
     names(dat_all) <- gsub('.x','',names(dat_all))
     names(dat_all)[2:3] <- paste(names(dat_all)[2:3],input$expression_x,sep="_")
     names(dat_all) <- gsub('.y','',names(dat_all))
     names(dat_all)[4:5] <- paste(names(dat_all)[4:5],input$expression_y,sep="_")
-    dat.sig <- subset(dat_all, dat_all$significance== "sig_both_up" | dat_all$significance== "sig_both_down" | dat_all$significance== "sig_opposite")
+    
+    dat.sig <- subset(dat_all, dat_all$signficance== "sig_both_up" | dat_all$signficance== "sig_both_down" | dat_all$signficance== "sig_opposite")
     dat.sig
     
   })

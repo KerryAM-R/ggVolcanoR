@@ -160,7 +160,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                        
                               ),
                               tabPanel("Volcano plot (selected colours)",
-                                       fluidRow(column(12, textInput("string.data3","column names for summary","CD74, TAP2, HLA-E, STAT1, WARS, ICAM1, TAP1", width = "1200px") )),
+                                       fluidRow(column(12, textInput("string.data3","list of selected points","CD74, TAP2, HLA-E, STAT1, WARS, ICAM1, TAP1", width = "1200px") )),
                                        textInput(inputId = "title3", 
                                                  label = "",
                                                  value = "Volcano plot: selected colour of points"),
@@ -1479,7 +1479,7 @@ server  <- function(input, output, session) {
     pos <- input$FC
     
     x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
-    y_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_y)))
+    y_lable1 <- bquote("-"~Log[10]~(.(input$expression_y2)))
     
     dat <-  merge(df,your_list_df,by="ID",all.x=T)
     head(dat)

@@ -161,11 +161,31 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                        
                               ),
                               tabPanel("Volcano plot (selected colours)",
-                                       fluidRow(column(12, textInput("string.data3","column names for summary","CD74, TAP2, HLA-E, HLA-DR", width = "1200px") )),
-                                       fluidRow(column(2,selectInput( "FACS.index_colour.choise",label = h5("colour"),choices = c("default","grey")))),
+                                       fluidRow(column(12, textInput("string.data3","column names for summary","CD74, TAP2, HLA-E, STAT1, WARS, ICAM1, TAP1", width = "1200px") )),
+                                       textInput(inputId = "title3", 
+                                                 label = "",
+                                                 value = "Volcano plot: selected colour of points"),
+                                       fluidRow(column(2,selectInput( "select.ggVolc_colour.choise",label = h5("colour"),choices = c("default","grey")))),
                                        fluidRow(column(3,
                                                        wellPanel(id = "tPanel222",style = "overflow-y:scroll; max-height: 600px",
-                                                                 uiOutput('myPanel.FACS.index')))),
+                                                                 uiOutput('myPanel.ggVolCol'))),
+                                                column(9, plotOutput("col.ggplot",height = "600px"))),
+                                       fluidRow(
+                                         
+                                         column(3,numericInput("width_col", "Width of PDF", value=10)),
+                                         column(3,numericInput("height_col", "Height of PDF", value=8)),
+                                         column(3),
+                                         column(3,style = "margin-top: 25px;",downloadButton('downloadPlot_col','Download PDF'))
+                                       ),
+                                       
+                                       fluidRow(
+                                         column(3,numericInput("width_png_col","Width of PNG", value = 1600)),
+                                         column(3,numericInput("height_png_col","Height of PNG", value = 1200)),
+                                         column(3,numericInput("resolution_PNG_col","Resolution of PNG", value = 144)),
+                                         column(3,style = "margin-top: 25px;",downloadButton('downloadPlotPNG_col','Download PNG'))
+                                       ),
+                                       
+                                       
                                        ),
                               tabPanel("Table with links", 
                                        selectInput("data.name.type","select initial ID type",choices = c("Symbol","Ensembl","human-uniprot","non-human")),
@@ -1086,13 +1106,6 @@ server  <- function(input, output, session) {
                  })
     print(plotInput())
   })
-  
-  
-  
-
-  
-  
-  
   type.of.data <- function () {
     
     dat <- input.data();
@@ -1254,10 +1267,7 @@ server  <- function(input, output, session) {
           color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
           fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
     }
-    
-    
-    
-    
+
     else { 
       top <- type.of.filter()
       SYMBOL_list <- as.data.frame(paste(top$ID,"_",input$species,sep=""))
@@ -1281,16 +1291,6 @@ server  <- function(input, output, session) {
           color = styleInterval(c(input$Pvalue), c('#d99058',  '#181A18')),
           fontWeight = styleInterval(input$Pvalue, c('bold', 'normal'))) 
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
   })
   dataExpTable <- reactive({
     dat <- input.data();
@@ -1317,7 +1317,6 @@ server  <- function(input, output, session) {
       both <- subset(dat, dat$Pvalue<input$Pvalue & dat$logFC<neg | dat$logFC>pos)
       both }
   })
-  
   output$number_of_points <- renderPrint({
     
     dat <- input.data();
@@ -1406,92 +1405,106 @@ server  <- function(input, output, session) {
   
   
 
-# colouring specific points -----------------------------------------------
 
-  plot2 <- function () {
+# selected points ---------------------------------------------------------
+
+  col.ggVolc.data <- reactive({
+    df <- input.data();
+    df <- as.data.frame(df)
+    your_list <- c(input$string.data3)
+    your_list_df <- as.data.frame((unlist(strsplit(your_list, ', '))))
+    names(your_list_df) <- "ID"
+    head(your_list_df)
+    your_list_df$selected <- your_list_df$ID
     
-    dat <- input.data();
+    dat <-  merge(df,your_list_df,by="ID",all.x=T)
+    head(dat)
+    dat[is.na(dat)] <- "not_selected"
     
-    validate(
-      need(nrow(dat)>0,
-           error_message_val2)
-    )
+    num <- unique(as.data.frame(dat$selected))
+    x = dim(num)[1]-1
+    col.gg <- c("lightgrey",gg_fill_hue(x))
+    
+    if (input$select.ggVolc_colour.choise == "default") {
+      lapply(1:dim(num)[1], function(i) {
+        colourInput(paste("col.ggVolc", i, sep="_"), paste(num[i,]), col.gg[i])        
+      })
+    }
+    
+    else {
+      lapply(1:dim(num)[1], function(i) {
+        colourInput(paste("col.ggVolc", i, sep="_"), paste(num[i,]), "grey")        
+      })
+      
+      
+    }
     
     
-    dat2 <- input.data2();
-    dat <- as.data.frame(dat)
-    dat <- dat[order(dat$Pvalue),]
     
-    list <- dat2$ID
-    list2 <- dat2$ID
+  })
+  
+  output$myPanel.ggVolCol <- renderUI({col.ggVolc.data()}) 
+  
+  colors.ggvolc.plot2 <- reactive({
+    df <- input.data();
+    df <- as.data.frame(df)
+    your_list <- c(input$string.data3)
+    your_list_df <- as.data.frame((unlist(strsplit(your_list, ', '))))
+    names(your_list_df) <- "ID"
+    head(your_list_df)
+    your_list_df$selected <- your_list_df$ID
+    
+    dat <-  merge(df,your_list_df,by="ID",all.x=T)
+    head(dat)
+    dat[is.na(dat)] <- "not_selected"
+    
+    num <- unique(as.data.frame(dat$selected))
+    
+    lapply(1:dim(num)[1], function(i) {
+      input[[paste("col.ggVolc", i, sep="_")]]
+    })
+  })
+  
+  vals6 <- reactiveValues(volc.plot2=NULL)
+  
+  plot.col.ggplot <- function () {
+    
+    df <- input.data();
+    df <- as.data.frame(df)
+    your_list <- c(input$string.data3)
+    your_list_df <- as.data.frame((unlist(strsplit(your_list, ', '))))
+    names(your_list_df) <- "ID"
+    head(your_list_df)
+    your_list_df$selected <- your_list_df$ID
     neg <- -1*input$FC
     pos <- input$FC
     
-    maximum <- input$max
+    x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
+    y_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_y)))
     
-    mutateddf <- mutate(dat, sig=ifelse(dat$Pvalue<0.05, "Pvalue<0.05", "Not Sig")) 
-    sig <- subset(dat, dat$Pvalue<input$Pvalue & abs(dat$logFC)>input$FC)
-    top <- sig[(input$min:input$max),]
+    dat <-  merge(df,your_list_df,by="ID",all.x=T)
+    head(dat)
+    dat[is.na(dat)] <- "not_selected"
     
-    gene_list <- top$ID
-    
-    mutateddf.gene <- mutate(mutateddf, top=ifelse(mutateddf$ID %in% gene_list, "top", "other"))
-    mutateddf.gene
-    
-    # no labels ----
-    sub.mutateddf.gene <- mutate(mutateddf.gene,
-                                 colour=ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,"sig_up",
-                                               ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")),
-                                 alpha=ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,
-                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)),
-                                 shape=ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$shape2,
-                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3)),
-                                 size=ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size1.1,
-                                             ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))
-    # range of genes ----
-    
-    
-    
-    
-    sub.mutateddf.gene2 <- mutate(mutateddf.gene,
-                                  colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "top_up",
-                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "top_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
-                                                                                                                                                                                                                                                                      ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")))),
-                                  alpha=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
-                                               ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))),
-                                  size=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$size1,
-                                              ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$size1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size1.1,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))),
-                                  shape=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,
-                                               ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$shape2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3))))
-    )
-    
-    
-    
-    
-    
-    colour_class <- c("NS","sig_down","sig_up","top_down","top_up")
-    
-    sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour_class)
-    
-    y_lable1 <- bquote("-"~Log[10]~(.(input$expression_y2)))
-    y_lable1
-    
-    colour_class <- c("NS","sig_down","sig_up","zlist_1","zlist_2","zlist_3")
-    
-    sub.mutateddf.gene_list$colour <- factor(sub.mutateddf.gene_list$colour, levels = colour_class)
-    
-    vals$ggplot <- ggplot() + 
-      geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),col=sub.mutateddf.gene_list$colour,shape=sub.mutateddf.gene_list$colour),size=sub.mutateddf.gene_list$size,alpha=sub.mutateddf.gene_list$alpha) +
-      geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)],]
-                      ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]], 
-                           y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]],
-                           label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]]),
+    num <- unique(as.data.frame(dat$selected))
+    names(num) <- "V1"
+    dat2 <-  merge(df,your_list_df,by="ID")
+    dat$selected <- factor(dat$selected, levels = num$V1,labels = num$V1)
+    dat$selected
+    dat$alpha.test <- ifelse(dat$selected=="not_selected",0.25,1)
+    palette.complex <- unlist(colors.ggvolc.plot2())
+
+    vals6$volc.plot2 <- ggplot(dat,aes(x=logFC,y=-log10(Pvalue),colour = selected)) + 
+      geom_point(alpha = dat$alpha.test) +
+      scale_color_manual(values=palette.complex) +
+      geom_text_repel(data=dat2,aes(x=logFC, 
+                                    y=  -log10(Pvalue),
+                                    label= ID), colour="black",
                       size=input$label,family=input$font, 
                       segment.alpha = 0.5, 
                       show.legend = F,box.padding = unit(input$dist, 'lines'), 
-                      max.overlaps = Inf) +
-      scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2,input$lab3)) +
-      scale_shape_manual(values=c(input$shape3,input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape1),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2,input$lab3)) +
+                      max.overlaps = Inf)+
+
       guides(shape = guide_legend(override.aes = list(size = 5))) +
       guides(fill = guide_legend(override.aes = list(shape = NA))) +
       theme_bw(base_size = 18)+
@@ -1516,51 +1529,50 @@ server  <- function(input, output, session) {
       scale_x_continuous(limits = c(input$xlow, input$xhigh), breaks = seq(input$xlow, input$xhigh, by = input$xbreaks))+
       labs(y=y_lable1,
            x=expression(Log[2]~Fold~Change),
-           title=input$title) 
+           title=input$title3) 
     
-    vals$ggplot
-    
-    
-    
-  }  
+      vals6$volc.plot2
+
+  }
   
-  cols.FACS.index <- reactive({
-    df <-input.data();
-    df <- as.data.frame(df)
-    # your_list <- c(input$string.data)
-    your_list <- c(input$string.data3)
-    your_list_df <- as.data.frame((unlist(strsplit(your_list, ', '))))
-    names(your_list_df) <- "ID"
-    your_list_df$selected <- your_list_df$ID
-    
-    dat <-  merge(df,your_list_df,by="ID",all=T)
-    
-    dat[is.na(dat)] <- "not_selected"
-    
-    num <- unique(as.data.frame(dat$selected))
-    num
-    col.gg <- gg_fill_hue(dim(num)[1])
-    col.gg
-    
-    if (input$FACS.index_colour.choise == "default") {
-      lapply(1:dim(num)[1], function(i) {
-        colourInput(paste("col.FACS.index", i, sep="_"), paste(num[i,]), col.gg[i])        
-      })
-    }
-    
-    else {
-      lapply(1:dim(num)[1], function(i) {
-        colourInput(paste("col.FACS.index", i, sep="_"), paste(num[i,]), "grey")        
-      })
-      
-      
-    }
-    
-    
-    
+  output$col.ggplot <- renderPlot({
+    withProgress(message = 'Figure is being generated...',
+                 detail = '', value = 0, {
+                   test_fun()
+                 })
+    print(plot.col.ggplot())
   })
   
-  output$myPanel.FACS.index <- renderUI({cols.FACS.index()}) 
+  
+  
+  output$downloadPlot_col <- downloadHandler(
+    filename = function() {
+      x <- gsub(":", ".", Sys.time())
+      paste("ggVolcanoR_",input$title3, gsub("/", "-", x), ".pdf", sep = "")
+    },
+    content = function(file) {
+      pdf(file, width=input$width_col,height=input$heigh_colt, onefile = FALSE) # open the pdf device
+      print(plot.col.ggplot())
+      dev.off()},
+    
+    contentType = "application/pdf"
+    
+  )
+  
+  output$downloadPlotPNG_col <- downloadHandler(
+    filename = function() {
+      x <- gsub(":", ".", Sys.time())
+      paste("ggVolcanoR_",input$title3, gsub("/", "-", x), ".png", sep = "")
+    },
+    content = function(file) {
+      
+      png(file, width = input$width_png_col, height = input$height_png_col, res = input$resolution_PNG_col)
+      print(plot.col.ggplot())
+      dev.off()},
+    
+    contentType = "application/png" # MIME type of the image
+    
+  )
   
   
 
@@ -1610,7 +1622,7 @@ server  <- function(input, output, session) {
         header=TRUE)}
   })
   
-      # Merging the two plots ----
+  # Merging the two plots ----
   plotInput2 <- function() {
     dat4 <- input.data4();
     dat3 <- input.data3();

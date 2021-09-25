@@ -79,7 +79,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                  
                  tabPanel("Volcano plot",
                           sidebarLayout(
-                            sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=4,
+                            sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=3,
                                          tags$style(type="text/css", "body {padding-top: 70px; padding-left: 10px;}"),
                                          tags$head(tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}"))),
                                          tags$head(tags$style(HTML('.progress-bar {background-color: blue;}'))),

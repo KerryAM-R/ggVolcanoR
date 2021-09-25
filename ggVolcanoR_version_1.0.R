@@ -16,7 +16,7 @@ require("reshape2")
 
 #require("shinyjs", lib.loc = "local.lib/")
 require("colourpicker", lib.loc = "local.lib/")
-
+require()
 test_fun <- function()
 {
   for (i in 1:15) {
@@ -161,7 +161,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                        
                               ),
                               tabPanel("Volcano plot (selected colours)",
-                                       fluidRow(column(12, textInput("string.data3","column names for summary","CD74, TAP2, HLA-E", width = "1200px") )),
+                                       fluidRow(column(12, textInput("string.data3","column names for summary","CD74, TAP2, HLA-E, HLA-DR", width = "1200px") )),
                                        fluidRow(column(2,selectInput( "FACS.index_colour.choise",label = h5("colour"),choices = c("default","grey")))),
                                        fluidRow(column(3,
                                                        wellPanel(id = "tPanel222",style = "overflow-y:scroll; max-height: 600px",

@@ -14,7 +14,7 @@ require("plyr")
 require("dplyr")
 require("reshape2")
 
-require("shinyjs", lib.loc = "local.lib/")
+#require("shinyjs", lib.loc = "local.lib/")
 require("colourpicker", lib.loc = "local.lib/")
 
 test_fun <- function()

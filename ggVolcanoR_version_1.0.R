@@ -15,14 +15,13 @@ require("plyr")
 require("dplyr")
 require("reshape2")
 require("colourpicker", lib.loc = "local.lib/")
-require("circlize", lib.loc = "local.lib/")
-require("ComplexHeatmap", lib.loc = "local.lib/")
+require("circlize", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
+require("ComplexHeatmap", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
 
 # install.packages("circlize",lib = "../ggVolcanoR/local.lib/", dependencies = T)
 # install.packages("ComplexHeatmap",lib = "../ggVolcanoR/local.lib/", dependencies = T)
 
-require("circlize")
-require("ComplexHeatmap")
+
 
 test_fun <- function()
 {

@@ -17,7 +17,8 @@ require("circlize")
 #require("shinyjs", lib.loc = "local.lib/")
 require("colourpicker", lib.loc = "local.lib/")
 #require("ComplexUpset", lib.loc = "local.lib/")
-
+install.packages("remotes",lib = "local.lib/")
+require("remotes")
 remotes::install_github("jokergoo/ComplexHeatmap",lib = "local.lib/")
 require("ComplexHeatmap",lib.loc = "local.lib/")
 

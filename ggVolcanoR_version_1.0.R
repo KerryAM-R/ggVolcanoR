@@ -193,6 +193,8 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                        div(DT::dataTableOutput("myoutput",height="600px"))),
                               
                               tabPanel("Summary table",DT::dataTableOutput("summary_table",height="300px"),
+                                       textInput("group.name","name of group",value = "Proteomics"),
+                                       
                                        selectInput(inputId = "export", 
                                                    label = "Filtered lists for download", 
                                                    choices = filtered_table, 
@@ -390,23 +392,63 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                           )
                  ),
                  
+
+# heatmap and upset -------------------------------------------------------
+
                  
                 tabPanel("Heatmap and upset plots",
                          sidebarLayout(
-                          sidebarPanel(id = "tPanel3",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=4,
-                                      h4("Corrleation plot parameters")
+                          sidebarPanel(id = "tPanel4",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=3,
+                                      h4("Corrleation plot parameters"),
+                                      selectInput("dataset.upset.heatmap", "Choose a dataset:", choices = c("test-data", "own")),
+                                      fileInput('file.hm', 'ID, logFC, Pvalue (x-axis)',
+                                                accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
 
                        ),
                       mainPanel(
                         tabsetPanel(
-                                     tabPanel("create file for plotting",
-            
-                                          selectInput("conversion1","Merge file 1 by ensemble, Symbol or Uniprot ID",
-                                                     choices = names.conversion,
-                                                    selected = "Gene.Name")
-                                   ),
-                                   tabPanel("Heatmap"),
-                                   tabPanel("upset plot")
+                                   tabPanel("Heatmap",
+                                            fluidRow(column(3, selectInput("hm.type","select type of filter",choices = c("all",">0 in all"))),
+                                                     column(3, numericInput("min.hm","range (min)",value = 1)),
+                                                    column(3, numericInput("max.hm","range (max)",value = 20)),
+                                                     column(3, numericInput("heatmap.font.size","ID size",value = 12))),
+                                            plotOutput("heatmap.plot", height = "600px"),
+                                            fluidRow(
+                                              
+                                              column(3,numericInput("width_heatmap", "Width of PDF", value=10)),
+                                              column(3,numericInput("height_heatmap", "Height of PDF", value=16)),
+                                              column(3),
+                                              column(3,style = "margin-top: 25px;",downloadButton('downloadPlot_heatmap','Download PDF'))
+                                            ),
+  
+                                            fluidRow(
+                                              column(3,numericInput("width_png_heatmap","Width of PNG", value = 1600)),
+                                              column(3,numericInput("height_png_heatmap","Height of PNG", value = 2400)),
+                                              column(3,numericInput("resolution_PNG_heatmap","Resolution of PNG", value = 144)),
+                                              column(3,style = "margin-top: 25px;",downloadButton('downloadPlotPNG_heatmap','Download PNG'))
+                                            ),
+                                            
+                                            
+                                            ),
+                                   tabPanel("upset plot",
+                                            fluidRow(
+                                            column(3,selectInput("upset.group.select",label = h5("select group column (max 31 groups)"), choices = "",selected= ""))),
+                                            plotOutput("upset.plot", height = "600px"),
+                                            fluidRow(
+                                              
+                                              column(3,numericInput("width_upset", "Width of PDF", value=10)),
+                                              column(3,numericInput("height_upset", "Height of PDF", value=8)),
+                                              column(3),
+                                              column(3,style = "margin-top: 25px;",downloadButton('downloadPlot_upset','Download PDF'))
+                                            ),
+                                            
+                                            fluidRow(
+                                              column(3,numericInput("width_png_upset","Width of PNG", value = 1600)),
+                                              column(3,numericInput("height_png_upset","Height of PNG", value = 1200)),
+                                              column(3,numericInput("resolution_PNG_upset","Resolution of PNG", value = 144)),
+                                              column(3,style = "margin-top: 25px;",downloadButton('downloadPlotPNG_upset','Download PNG'))
+                                            ),
+                                            )
 
                       )
                      )
@@ -674,6 +716,7 @@ server  <- function(input, output, session) {
         quote=input$quote)}
     
   })
+  
   input.data2 <- reactive({switch(input$dataset,"test-data" = test.data2(),"own" = own.data2())})
   test.data2 <- reactive({ 
     dataframe2= read.csv("test-data/Refined list.csv")})
@@ -1299,6 +1342,9 @@ server  <- function(input, output, session) {
     list <- dat2$ID
     neg <- -1*input$FC
     pos <- input$FC
+    dat$group <- input$group.name
+    dat$direction <- ifelse(dat$logFC>0,'up','down')
+    dat$group.direction <- paste(dat$group,dat$direction,sep=".")
     
     if (input$export=="upregulated") {
       positive <- subset(dat, dat$Pvalue<input$Pvalue & dat$logFC>pos)
@@ -1313,7 +1359,7 @@ server  <- function(input, output, session) {
       ownlist <- dat[dat$ID %in% list & dat$Pvalue<input$Pvalue & abs(dat$logFC)>input$FC,]
     }
     else { 
-      both <- subset(dat, dat$Pvalue<input$Pvalue & dat$logFC<neg | dat$logFC>pos)
+      both <- subset(dat, dat$Pvalue<input$Pvalue & abs(dat$logFC)>pos)
       both }
   })
   output$number_of_points <- renderPrint({
@@ -2199,41 +2245,158 @@ server  <- function(input, output, session) {
   })
 
 # heatmap and upset  ------------------------------------------------------
-
-  merging.multiple.files <- function () {
-    file1 <- read.csv("test-data/Proteomics data.csv")
-    file2 <- read.csv("test-data/Transcriptomics data.csv")
-    
-    file1.sig <- subset(file1, file1$Pvalue<0.05 & abs(file1$logFC)>0.58)
-    file2.sig <- subset(file2, file2$Pvalue<0.05 & abs(file2$logFC)>0.58)
-    
-    
-    if (x == "both") {
-      sig <- merge(file1.sig,file2.sig,by="ID")
-      sig <- sig[,-grep("Pv",names(sig))]
-      sig[is.na(sig)] <- 0
-      rownames(sig) <- sig$ID
-      sig <- sig[,-grep("ID",names(sig))]
-    }
-
-    
+  
+  input.data.upset.heatmap <- reactive({switch(input$dataset.upset.heatmap,"test-data" = test.data.hm(),"own" = own.data.hm())})
+  
+  test.data.hm <- reactive({
+    dataframe = read.csv("test-data/Heatmap.upset.csv") })
+  own.data.hm <- reactive({
+    inFile.hm <- input$file.hm
+    if (is.null(inFile.hm)) return(NULL)
     
     else {
-      sig <- merge(file1.sig,file2.sig,by="ID",all=T)
-      sig <- sig[,-grep("Pv",names(sig))]
-      sig[is.na(sig)] <- 0
-      rownames(sig) <- sig$ID
-      sig <- sig[,-grep("ID",names(sig))]
-    }
+      dataframe <- read.csv(
+        inFile.hm$datapath,
+        header=TRUE)}
     
-    sig <- as.matrix(sig[1:40,])
+  })
+  
+  
+ file.heatmap  <- function () {
+
+   
+   file <- input.data.upset.heatmap();
+   min.FC <- min(file$logFC)
+   max.FC <- max(file$logFC)
+   
+   df.1 <- acast(file, ID~group, value.var="logFC")
+   if (input$hm.type == "all") {
     
-    library(RColorBrewer)
-    coul <- colorRampPalette(brewer.pal(8, "PiYG"))(25)
-    Heatmap(sig)
-require(ComplexHeatmap)
-    ?heatmap
+     head(df.1)
+     df.1[is.na(df.1)] <- 0
+     dim(df.1)
+     
+     Heatmap(df.1[input$min.hm:input$max.hm,], row_names_gp = gpar(fontsize = input$heatmap.font.size),
+             col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red")))
+   }
+   
+  else {
+    df.1 <- acast(file, ID~group, value.var="logFC")
+    df2 <- as.data.frame(df.1)
+    in.both <- df2[complete.cases(df2),]
+    Heatmap(as.matrix(in.both), row_names_gp = gpar(fontsize = input$heatmap.font.size),
+            col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red"))
+            )
+    
   }
+    
+  }
+ 
+  output$heatmap.plot <- renderPlot({
+    withProgress(message = 'Figure is being generated...',
+                 detail = '', value = 0, {
+                   test_fun2()
+                 })
+
+    print(file.heatmap())
+  })
+  
+  # downloading PDF heatmap -----
+  output$downloadPlot_heatmap <- downloadHandler(
+    filename = function() {
+      x <- gsub(":", ".", Sys.time())
+      paste("ggVolcanoR_heatmap",gsub("/", "-", x), ".pdf", sep = "")
+    },
+    content = function(file) {
+      pdf(file, width=input$width_heatmap,height=input$height_heatmap, onefile = FALSE) # open the pdf device
+      print(file.heatmap())
+      dev.off()},
+    
+    contentType = "application/pdf"
+    
+  )
+  
+  output$downloadPlotPNG_heatmap <- downloadHandler(
+    filename = function() {
+      x <- gsub(":", ".", Sys.time())
+      paste("ggVolcanoR_", gsub("/", "-", x), ".png", sep = "")
+    },
+    content = function(file) {
+      
+      png(file, width = input$width_png_heatmap, height = input$height_png_heatmap, res = input$resolution_PNG_heatmap)
+      print(file.heatmap())
+      dev.off()},
+    
+    contentType = "application/png" # MIME type of the image
+    
+  )
+  
+  # upset plots ----
+  
+  observe({
+    updateSelectInput(
+      session,
+      "upset.group.select",
+      choices=names(input.data.upset.heatmap()),
+      selected = "group")
+    
+  })
+  
+  file.upset  <- function () {
+    file <- input.data.upset.heatmap();
+    file$upset.present <- 1
+    df.upset <- acast(file, ID~get(input$upset.group.select), value.var="upset.present")
+    head(df.upset)
+    df.upset[is.na(df.upset)] <- 0
+    
+    df.x <- make_comb_mat(df.upset)
+    UpSet(df.x, comb_order = order(comb_size(df.x)))
+    
+  }
+  
+  
+  
+  output$upset.plot <- renderPlot({
+    withProgress(message = 'Figure is being generated...',
+                 detail = '', value = 0, {
+                   test_fun2()
+                 })
+    
+    
+    print(file.upset())
+  })
+  
+  
+  # downloading PDF upset -----
+  output$downloadPlot_upset <- downloadHandler(
+    filename = function() {
+      x <- gsub(":", ".", Sys.time())
+      paste("ggVolcanoR_heatmap",gsub("/", "-", x), ".pdf", sep = "")
+    },
+    content = function(file) {
+      pdf(file, width=input$width_upset,height=input$height_upset, onefile = FALSE) # open the pdf device
+      print(file.upset())
+      dev.off()},
+    
+    contentType = "application/pdf"
+    
+  )
+  
+  output$downloadPlotPNG_upset <- downloadHandler(
+    filename = function() {
+      x <- gsub(":", ".", Sys.time())
+      paste("ggVolcanoR_", gsub("/", "-", x), ".png", sep = "")
+    },
+    content = function(file) {
+      
+      png(file, width = input$width_png_upset, height = input$height_png_upset, res = input$resolution_PNG_upset)
+      print(file.upset())
+      dev.off()},
+    
+    contentType = "application/png" # MIME type of the image
+    
+  )
+  
   
   
   # overall correlation test -----

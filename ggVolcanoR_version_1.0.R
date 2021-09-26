@@ -19,7 +19,7 @@ require("colourpicker", lib.loc = "local.lib/")
 #require("ComplexUpset", lib.loc = "local.lib/")
 #install.packages("remotes")
 #remotes::install_github("jokergoo/ComplexHeatmap")
-require("ComplexHeatmap",lib.loc = "~/R/x86_64-pc-linux-gnu-library/4.1/")
+require("ComplexHeatmap",lib.loc = "local.lib/")
 
 test_fun <- function()
 {

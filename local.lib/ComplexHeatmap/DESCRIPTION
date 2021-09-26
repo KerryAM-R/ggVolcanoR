@@ -1,18 +1,18 @@
 Package: ComplexHeatmap
 Type: Package
 Title: Make Complex Heatmaps
-Version: 2.8.0
-Date: 2021-05-04
+Version: 2.9.4
+Date: 2021-09-08
 Author: Zuguang Gu
 Maintainer: Zuguang Gu <z.gu@dkfz.de>
 Depends: R (>= 3.5.0), methods, grid, graphics, stats, grDevices
 Imports: circlize (>= 0.4.5), GetoptLong, colorspace, clue,
-        RColorBrewer, GlobalOptions (>= 0.1.0), png, Cairo, digest,
-        IRanges, matrixStats, foreach, doParallel
+        RColorBrewer, GlobalOptions (>= 0.1.0), png, digest, IRanges,
+        matrixStats, foreach, doParallel
 Suggests: testthat (>= 1.0.0), knitr, markdown, dendsort, jpeg, tiff,
         fastcluster, EnrichedHeatmap, dendextend (>= 1.0.1), grImport,
         grImport2, glue, GenomicRanges, gridtext, pheatmap (>= 1.0.12),
-        gridGraphics, gplots
+        gridGraphics, gplots, rmarkdown, Cairo
 VignetteBuilder: knitr
 Description: Complex heatmaps are efficient to visualize associations 
     between different sources of data sets and reveal potential patterns. 
@@ -22,11 +22,16 @@ biocViews: Software, Visualization, Sequencing
 URL: https://github.com/jokergoo/ComplexHeatmap,
         https://jokergoo.github.io/ComplexHeatmap-reference/book/
 License: MIT + file LICENSE
-git_url: https://git.bioconductor.org/packages/ComplexHeatmap
-git_branch: RELEASE_3_13
-git_last_commit: 1bd0c3b
-git_last_commit_date: 2021-05-19
-Date/Publication: 2021-05-19
+RemoteType: github
+RemoteHost: api.github.com
+RemoteRepo: ComplexHeatmap
+RemoteUsername: jokergoo
+RemoteRef: HEAD
+RemoteSha: a9d34f2eab5041f6c587cbc7158543af0de52654
+GithubRepo: ComplexHeatmap
+GithubUsername: jokergoo
+GithubRef: HEAD
+GithubSHA1: a9d34f2eab5041f6c587cbc7158543af0de52654
 NeedsCompilation: no
-Packaged: 2021-05-19 23:03:24 UTC; biocbuild
-Built: R 4.1.0; ; 2021-05-20 13:41:45 UTC; unix
+Packaged: 2021-09-26 04:47:40 UTC; kerrymullan
+Built: R 4.1.1; ; 2021-09-26 04:47:41 UTC; unix

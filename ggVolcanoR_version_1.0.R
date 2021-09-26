@@ -2,6 +2,7 @@
 # Allow files up to 10 Mb
 options(shiny.maxRequestSize=10*1024^2)
 
+
 ## volcano plots
 require("tidyverse")
 require("ggplot2") #Best plots
@@ -14,9 +15,8 @@ require("plyr")
 require("dplyr")
 require("reshape2")
 require("colourpicker", lib.loc = "local.lib/")
-require("circlize", lib.loc="local.lib/")
-require("grid")
-require(ComplexHeatmap, lib.loc="local.lib/")
+require("circlize")
+require("ComplexHeatmap")
 
 test_fun <- function()
 {
@@ -33,6 +33,7 @@ test_fun2 <- function()
     sum(runif(2000000,0,1))
   }
 }
+
 
 
 gg_fill_hue <- function(n) {
@@ -2304,6 +2305,7 @@ server  <- function(input, output, session) {
   
   # downloading PDF heatmap -----
   output$downloadPlot_heatmap <- downloadHandler(
+    
     filename = function() {
       x <- gsub(":", ".", Sys.time())
       paste("ggVolcanoR_heatmap",gsub("/", "-", x), ".pdf", sep = "")
@@ -2344,13 +2346,15 @@ server  <- function(input, output, session) {
   })
   
   file.upset  <- function () {
-    file <- input.data.upset.heatmap();
+    file <- read.csv("test-data/Heatmap.upset.csv")
     file$upset.present <- 1
+    
     df.upset <- acast(file, ID~get(input$upset.group.select), value.var="upset.present")
+    df.upset <- acast(file, ID~group, value.var="upset.present")
     head(df.upset)
     df.upset[is.na(df.upset)] <- 0
-    
-    df.x <- make_comb_mat(df.upset)
+    df.x <- make_comb_mat(as.matrix(df.upset))
+    head(df.x)
     UpSet(df.x, comb_order = order(comb_size(df.x)))
     
   }

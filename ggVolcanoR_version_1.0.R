@@ -17,8 +17,9 @@ require("circlize")
 #require("shinyjs", lib.loc = "local.lib/")
 require("colourpicker", lib.loc = "local.lib/")
 #require("ComplexUpset", lib.loc = "local.lib/")
-library("ComplexHeatmap",lib.loc = "local.lib/")
+#library("ComplexHeatmap",lib.loc = "local.lib/")
 #remotes::install_github("jokergoo/ComplexHeatmap",lib = "../ggVolcanoR/local.lib/")
+
 test_fun <- function()
 {
   for (i in 1:15) {

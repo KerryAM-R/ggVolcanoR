@@ -18,8 +18,7 @@ require("circlize")
 require("colourpicker", lib.loc = "local.lib/")
 #require("ComplexUpset", lib.loc = "local.lib/")
 require("ComplexHeatmap", lib.loc = "local.lib/")
-
-?Heatmap
+require("png", lib.loc = "local.lib/")
 
 test_fun <- function()
 {

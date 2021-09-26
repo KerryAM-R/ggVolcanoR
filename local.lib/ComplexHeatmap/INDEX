@@ -317,6 +317,7 @@ summary.HeatmapList     Summary of a Heatmap List
 t.comb_mat              Transpost the Combination Matrix
 test_alter_fun          Test alter_fun for oncoPrint()
 unify_mat_list          Unify a List of Matrix
+upset_left_annotation   UpSet Left Annotation
 upset_right_annotation
                         Default UpSet Right Annotation
 upset_top_annotation    Default UpSet Top Annotation

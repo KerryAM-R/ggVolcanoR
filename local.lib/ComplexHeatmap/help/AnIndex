@@ -255,6 +255,7 @@ t.comb_mat	t.comb_mat
 test_alter_fun	test_alter_fun
 unify_mat_list	unify_mat_list
 UpSet	UpSet
+upset_left_annotation	upset_left_annotation
 upset_right_annotation	upset_right_annotation
 upset_top_annotation	upset_top_annotation
 width.AnnotationFunction	width.AnnotationFunction

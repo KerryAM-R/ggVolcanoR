@@ -13,10 +13,12 @@ require("DT")
 require("plyr")
 require("dplyr")
 require("reshape2")
-
+require("circlize")
 #require("shinyjs", lib.loc = "local.lib/")
 require("colourpicker", lib.loc = "local.lib/")
-require()
+require("ComplexUpset", lib.loc = "local.lib/")
+require("ComplexHeatmap", lib.loc = "local.lib/")
+
 test_fun <- function()
 {
   for (i in 1:15) {

@@ -1,0 +1,714 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><title>R: Make Complex Heatmaps</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+<h1> Make Complex Heatmaps
+<img class="toplogo" src="../../../doc/html/Rlogo.svg" alt="[R logo]" />
+</h1>
+<hr/>
+<div style="text-align: center;">
+<a href="../../../doc/html/packages.html"><img class="arrow" src="../../../doc/html/left.jpg" alt="[Up]" /></a>
+<a href="../../../doc/html/index.html"><img class="arrow" src="../../../doc/html/up.jpg" alt="[Top]" /></a>
+</div><h2>Documentation for package &lsquo;ComplexHeatmap&rsquo; version 2.8.0</h2>
+
+<ul><li><a href="../DESCRIPTION">DESCRIPTION file</a>.</li>
+<li><a href="../doc/index.html">User guides, package vignettes and other documentation.</a></li>
+<li><a href="../NEWS">Package NEWS</a>.</li>
+</ul>
+
+<h2>Help Pages</h2>
+
+
+<p style="text-align: center;">
+<a href="# "> </a>
+<a href="#A">A</a>
+<a href="#B">B</a>
+<a href="#C">C</a>
+<a href="#D">D</a>
+<a href="#E">E</a>
+<a href="#F">F</a>
+<a href="#G">G</a>
+<a href="#H">H</a>
+<a href="#I">I</a>
+<a href="#L">L</a>
+<a href="#M">M</a>
+<a href="#N">N</a>
+<a href="#O">O</a>
+<a href="#P">P</a>
+<a href="#R">R</a>
+<a href="#S">S</a>
+<a href="#T">T</a>
+<a href="#U">U</a>
+<a href="#W">W</a>
+<a href="#misc">misc</a>
+</p>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="ComplexHeatmap-package.html">ComplexHeatmap-package</a></td>
+<td>Make complex heatmaps</td></tr>
+</table>
+
+<h2><a name="A">-- A --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="add.AdditiveUnit.html">add.AdditiveUnit</a></td>
+<td>Horizontally Add Heatmaps or Annotations to a Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="AdditiveUnit.html">AdditiveUnit</a></td>
+<td>Constructor Method for AdditiveUnit Class</td></tr>
+<tr><td style="width: 25%;"><a href="AdditiveUnit-class.html">AdditiveUnit-class</a></td>
+<td>Class for Concatenating Heatmaps and Annotations</td></tr>
+<tr><td style="width: 25%;"><a href="add_heatmap-dispatch.html">add_heatmap</a></td>
+<td>Method dispatch page for add_heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="add_heatmap-Heatmap-method.html">add_heatmap-method</a></td>
+<td>Add Heatmap to the Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="add_heatmap-HeatmapAnnotation-method.html">add_heatmap-method</a></td>
+<td>Add Annotations or Heatmaps as a Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="add_heatmap-HeatmapList-method.html">add_heatmap-method</a></td>
+<td>Add heatmaps and row annotations to the heatmap list</td></tr>
+<tr><td style="width: 25%;"><a href="adjust_dend_by_x.html">adjust_dend_by_x</a></td>
+<td>Adjust the Positions of nodes/leaves in the Dendrogram</td></tr>
+<tr><td style="width: 25%;"><a href="adjust_heatmap_list-HeatmapList-method.html">adjust_heatmap_list</a></td>
+<td>Adjust Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="adjust_heatmap_list-HeatmapList-method.html">adjust_heatmap_list-method</a></td>
+<td>Adjust Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="alter_graphic.html">alter_graphic</a></td>
+<td>Automatically generate alter_fun</td></tr>
+<tr><td style="width: 25%;"><a href="AnnotationFunction.html">AnnotationFunction</a></td>
+<td>Constructor of AnnotationFunction Class</td></tr>
+<tr><td style="width: 25%;"><a href="AnnotationFunction-class.html">AnnotationFunction-class</a></td>
+<td>The AnnotationFunction Class</td></tr>
+<tr><td style="width: 25%;"><a href="annotation_axis_grob.html">annotation_axis_grob</a></td>
+<td>Grob for Annotation Axis</td></tr>
+<tr><td style="width: 25%;"><a href="annotation_legend_size-HeatmapList-method.html">annotation_legend_size</a></td>
+<td>Size of the Annotation Legends</td></tr>
+<tr><td style="width: 25%;"><a href="annotation_legend_size-HeatmapList-method.html">annotation_legend_size-method</a></td>
+<td>Size of the Annotation Legends</td></tr>
+<tr><td style="width: 25%;"><a href="anno_barplot.html">anno_barplot</a></td>
+<td>Barplot Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_block.html">anno_block</a></td>
+<td>Block annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_boxplot.html">anno_boxplot</a></td>
+<td>Boxplot Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_density.html">anno_density</a></td>
+<td>Density Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_empty.html">anno_empty</a></td>
+<td>Empty Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_histogram.html">anno_histogram</a></td>
+<td>Histogram Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_horizon.html">anno_horizon</a></td>
+<td>Horizon chart Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_image.html">anno_image</a></td>
+<td>Image Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_joyplot.html">anno_joyplot</a></td>
+<td>Joyplot Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_lines.html">anno_lines</a></td>
+<td>Lines Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_link.html">anno_link</a></td>
+<td>Link Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_mark.html">anno_mark</a></td>
+<td>Link annotation with labels</td></tr>
+<tr><td style="width: 25%;"><a href="anno_oncoprint_barplot.html">anno_oncoprint_barplot</a></td>
+<td>Barplot Annotation for oncoPrint</td></tr>
+<tr><td style="width: 25%;"><a href="anno_points.html">anno_points</a></td>
+<td>Points Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_simple.html">anno_simple</a></td>
+<td>Simple Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_summary.html">anno_summary</a></td>
+<td>Summary Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_text.html">anno_text</a></td>
+<td>Text Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="anno_zoom.html">anno_zoom</a></td>
+<td>Zoom annotation</td></tr>
+<tr><td style="width: 25%;"><a href="attach_annotation-Heatmap-method.html">attach_annotation</a></td>
+<td>Attach heatmap annotations to the heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="attach_annotation-Heatmap-method.html">attach_annotation-method</a></td>
+<td>Attach heatmap annotations to the heatmap</td></tr>
+</table>
+
+<h2><a name="B">-- B --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="bar3D.html">bar3D</a></td>
+<td>Draw 3D bars</td></tr>
+<tr><td style="width: 25%;"><a href="bin_genome.html">bin_genome</a></td>
+<td>Bin the genome</td></tr>
+</table>
+
+<h2><a name="C">-- C --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="c.ColorMapping.html">c.ColorMapping</a></td>
+<td>Concatenate A List of ColorMapping objects</td></tr>
+<tr><td style="width: 25%;"><a href="c.HeatmapAnnotation.html">c.HeatmapAnnotation</a></td>
+<td>Concatenate Heatmap Annotations</td></tr>
+<tr><td style="width: 25%;"><a href="cluster_between_groups.html">cluster_between_groups</a></td>
+<td>Cluster only between Groups</td></tr>
+<tr><td style="width: 25%;"><a href="cluster_within_group.html">cluster_within_group</a></td>
+<td>Cluster within and between Groups</td></tr>
+<tr><td style="width: 25%;"><a href="ColorMapping.html">ColorMapping</a></td>
+<td>Constructor Method for ColorMapping Class</td></tr>
+<tr><td style="width: 25%;"><a href="ColorMapping-class.html">ColorMapping-class</a></td>
+<td>Class for Color Mapping</td></tr>
+<tr><td style="width: 25%;"><a href="color_mapping_legend-ColorMapping-method.html">color_mapping_legend</a></td>
+<td>Draw Legend Based on Color Mapping</td></tr>
+<tr><td style="width: 25%;"><a href="color_mapping_legend-ColorMapping-method.html">color_mapping_legend-method</a></td>
+<td>Draw Legend Based on Color Mapping</td></tr>
+<tr><td style="width: 25%;"><a href="columnAnnotation.html">columnAnnotation</a></td>
+<td>Construct Column Annotations</td></tr>
+<tr><td style="width: 25%;"><a href="column_dend-dispatch.html">column_dend</a></td>
+<td>Method dispatch page for column_dend</td></tr>
+<tr><td style="width: 25%;"><a href="column_dend-Heatmap-method.html">column_dend-method</a></td>
+<td>Get Column Dendrograms from a Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="column_dend-HeatmapList-method.html">column_dend-method</a></td>
+<td>Get Column Dendrograms from a hHeatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="column_order-dispatch.html">column_order</a></td>
+<td>Method dispatch page for column_order</td></tr>
+<tr><td style="width: 25%;"><a href="column_order-Heatmap-method.html">column_order-method</a></td>
+<td>Get Column Order from a Aeatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="column_order-HeatmapList-method.html">column_order-method</a></td>
+<td>Get Column Order from a Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="comb_degree.html">comb_degree</a></td>
+<td>Degrees of the Combination sets</td></tr>
+<tr><td style="width: 25%;"><a href="comb_name.html">comb_name</a></td>
+<td>Names of the Combination sets</td></tr>
+<tr><td style="width: 25%;"><a href="comb_size.html">comb_size</a></td>
+<td>Sizes of the Combination sets</td></tr>
+<tr><td style="width: 25%;"><a href="compare_heatmap.html">compare_heatmap</a></td>
+<td>Compare heatmaps between stats::heatmap() and ComplexHeatmap::heatmap()</td></tr>
+<tr><td style="width: 25%;"><a href="compare_heatmap.2.html">compare_heatmap.2</a></td>
+<td>Compare heatmaps between gplots::heatmap.2() and ComplexHeatmap::heatmap()</td></tr>
+<tr><td style="width: 25%;"><a href="compare_pheatmap.html">compare_pheatmap</a></td>
+<td>Compare heatmaps between pheatmap::pheatmap() and ComplexHeatmap::pheatmap()</td></tr>
+<tr><td style="width: 25%;"><a href="complement_size.html">complement_size</a></td>
+<td>Complement Set Size</td></tr>
+<tr><td style="width: 25%;"><a href="component_height-dispatch.html">component_height</a></td>
+<td>Method dispatch page for component_height</td></tr>
+<tr><td style="width: 25%;"><a href="component_height-Heatmap-method.html">component_height-method</a></td>
+<td>Heights of Heatmap Components</td></tr>
+<tr><td style="width: 25%;"><a href="component_height-HeatmapList-method.html">component_height-method</a></td>
+<td>Height of Heatmap List Components</td></tr>
+<tr><td style="width: 25%;"><a href="component_width-dispatch.html">component_width</a></td>
+<td>Method dispatch page for component_width</td></tr>
+<tr><td style="width: 25%;"><a href="component_width-Heatmap-method.html">component_width-method</a></td>
+<td>Widths of Heatmap Components</td></tr>
+<tr><td style="width: 25%;"><a href="component_width-HeatmapList-method.html">component_width-method</a></td>
+<td>Width of Heatmap List Components</td></tr>
+<tr><td style="width: 25%;"><a href="copy_all-dispatch.html">copy_all</a></td>
+<td>Method dispatch page for copy_all</td></tr>
+<tr><td style="width: 25%;"><a href="copy_all-AnnotationFunction-method.html">copy_all-method</a></td>
+<td>Copy the AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="copy_all-SingleAnnotation-method.html">copy_all-method</a></td>
+<td>Copy the SingleAnnotation object</td></tr>
+</table>
+
+<h2><a name="D">-- D --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="decorate_annotation.html">decorate_annotation</a></td>
+<td>Decorate Heatmap Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="decorate_column_dend.html">decorate_column_dend</a></td>
+<td>Decorate Heatmap Column Dendrograms</td></tr>
+<tr><td style="width: 25%;"><a href="decorate_column_names.html">decorate_column_names</a></td>
+<td>Decorate Heatmap Column Names</td></tr>
+<tr><td style="width: 25%;"><a href="decorate_column_title.html">decorate_column_title</a></td>
+<td>Decorate Heatmap Column Titles</td></tr>
+<tr><td style="width: 25%;"><a href="decorate_dend.html">decorate_dend</a></td>
+<td>Decorate Heatmap Dendrograms</td></tr>
+<tr><td style="width: 25%;"><a href="decorate_dimnames.html">decorate_dimnames</a></td>
+<td>Decorate Heatmap Dimension Names</td></tr>
+<tr><td style="width: 25%;"><a href="decorate_heatmap_body.html">decorate_heatmap_body</a></td>
+<td>Decorate Heatmap Bodies</td></tr>
+<tr><td style="width: 25%;"><a href="decorate_row_dend.html">decorate_row_dend</a></td>
+<td>Decorate Heatmap Row Dendrograms</td></tr>
+<tr><td style="width: 25%;"><a href="decorate_row_names.html">decorate_row_names</a></td>
+<td>Decorate Heatmap Row Names</td></tr>
+<tr><td style="width: 25%;"><a href="decorate_row_title.html">decorate_row_title</a></td>
+<td>Decorate Heatmap Row Titles</td></tr>
+<tr><td style="width: 25%;"><a href="decorate_title.html">decorate_title</a></td>
+<td>Decorate Heatmap Titles</td></tr>
+<tr><td style="width: 25%;"><a href="default_axis_param.html">default_axis_param</a></td>
+<td>The Default Parameters for Annotation Axis</td></tr>
+<tr><td style="width: 25%;"><a href="default_get_type.html">default_get_type</a></td>
+<td>Default get_type for oncoPrint()</td></tr>
+<tr><td style="width: 25%;"><a href="dendrogramGrob.html">dendrogramGrob</a></td>
+<td>Grob for Dendrogram</td></tr>
+<tr><td style="width: 25%;"><a href="dend_heights.html">dend_heights</a></td>
+<td>Height of the Dendrograms</td></tr>
+<tr><td style="width: 25%;"><a href="dend_xy.html">dend_xy</a></td>
+<td>Coordinates of the Dendrogram</td></tr>
+<tr><td style="width: 25%;"><a href="densityHeatmap.html">densityHeatmap</a></td>
+<td>Visualize Density Distribution by Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="dim.Heatmap.html">dim.Heatmap</a></td>
+<td>Dimension of the Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="dist2.html">dist2</a></td>
+<td>Calculate Pairwise Distance from a Matrix</td></tr>
+<tr><td style="width: 25%;"><a href="draw-dispatch.html">draw</a></td>
+<td>Method dispatch page for draw</td></tr>
+<tr><td style="width: 25%;"><a href="draw-AnnotationFunction-method.html">draw-method</a></td>
+<td>Draw the AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="draw-Heatmap-method.html">draw-method</a></td>
+<td>Draw a Single Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="draw-HeatmapAnnotation-method.html">draw-method</a></td>
+<td>Draw the Heatmap Annotations</td></tr>
+<tr><td style="width: 25%;"><a href="draw-HeatmapList-method.html">draw-method</a></td>
+<td>Draw a list of heatmaps</td></tr>
+<tr><td style="width: 25%;"><a href="draw-Legends-method.html">draw-method</a></td>
+<td>Draw the Legends</td></tr>
+<tr><td style="width: 25%;"><a href="draw-SingleAnnotation-method.html">draw-method</a></td>
+<td>Draw the Single Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="draw_annotation-Heatmap-method.html">draw_annotation</a></td>
+<td>Draw Heatmap Annotations on the Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="draw_annotation-Heatmap-method.html">draw_annotation-method</a></td>
+<td>Draw Heatmap Annotations on the Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="draw_annotation_legend-HeatmapList-method.html">draw_annotation_legend</a></td>
+<td>Draw legends for All Annotations</td></tr>
+<tr><td style="width: 25%;"><a href="draw_annotation_legend-HeatmapList-method.html">draw_annotation_legend-method</a></td>
+<td>Draw legends for All Annotations</td></tr>
+<tr><td style="width: 25%;"><a href="draw_dend-Heatmap-method.html">draw_dend</a></td>
+<td>Draw Heatmap Dendrograms</td></tr>
+<tr><td style="width: 25%;"><a href="draw_dend-Heatmap-method.html">draw_dend-method</a></td>
+<td>Draw Heatmap Dendrograms</td></tr>
+<tr><td style="width: 25%;"><a href="draw_dimnames-Heatmap-method.html">draw_dimnames</a></td>
+<td>Draw row names or column names</td></tr>
+<tr><td style="width: 25%;"><a href="draw_dimnames-Heatmap-method.html">draw_dimnames-method</a></td>
+<td>Draw row names or column names</td></tr>
+<tr><td style="width: 25%;"><a href="draw_heatmap_body-Heatmap-method.html">draw_heatmap_body</a></td>
+<td>Draw Heatmap Body</td></tr>
+<tr><td style="width: 25%;"><a href="draw_heatmap_body-Heatmap-method.html">draw_heatmap_body-method</a></td>
+<td>Draw Heatmap Body</td></tr>
+<tr><td style="width: 25%;"><a href="draw_heatmap_legend-HeatmapList-method.html">draw_heatmap_legend</a></td>
+<td>Draw legends for All Heatmaps</td></tr>
+<tr><td style="width: 25%;"><a href="draw_heatmap_legend-HeatmapList-method.html">draw_heatmap_legend-method</a></td>
+<td>Draw legends for All Heatmaps</td></tr>
+<tr><td style="width: 25%;"><a href="draw_heatmap_list-HeatmapList-method.html">draw_heatmap_list</a></td>
+<td>Draw the List of Heatmaps</td></tr>
+<tr><td style="width: 25%;"><a href="draw_heatmap_list-HeatmapList-method.html">draw_heatmap_list-method</a></td>
+<td>Draw the List of Heatmaps</td></tr>
+<tr><td style="width: 25%;"><a href="draw_title-dispatch.html">draw_title</a></td>
+<td>Method dispatch page for draw_title</td></tr>
+<tr><td style="width: 25%;"><a href="draw_title-Heatmap-method.html">draw_title-method</a></td>
+<td>Draw Heatmap Title</td></tr>
+<tr><td style="width: 25%;"><a href="draw_title-HeatmapList-method.html">draw_title-method</a></td>
+<td>Draw Heatmap List Title</td></tr>
+</table>
+
+<h2><a name="E">-- E --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="Extract.AnnotationFunction.html">Extract.AnnotationFunction</a></td>
+<td>Subset an AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.comb_mat.html">Extract.comb_mat</a></td>
+<td>Subset the Combination Matrix</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.gridtext.html">Extract.gridtext</a></td>
+<td>Subset method of gridtext class</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.Heatmap.html">Extract.Heatmap</a></td>
+<td>Subset a Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.HeatmapAnnotation.html">Extract.HeatmapAnnotation</a></td>
+<td>Subset the HeatmapAnnotation object</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.HeatmapList.html">Extract.HeatmapList</a></td>
+<td>Subset a HeatmapList object</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.SingleAnnotation.html">Extract.SingleAnnotation</a></td>
+<td>Subset an SingleAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="extract_comb.html">extract_comb</a></td>
+<td>Extract Elements in a Combination set</td></tr>
+</table>
+
+<h2><a name="F">-- F --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="frequencyHeatmap.html">frequencyHeatmap</a></td>
+<td>Visualize Frequency Distribution by Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="full_comb_code.html">full_comb_code</a></td>
+<td>Full set of code of combination sets</td></tr>
+</table>
+
+<h2><a name="G">-- G --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="getXY_in_parent_vp.html">getXY_in_parent_vp</a></td>
+<td>Convert XY in a Parent Viewport</td></tr>
+<tr><td style="width: 25%;"><a href="get_color_mapping_list-HeatmapAnnotation-method.html">get_color_mapping_list</a></td>
+<td>Get a List of ColorMapping objects</td></tr>
+<tr><td style="width: 25%;"><a href="get_color_mapping_list-HeatmapAnnotation-method.html">get_color_mapping_list-method</a></td>
+<td>Get a List of ColorMapping objects</td></tr>
+<tr><td style="width: 25%;"><a href="get_legend_param_list-HeatmapAnnotation-method.html">get_legend_param_list</a></td>
+<td>Get a List of Annotation Legend Parameters</td></tr>
+<tr><td style="width: 25%;"><a href="get_legend_param_list-HeatmapAnnotation-method.html">get_legend_param_list-method</a></td>
+<td>Get a List of Annotation Legend Parameters</td></tr>
+<tr><td style="width: 25%;"><a href="grid.annotation_axis.html">grid.annotation_axis</a></td>
+<td>Draw Annotation Axis</td></tr>
+<tr><td style="width: 25%;"><a href="grid.boxplot.html">grid.boxplot</a></td>
+<td>Draw a Single Boxplot</td></tr>
+<tr><td style="width: 25%;"><a href="grid.dendrogram.html">grid.dendrogram</a></td>
+<td>Draw the Dendrogram</td></tr>
+<tr><td style="width: 25%;"><a href="grid.draw.Legends.html">grid.draw.Legends</a></td>
+<td>Draw the Legends</td></tr>
+<tr><td style="width: 25%;"><a href="gt_render.html">gt_render</a></td>
+<td>Mark the text for the rendering by gridtext package</td></tr>
+</table>
+
+<h2><a name="H">-- H --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="Heatmap.html">Heatmap</a></td>
+<td>Constructor method for Heatmap class</td></tr>
+<tr><td style="width: 25%;"><a href="Heatmap-class.html">Heatmap-class</a></td>
+<td>Class for a Single Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="Heatmap3D.html">Heatmap3D</a></td>
+<td>3D Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="HeatmapAnnotation.html">HeatmapAnnotation</a></td>
+<td>Constructor Method for HeatmapAnnotation class</td></tr>
+<tr><td style="width: 25%;"><a href="HeatmapAnnotation-class.html">HeatmapAnnotation-class</a></td>
+<td>Class for Heatmap Annotations</td></tr>
+<tr><td style="width: 25%;"><a href="HeatmapList.html">HeatmapList</a></td>
+<td>Constructor method for HeatmapList class</td></tr>
+<tr><td style="width: 25%;"><a href="HeatmapList-class.html">HeatmapList-class</a></td>
+<td>Class for a list of heatmaps</td></tr>
+<tr><td style="width: 25%;"><a href="heatmap_legend_size-HeatmapList-method.html">heatmap_legend_size</a></td>
+<td>Size of the Heatmap Legends</td></tr>
+<tr><td style="width: 25%;"><a href="heatmap_legend_size-HeatmapList-method.html">heatmap_legend_size-method</a></td>
+<td>Size of the Heatmap Legends</td></tr>
+<tr><td style="width: 25%;"><a href="height.AnnotationFunction.html">height.AnnotationFunction</a></td>
+<td>Height of the AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="height.Heatmap.html">height.Heatmap</a></td>
+<td>Height of the Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="height.HeatmapAnnotation.html">height.HeatmapAnnotation</a></td>
+<td>Height of the HeatmapAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="height.HeatmapList.html">height.HeatmapList</a></td>
+<td>Height of the Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="height.Legends.html">height.Legends</a></td>
+<td>Height of the Legends</td></tr>
+<tr><td style="width: 25%;"><a href="height.SingleAnnotation.html">height.SingleAnnotation</a></td>
+<td>Height of the SingleAnnotation object</td></tr>
+<tr><td style="width: 25%;"><a href="heightAssign.AnnotationFunction.html">height&lt;-.AnnotationFunction</a></td>
+<td>Assign the Height to the AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="heightAssign.HeatmapAnnotation.html">height&lt;-.HeatmapAnnotation</a></td>
+<td>Assign the Height to the HeatmapAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="heightAssign.SingleAnnotation.html">height&lt;-.SingleAnnotation</a></td>
+<td>Assign the Height to the SingleAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="heightAssign.AnnotationFunction.html">heightAssign.AnnotationFunction</a></td>
+<td>Assign the Height to the AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="heightAssign.HeatmapAnnotation.html">heightAssign.HeatmapAnnotation</a></td>
+<td>Assign the Height to the HeatmapAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="heightAssign.SingleAnnotation.html">heightAssign.SingleAnnotation</a></td>
+<td>Assign the Height to the SingleAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="heightDetails.annotation_axis.html">heightDetails.annotation_axis</a></td>
+<td>Height for annotation_axis Grob</td></tr>
+<tr><td style="width: 25%;"><a href="heightDetails.legend.html">heightDetails.legend</a></td>
+<td>Grob height for packed_legends</td></tr>
+<tr><td style="width: 25%;"><a href="heightDetails.legend_body.html">heightDetails.legend_body</a></td>
+<td>Grob height for legend_body</td></tr>
+<tr><td style="width: 25%;"><a href="heightDetails.packed_legends.html">heightDetails.packed_legends</a></td>
+<td>Grob height for packed_legends</td></tr>
+<tr><td style="width: 25%;"><a href="ht_global_opt.html">ht_global_opt</a></td>
+<td>Global Options for Heatmaps</td></tr>
+<tr><td style="width: 25%;"><a href="ht_opt.html">ht_opt</a></td>
+<td>Global Options for Heatmaps</td></tr>
+<tr><td style="width: 25%;"><a href="ht_size.html">ht_size</a></td>
+<td>Calculate the width and height of the heatmaps</td></tr>
+</table>
+
+<h2><a name="I">-- I --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="is_abs_unit.html">is_abs_unit</a></td>
+<td>Test Whether it is an Absolute Unit</td></tr>
+</table>
+
+<h2><a name="L">-- L --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="Legend.html">Legend</a></td>
+<td>Make a Single Legend</td></tr>
+<tr><td style="width: 25%;"><a href="Legends.html">Legends</a></td>
+<td>Constructor method for Legends class</td></tr>
+<tr><td style="width: 25%;"><a href="Legends-class.html">Legends-class</a></td>
+<td>The Class for Legends</td></tr>
+<tr><td style="width: 25%;"><a href="length.HeatmapAnnotation.html">length.HeatmapAnnotation</a></td>
+<td>Number of Annotations</td></tr>
+<tr><td style="width: 25%;"><a href="length.HeatmapList.html">length.HeatmapList</a></td>
+<td>Length of the HeatmapList object</td></tr>
+<tr><td style="width: 25%;"><a href="list_components.html">list_components</a></td>
+<td>List All Heatmap Components</td></tr>
+<tr><td style="width: 25%;"><a href="list_to_matrix.html">list_to_matrix</a></td>
+<td>Convert a List of Sets to a Binary Matrix</td></tr>
+</table>
+
+<h2><a name="M">-- M --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="make_column_cluster-Heatmap-method.html">make_column_cluster</a></td>
+<td>Make Cluster on Columns</td></tr>
+<tr><td style="width: 25%;"><a href="make_column_cluster-Heatmap-method.html">make_column_cluster-method</a></td>
+<td>Make Cluster on Columns</td></tr>
+<tr><td style="width: 25%;"><a href="make_comb_mat.html">make_comb_mat</a></td>
+<td>Make a Combination Matrix for UpSet Plot</td></tr>
+<tr><td style="width: 25%;"><a href="make_layout-dispatch.html">make_layout</a></td>
+<td>Method dispatch page for make_layout</td></tr>
+<tr><td style="width: 25%;"><a href="make_layout-Heatmap-method.html">make_layout-method</a></td>
+<td>Make the Layout of a Single Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="make_layout-HeatmapList-method.html">make_layout-method</a></td>
+<td>Make Layout for the Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="make_row_cluster-Heatmap-method.html">make_row_cluster</a></td>
+<td>Make Cluster on Rows</td></tr>
+<tr><td style="width: 25%;"><a href="make_row_cluster-Heatmap-method.html">make_row_cluster-method</a></td>
+<td>Make Cluster on Rows</td></tr>
+<tr><td style="width: 25%;"><a href="map_to_colors-ColorMapping-method.html">map_to_colors</a></td>
+<td>Map Values to Colors</td></tr>
+<tr><td style="width: 25%;"><a href="map_to_colors-ColorMapping-method.html">map_to_colors-method</a></td>
+<td>Map Values to Colors</td></tr>
+<tr><td style="width: 25%;"><a href="max_text_height.html">max_text_height</a></td>
+<td>Maximum Height of Text</td></tr>
+<tr><td style="width: 25%;"><a href="max_text_width.html">max_text_width</a></td>
+<td>Maximum Width of Text</td></tr>
+<tr><td style="width: 25%;"><a href="merge_dendrogram.html">merge_dendrogram</a></td>
+<td>Merge Dendrograms</td></tr>
+</table>
+
+<h2><a name="N">-- N --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="names.HeatmapAnnotation.html">names.HeatmapAnnotation</a></td>
+<td>Annotation Names</td></tr>
+<tr><td style="width: 25%;"><a href="names.HeatmapList.html">names.HeatmapList</a></td>
+<td>Names of the heatmaps/annotations</td></tr>
+<tr><td style="width: 25%;"><a href="namesAssign.HeatmapAnnotation.html">names&lt;-.HeatmapAnnotation</a></td>
+<td>Assign Annotation Names</td></tr>
+<tr><td style="width: 25%;"><a href="namesAssign.HeatmapAnnotation.html">namesAssign.HeatmapAnnotation</a></td>
+<td>Assign Annotation Names</td></tr>
+<tr><td style="width: 25%;"><a href="ncol.Heatmap.html">ncol.Heatmap</a></td>
+<td>Number of Columns in the Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="nobs.AnnotationFunction.html">nobs.AnnotationFunction</a></td>
+<td>Number of Observations</td></tr>
+<tr><td style="width: 25%;"><a href="nobs.HeatmapAnnotation.html">nobs.HeatmapAnnotation</a></td>
+<td>Number of Observations</td></tr>
+<tr><td style="width: 25%;"><a href="nobs.SingleAnnotation.html">nobs.SingleAnnotation</a></td>
+<td>Number of Observations</td></tr>
+<tr><td style="width: 25%;"><a href="normalize_comb_mat.html">normalize_comb_mat</a></td>
+<td>Normalize a list of combination matrice</td></tr>
+<tr><td style="width: 25%;"><a href="normalize_genomic_signals_to_bins.html">normalize_genomic_signals_to_bins</a></td>
+<td>Overlap genomic signals to the genomic bins</td></tr>
+<tr><td style="width: 25%;"><a href="nrow.Heatmap.html">nrow.Heatmap</a></td>
+<td>Number of Rows in the Heatmap</td></tr>
+</table>
+
+<h2><a name="O">-- O --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="oncoPrint.html">oncoPrint</a></td>
+<td>Make oncoPrint</td></tr>
+<tr><td style="width: 25%;"><a href="order.comb_mat.html">order.comb_mat</a></td>
+<td>Order of the Combination Sets</td></tr>
+</table>
+
+<h2><a name="P">-- P --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="packLegend.html">packLegend</a></td>
+<td>Pack Legends</td></tr>
+<tr><td style="width: 25%;"><a href="pct_v_pct.html">pct_v_pct</a></td>
+<td>Vertically Add Heatmaps or Annotations to a Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="pheatmap.html">pheatmap</a></td>
+<td>Translate pheatmap::pheatmap to ComplexHeatmap::Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="pindex.html">pindex</a></td>
+<td>Get Values in a Matrix by Pair-wise Indices</td></tr>
+<tr><td style="width: 25%;"><a href="prepare-Heatmap-method.html">prepare</a></td>
+<td>Prepare the Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="prepare-Heatmap-method.html">prepare-method</a></td>
+<td>Prepare the Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="print.comb_mat.html">print.comb_mat</a></td>
+<td>Print the comb_mat Object</td></tr>
+</table>
+
+<h2><a name="R">-- R --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="restore_matrix.html">restore_matrix</a></td>
+<td>Restore the index vector to index matrix in layer_fun</td></tr>
+<tr><td style="width: 25%;"><a href="re_size-HeatmapAnnotation-method.html">re_size</a></td>
+<td>Resize the Width or Height of Heatmap Annotations</td></tr>
+<tr><td style="width: 25%;"><a href="re_size-HeatmapAnnotation-method.html">re_size-method</a></td>
+<td>Resize the Width or Height of Heatmap Annotations</td></tr>
+<tr><td style="width: 25%;"><a href="rowAnnotation.html">rowAnnotation</a></td>
+<td>Construct Row Annotations</td></tr>
+<tr><td style="width: 25%;"><a href="row_anno_barplot.html">row_anno_barplot</a></td>
+<td>Barplots as Row Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="row_anno_boxplot.html">row_anno_boxplot</a></td>
+<td>Boxplots as Row Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="row_anno_density.html">row_anno_density</a></td>
+<td>Density as Row Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="row_anno_histogram.html">row_anno_histogram</a></td>
+<td>Histograms as Row Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="row_anno_points.html">row_anno_points</a></td>
+<td>Points as Row Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="row_anno_text.html">row_anno_text</a></td>
+<td>Text as Row Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="row_dend-dispatch.html">row_dend</a></td>
+<td>Method dispatch page for row_dend</td></tr>
+<tr><td style="width: 25%;"><a href="row_dend-Heatmap-method.html">row_dend-method</a></td>
+<td>Get Row Dendrograms from a Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="row_dend-HeatmapList-method.html">row_dend-method</a></td>
+<td>Get Row Dendrograms from a Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="row_order-dispatch.html">row_order</a></td>
+<td>Method dispatch page for row_order</td></tr>
+<tr><td style="width: 25%;"><a href="row_order-Heatmap-method.html">row_order-method</a></td>
+<td>Get Row Order from a Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="row_order-HeatmapList-method.html">row_order-method</a></td>
+<td>Get Row Order from a Heatmap List</td></tr>
+</table>
+
+<h2><a name="S">-- S --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="set_component_height-Heatmap-method.html">set_component_height</a></td>
+<td>Set Height of Heatmap Component</td></tr>
+<tr><td style="width: 25%;"><a href="set_component_height-Heatmap-method.html">set_component_height-method</a></td>
+<td>Set Height of Heatmap Component</td></tr>
+<tr><td style="width: 25%;"><a href="set_component_width-Heatmap-method.html">set_component_width</a></td>
+<td>Set Width of Heatmap Component</td></tr>
+<tr><td style="width: 25%;"><a href="set_component_width-Heatmap-method.html">set_component_width-method</a></td>
+<td>Set Width of Heatmap Component</td></tr>
+<tr><td style="width: 25%;"><a href="set_name.html">set_name</a></td>
+<td>Set Names</td></tr>
+<tr><td style="width: 25%;"><a href="set_nameAssign.html">set_name&lt;-</a></td>
+<td>Modify Set Names</td></tr>
+<tr><td style="width: 25%;"><a href="set_nameAssign.html">set_nameAssign</a></td>
+<td>Modify Set Names</td></tr>
+<tr><td style="width: 25%;"><a href="set_size.html">set_size</a></td>
+<td>Set Sizes</td></tr>
+<tr><td style="width: 25%;"><a href="show-dispatch.html">show</a></td>
+<td>Method dispatch page for show</td></tr>
+<tr><td style="width: 25%;"><a href="show-AnnotationFunction-method.html">show-method</a></td>
+<td>Print the AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="show-ColorMapping-method.html">show-method</a></td>
+<td>Print the ColorMapping Object</td></tr>
+<tr><td style="width: 25%;"><a href="show-Heatmap-method.html">show-method</a></td>
+<td>Draw the Single Heatmap with Defaults</td></tr>
+<tr><td style="width: 25%;"><a href="show-HeatmapAnnotation-method.html">show-method</a></td>
+<td>Print the HeatmapAnnotation object</td></tr>
+<tr><td style="width: 25%;"><a href="show-HeatmapList-method.html">show-method</a></td>
+<td>Draw a list of heatmaps with default parameters</td></tr>
+<tr><td style="width: 25%;"><a href="show-SingleAnnotation-method.html">show-method</a></td>
+<td>Print the SingleAnnotation object</td></tr>
+<tr><td style="width: 25%;"><a href="SingleAnnotation.html">SingleAnnotation</a></td>
+<td>Constructor Method for SingleAnnotation Class</td></tr>
+<tr><td style="width: 25%;"><a href="SingleAnnotation-class.html">SingleAnnotation-class</a></td>
+<td>Class for a Single Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="size.AnnotationFunction.html">size.AnnotationFunction</a></td>
+<td>Size of the AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="size.HeatmapAnnotation.html">size.HeatmapAnnotation</a></td>
+<td>Size of the HeatmapAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="size.SingleAnnotation.html">size.SingleAnnotation</a></td>
+<td>Size of the SingleAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="sizeAssign.AnnotationFunction.html">size&lt;-.AnnotationFunction</a></td>
+<td>Assign the Size to the AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="sizeAssign.HeatmapAnnotation.html">size&lt;-.HeatmapAnnotation</a></td>
+<td>Assign the Size to the HeatmapAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="sizeAssign.SingleAnnotation.html">size&lt;-.SingleAnnotation</a></td>
+<td>Assign the Size to the SingleAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="sizeAssign.AnnotationFunction.html">sizeAssign.AnnotationFunction</a></td>
+<td>Assign the Size to the AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="sizeAssign.HeatmapAnnotation.html">sizeAssign.HeatmapAnnotation</a></td>
+<td>Assign the Size to the HeatmapAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="sizeAssign.SingleAnnotation.html">sizeAssign.SingleAnnotation</a></td>
+<td>Assign the Size to the SingleAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="smartAlign2.html">smartAlign2</a></td>
+<td>Adjust positions of rectanglar shapes</td></tr>
+<tr><td style="width: 25%;"><a href="str.comb_mat.html">str.comb_mat</a></td>
+<td>str method</td></tr>
+<tr><td style="width: 25%;"><a href="subset_gp.html">subset_gp</a></td>
+<td>Subset a gpar Object</td></tr>
+<tr><td style="width: 25%;"><a href="subset_matrix_by_row.html">subset_matrix_by_row</a></td>
+<td>Subset the Matrix by Rows</td></tr>
+<tr><td style="width: 25%;"><a href="subset_vector.html">subset_vector</a></td>
+<td>Subset the vector</td></tr>
+<tr><td style="width: 25%;"><a href="summary.Heatmap.html">summary.Heatmap</a></td>
+<td>Print the Summary of a Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="summary.HeatmapList.html">summary.HeatmapList</a></td>
+<td>Summary of a Heatmap List</td></tr>
+</table>
+
+<h2><a name="T">-- T --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="t.comb_mat.html">t.comb_mat</a></td>
+<td>Transpost the Combination Matrix</td></tr>
+<tr><td style="width: 25%;"><a href="test_alter_fun.html">test_alter_fun</a></td>
+<td>Test alter_fun for oncoPrint()</td></tr>
+</table>
+
+<h2><a name="U">-- U --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="unify_mat_list.html">unify_mat_list</a></td>
+<td>Unify a List of Matrix</td></tr>
+<tr><td style="width: 25%;"><a href="UpSet.html">UpSet</a></td>
+<td>Make the UpSet plot</td></tr>
+<tr><td style="width: 25%;"><a href="upset_right_annotation.html">upset_right_annotation</a></td>
+<td>Default UpSet Right Annotation</td></tr>
+<tr><td style="width: 25%;"><a href="upset_top_annotation.html">upset_top_annotation</a></td>
+<td>Default UpSet Top Annotation</td></tr>
+</table>
+
+<h2><a name="W">-- W --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="width.AnnotationFunction.html">width.AnnotationFunction</a></td>
+<td>Width of the AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="width.Heatmap.html">width.Heatmap</a></td>
+<td>Width of the Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="width.HeatmapAnnotation.html">width.HeatmapAnnotation</a></td>
+<td>Width of the HeatmapAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="width.HeatmapList.html">width.HeatmapList</a></td>
+<td>Width of the Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="width.Legends.html">width.Legends</a></td>
+<td>Width of the Legends</td></tr>
+<tr><td style="width: 25%;"><a href="width.SingleAnnotation.html">width.SingleAnnotation</a></td>
+<td>Width of the SingleAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="widthAssign.AnnotationFunction.html">width&lt;-.AnnotationFunction</a></td>
+<td>Assign the Width to the AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="widthAssign.HeatmapAnnotation.html">width&lt;-.HeatmapAnnotation</a></td>
+<td>Assign the Width to the HeatmapAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="widthAssign.SingleAnnotation.html">width&lt;-.SingleAnnotation</a></td>
+<td>Assign the Width to the SingleAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="widthAssign.AnnotationFunction.html">widthAssign.AnnotationFunction</a></td>
+<td>Assign the Width to the AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="widthAssign.HeatmapAnnotation.html">widthAssign.HeatmapAnnotation</a></td>
+<td>Assign the Width to the HeatmapAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="widthAssign.SingleAnnotation.html">widthAssign.SingleAnnotation</a></td>
+<td>Assign the Width to the SingleAnnotation Object</td></tr>
+<tr><td style="width: 25%;"><a href="widthDetails.annotation_axis.html">widthDetails.annotation_axis</a></td>
+<td>Width for annotation_axis Grob</td></tr>
+<tr><td style="width: 25%;"><a href="widthDetails.legend.html">widthDetails.legend</a></td>
+<td>Grob width for packed_legends</td></tr>
+<tr><td style="width: 25%;"><a href="widthDetails.legend_body.html">widthDetails.legend_body</a></td>
+<td>Grob width for legend_body</td></tr>
+<tr><td style="width: 25%;"><a href="widthDetails.packed_legends.html">widthDetails.packed_legends</a></td>
+<td>Grob width for packed_legends</td></tr>
+</table>
+
+<h2><a name="misc">-- misc --</a></h2>
+
+<table width="100%">
+<tr><td style="width: 25%;"><a href="pct_v_pct.html">%v%</a></td>
+<td>Vertically Add Heatmaps or Annotations to a Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="add.AdditiveUnit.html">+.AdditiveUnit</a></td>
+<td>Horizontally Add Heatmaps or Annotations to a Heatmap List</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.AnnotationFunction.html">[.AnnotationFunction</a></td>
+<td>Subset an AnnotationFunction Object</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.comb_mat.html">[.comb_mat</a></td>
+<td>Subset the Combination Matrix</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.gridtext.html">[.gridtext</a></td>
+<td>Subset method of gridtext class</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.Heatmap.html">[.Heatmap</a></td>
+<td>Subset a Heatmap</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.HeatmapAnnotation.html">[.HeatmapAnnotation</a></td>
+<td>Subset the HeatmapAnnotation object</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.HeatmapList.html">[.HeatmapList</a></td>
+<td>Subset a HeatmapList object</td></tr>
+<tr><td style="width: 25%;"><a href="Extract.SingleAnnotation.html">[.SingleAnnotation</a></td>
+<td>Subset an SingleAnnotation Object</td></tr>
+</table>
+</body></html>

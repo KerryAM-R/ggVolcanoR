@@ -15,8 +15,8 @@ require("plyr")
 require("dplyr")
 require("reshape2")
 require("colourpicker", lib.loc = "local.lib/")
-require("circlize")
-require("ComplexHeatmap")
+require("circlize", lib.loc = "local.lib/")
+require("ComplexHeatmap", lib.loc = "local.lib/")
 
 test_fun <- function()
 {

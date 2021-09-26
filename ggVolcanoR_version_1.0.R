@@ -17,7 +17,7 @@ require("circlize")
 #require("shinyjs", lib.loc = "local.lib/")
 require("colourpicker", lib.loc = "local.lib/")
 #require("ComplexUpset", lib.loc = "local.lib/")
-require("ComplexHeatmap")
+suppressPackageStartupMessages(library(ComplexHeatmap))
 
 test_fun <- function()
 {

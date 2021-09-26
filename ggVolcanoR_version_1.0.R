@@ -18,6 +18,12 @@ require("colourpicker", lib.loc = "local.lib/")
 require("circlize", lib.loc = "local.lib/")
 require("ComplexHeatmap", lib.loc = "local.lib/")
 
+# install.packages("circlize",lib = "../ggVolcanoR/local.lib/", dependencies = T)
+# install.packages("ComplexHeatmap",lib = "../ggVolcanoR/local.lib/", dependencies = T)
+
+require("circlize")
+require("ComplexHeatmap")
+
 test_fun <- function()
 {
   for (i in 1:15) {

@@ -17,10 +17,9 @@ require("circlize")
 #require("shinyjs", lib.loc = "local.lib/")
 require("colourpicker", lib.loc = "local.lib/")
 #require("ComplexUpset", lib.loc = "local.lib/")
-install.packages("remotes")
-require("remotes")
-remotes::install_github("jokergoo/ComplexHeatmap")
-require("ComplexHeatmap")
+#install.packages("remotes")
+#remotes::install_github("jokergoo/ComplexHeatmap")
+require("ComplexHeatmap",lib.loc = "~/R/x86_64-pc-linux-gnu-library/4.1")
 
 test_fun <- function()
 {

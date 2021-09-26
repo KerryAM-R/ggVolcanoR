@@ -1,0 +1,144 @@
+$.CELL_META             Easy to way to get meta data in the current
+                        cell
+CELL_META               Easy way to get meta data in the current cell
+add_transparency        Add transparency to colors
+adjacencyList2Matrix    Convert adjacency list to an adjacency matrix
+adjacencyMatrix2List    Convert adjacency matrix to an adjacency list
+arrange_links_evenly    Arrange links evenly on each sector
+calc_gap                Calculate gaps to make two Chord diagrams in
+                        the same scale
+chordDiagram            Plot Chord Diagram
+chordDiagramFromDataFrame
+                        Plot Chord Diagram from a data frame
+chordDiagramFromMatrix
+                        Plot Chord Diagram from an adjacency matrix
+circlize                Convert to polar coordinate system
+circlize-package        Circular visualization in R
+circos.arrow            Draw arrow which is paralle to the circle
+circos.axis             Draw x-axis
+circos.barplot          Draw barplots
+circos.boxplot          Draw boxplots
+circos.clear            Reset the circular layout parameters
+circos.connect          Draw connecting lines/ribons between two sets
+                        of points
+circos.dendrogram       Add circular dendrograms
+circos.genomicAxis      Add genomic axes
+circos.genomicDensity   Calculate and add genomic density track
+circos.genomicHeatmap   Add heatmaps for selected regions
+circos.genomicIdeogram
+                        Add an ideogram track
+circos.genomicInitialize
+                        Initialize circular plot with any genomic data
+circos.genomicLabels    Add labels to specified genomic regions
+circos.genomicLines     Add lines to a plotting region, specifically
+                        for genomic graphics
+circos.genomicLink      Add links from two sets of genomic positions
+circos.genomicPoints    Add points to a plotting region, specifically
+                        for genomic graphics
+circos.genomicPosTransformLines
+                        Add genomic position transformation lines
+                        between tracks
+circos.genomicRainfall
+                        Genomic rainfall plot
+circos.genomicRect      Draw rectangle-like grid, specifically for
+                        genomic graphics
+circos.genomicText      Draw text in a cell, specifically for genomic
+                        graphics
+circos.genomicTrack     Create a track for genomic graphics
+circos.genomicTrackPlotRegion
+                        Create a track for genomic graphics
+circos.heatmap          Make circular heatmaps
+circos.heatmap.initialize
+                        Initialize circular heatmaps
+circos.heatmap.link     Draw a link between two matrix rows in the
+                        circular heatmap
+circos.info             Get information of the circular plot
+circos.initialize       Initialize the circular layout
+circos.initializeWithIdeogram
+                        Initialize the circular layout with an ideogram
+circos.labels           Add a label track
+circos.lines            Add lines to the plotting region
+circos.link             Draw links between points or/and intervals
+circos.nested           Nested zooming with two circular plots
+circos.par              Parameters for the circular layout
+circos.points           Add points to a plotting region
+circos.polygon          Draw polygon
+circos.raster           Add raster images
+circos.rect             Draw rectangle-like grid
+circos.segments         Draw segments through pairwise of points
+circos.text             Draw text in a cell
+circos.track            Create plotting regions for a whole track
+circos.trackHist        Draw histogram in cells among a whole track
+circos.trackLines       Add lines to the plotting regions in a same
+                        track
+circos.trackPlotRegion
+                        Create plotting regions for a whole track
+circos.trackPoints      Add points to the plotting regions in a same
+                        track
+circos.trackText        Draw text in cells among the whole track
+circos.triangle         Draw triangles
+circos.update           Create plotting regions for a whole track
+circos.updatePlotRegion
+                        Update the plotting region in an existed cell
+circos.violin           Draw violin plots
+circos.xaxis            Draw x-axis
+circos.yaxis            Draw y-axis
+cm_h                    Convert units
+cm_x                    Convert unit on x direction in data coordinate
+cm_y                    Convert unit on y direction in data coordinate
+col2value               Transform back from colors to values
+colorRamp2              Color interpolation
+convert_height          Convert units
+convert_length          Convert units
+convert_x               Convert unit on x direction in data coordinate
+convert_y               Convert unit on y direction in data coordinate
+cytoband.col            Assign colors to cytogenetic band (hg19)
+                        according to the Giemsa stain results
+degree                  Mark the value as a degree value
+draw.sector             Draw sectors or rings in a circle
+fontsize                Convert fontsize to cex
+generateRandomBed       Generate random genomic data
+genomicDensity          Calculate genomic region density
+get.all.sector.index    Get index for all sectors
+get.all.track.index     Get index for all tracks
+get.cell.meta.data      Get the meta data of a cell
+get.current.chromosome
+                        Get current chromosome name
+get.current.sector.index
+                        Get current sector index
+get.current.track.index
+                        Get current track index
+getI                    Which data that 'panel.fun' is using
+get_most_inside_radius
+                        Get the inside radius of the most inner track
+highlight.chromosome    Highlight chromosomes
+highlight.sector        Highlight sectors and tracks
+inch_h                  Convert units
+inch_x                  Convert unit on x direction in data coordinate
+inch_y                  Convert unit on y direction in data coordinate
+inches_h                Convert units
+inches_x                Convert unit on x direction in data coordinate
+inches_y                Convert unit on y direction in data coordinate
+mm_h                    Convert units
+mm_x                    Convert unit on x direction in data coordinate
+mm_y                    Convert unit on y direction in data coordinate
+names.CELL_META         Names of all meta data in the current cell
+posTransform.default    Genomic position transformation function
+posTransform.text       Genomic position transformation function
+                        specifically for text
+print.CELL_META         Print CELL_META
+rainfallTransform       Calculate inter-distance of genomic regions
+rand_color              Generate random colors
+read.chromInfo          Read/parse chromInfo data from a data
+                        frame/file/UCSC database
+read.cytoband           Read/parse cytoband data from a data
+                        frame/file/UCSC database
+reverse.circlize        Convert to data coordinate system
+set.current.cell        Set flag to current cell
+set_track_gap           Set gaps between tracks
+show.index              Label the sector index and the track index on
+                        each cell
+smartAlign              Adjust positions of text
+uh                      Convert units
+ux                      Convert unit on x direction in data coordinate
+uy                      Convert unit on y direction in data coordinate

@@ -16,8 +16,10 @@ require("reshape2")
 require("circlize")
 #require("shinyjs", lib.loc = "local.lib/")
 require("colourpicker", lib.loc = "local.lib/")
-require("ComplexUpset", lib.loc = "local.lib/")
+#require("ComplexUpset", lib.loc = "local.lib/")
 require("ComplexHeatmap", lib.loc = "local.lib/")
+
+?Heatmap
 
 test_fun <- function()
 {

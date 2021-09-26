@@ -1,0 +1,14 @@
+bezier                  Generates points along a Bezier curve or spline
+bezier-package          Bezier Curve and Spline Toolkit
+bezierArcLength         Approximates the arc length of a Bezier curve
+                        or spline
+bezierCurveFit          Fits a Bezier curve to a set of points
+compareBezierArcLength
+                        Returns difference between input length and a
+                        Bezier arc length
+elevateBezierDegree     Raises the degree of a Bezier curve
+pointsOnBezier          Generates points along a Bezier curve or spline
+summary.bezierArcLength
+                        Summary of a Bezier arc length estimation
+summary.bezierCurveFit
+                        Summary of a Bezier curve fit

@@ -15,6 +15,8 @@ require("plyr")
 require("dplyr")
 require("reshape2")
 require("colourpicker", lib.loc = "local.lib/")
+require("circlize")
+require("ComplexHeatmap")
 require("circlize", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
 require("ComplexHeatmap", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
 
@@ -81,12 +83,14 @@ error_message_val4 <- "no own list found\n \nSuggest uploading file\nheaders=ID"
 # user interface  ----
 style.volcano.type <- c("default","all.datapoints","up.ID","down.ID","selected.ID")
 
+style.cor.type <- c("default","Labelled","Regression.line","labelled.Regression.line")
+
 ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
-                 # Volcano plot ----
+                 # UI Volcano plot ----
                  
                  tabPanel("Volcano plot",
                           sidebarLayout(
-                            sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 700px; position:relative;", width=3,
+                            sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 900px; position:relative;", width=3,
                                          tags$style(type="text/css", "body {padding-top: 70px; padding-left: 10px;}"),
                                          tags$head(tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}"))),
                                          tags$head(tags$style(HTML('.progress-bar {background-color: blue;}'))),
@@ -119,6 +123,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          uiOutput("cut.offs"),
                                          h4("Axis parameters"),
                                          uiOutput("axis.parameters"),
+                                         uiOutput("axis.parameters2"),
                                          h4("Point colour, size, shape and transparancy"),
                                          uiOutput("up.parameters"),
                                          uiOutput("down.parameters"),
@@ -214,8 +219,14 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                  # correlation graphs -----
                  tabPanel("Correlation graph",
                           sidebarLayout(
-                            sidebarPanel(id = "tPanel2",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=4,
+                            sidebarPanel(id = "tPanel2",style = "overflow-y:scroll; max-height: 1000px; position:relative;", width=3,
                                          h4("Correlation plot parameters"),
+                                         selectInput("dataset_parameters.cor","select preset or user uploaded style",choices = c("preset","user-uploaded")),
+                                         downloadButton("downloadTABLE.parameters.cor","download style guide"),
+                                         fileInput('file.style.cor', 'own parameters',
+                                                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                         selectInput("user.defined.cor","types of styles",choices = style.cor.type),
+                                         
                                          selectInput("dataset2", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file3', 'ID, logFC, Pvalue (x-axis)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
@@ -232,107 +243,40 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          ),
                                          fileInput('file6', 'Choose selected gene file (.csv)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         selectInput('font2',
-                                                     'Font type',
-                                                     choices = fonts, 
-                                                     selected = fonts[1]),
-                                         h4("Axis text labels in the brackets"),
-                                         fluidRow(column(6,textInput(inputId = "expression_x", 
-                                                                     label = "x-axis label",
-                                                                     value = "Proteomics")),
-                                                  column(6,textInput(inputId = "expression_y", 
-                                                                     label = "y-axis label",
-                                                                     value = "Transcriptomics"))
-                                                  
-                                         ),
+                                         h4("font type"),
+                                        uiOutput("font_cor"),
                                          h4("Cut-offs"),
-                                         fluidRow(
-                                           column(6,numericInput("Pvalue1", "p-value (x-axis)", value=0.05)),
-                                           column(6,numericInput("FC1", "Absolute logFC (x-axis)", value=0.58)),
-                                           column(6,numericInput("Pvalue2", "p-value (y-axis)", value=0.05)),
-                                           column(6,numericInput("FC2", "Absolute logFC (y-axis)", value=0.58))
-                                         ),
+                                        uiOutput("cut.off.cor"),
                                          h4("Axis text size"),
-                                         fluidRow(
-                                           column(6,numericInput("axis2", "Axis label text size", min=0, value=24)),
-                                           column(6,numericInput("axis_text2", "Axis numeric text size", min=0, value=24))
-                                         ),
+                                        uiOutput("axis.text.size.cor"),
                                          h4("Point parameters"),
-                                         fluidRow(column(4,textInput(inputId = "col1", label = "Colour of up",value = "red")),
-                                                  column(4, numericInput("cor_shape1","Shape of up",value = 19)),
-                                                  column(4,numericInput("cor_size1","Size of up",value = 3))
-                                                  ),
-                                         
-                                         sliderInput("cor_alpha1", "Transparency of up", min=0.00, max=1, value=1,step = 0.01),
-                                         fluidRow(
-                                                  column(4,textInput(inputId = "col2", label = "Colour of down",value = "blue")),
-                                                  column(4,numericInput("cor_shape2","Shape of down",value = 19)),
-                                                  column(4,numericInput("cor_size2","Size of down",value = 3)),
-                                                   ),
-                                         sliderInput("cor_alpha2", "Transparency of down", min=0.0, max=1, value=1,step = 0.01),
-                                         
-                                            fluidRow(
-                                        column(4, textInput(inputId = "col3", label = "Colour of opposite",value = "orange")),
-                                        column(4,numericInput("cor_shape3","Shape of opposite",value = 19)),
-                                        column(4,numericInput("cor_size3","Size of opposite",value = 3)),
-                                      ),
-                                      sliderInput("cor_alpha3", "Transparency of opposite", min=0.0, max=1, value=1,step = 0.01),
-                                      
-                                      fluidRow(
-                                        column(4,textInput(inputId = "col4", label = "Colour of other",value = "grey")),
-                                        column(4,numericInput("cor_shape4","Shape of other",value = 1)),
-                                        column(4,numericInput("cor_size4","Size of other",value = 1))
-                                      ),
-                                      sliderInput("cor_alpha4", "Transparency of other", min=0.0, max=1, value=0.25,step = 0.01),
-                                           h4("Axis tick marks"),
-                                         fluidRow(
-                                           column(6,numericInput("cor_xbreaks","x-axis tick marks",value = 1)),
-                                           column(6,numericInput("cor_ybreaks","y-axis tick marks",value = 2))
-                                         ),
-                                         h4("Colours of correlation line"),
-                                         fluidRow(
-                                           column(4,textInput(inputId = "cor_sig_lines", label = "x=0,y=0 line colour",value = "grey")),
-                                           column(4,textInput(inputId = "linecolour", label = "Correlation line colour",value = "red")),
-                                           column(4,textInput(inputId = "CI95_fill", label = "95% CI colour",value = "grey"))
-                                         ),
+                                      uiOutput("point.parameter.cor1"),
+                                      uiOutput("point.parameter.cor2"),
+                                      uiOutput("point.parameter.cor3"),
+                                      uiOutput("point.parameter.cor4"),
+                                         h4("Axis tick marks"),
+                                        uiOutput("axis.tick.marks"),
+                                      h4("Legend parameters"),
+                                      uiOutput("legend.par.cor")
                                         
-                                       
-                                         fluidRow(
-                                           column(4,selectInput('legend_location2', 'Legend location', legend_location)),
-                                           column(4,numericInput("col.cor", "# of legend columns", value=1, step = 1)),
-                                           column(4,numericInput("legend_size2", "Legend text size", min=1, max=60, value=12))
-                                         ),
-                                      downloadButton("downloadTABLE5","Download parameters")
+
                             ),
+                            # main panl correlation -----
                             mainPanel(tabsetPanel(
                               tabPanel("Correlation graph", 
-                                       textInput(inputId = "title2", 
-                                                 label = "",
-                                                 value = "Correlation plot: x vs y"),
+                                       
+                                       uiOutput("axis.label.cor"),
+                                       h5("correlation line parameters"),
+                                       
+                                       uiOutput("correlation.line"),
+                                       h5("Label options"),
+                                       uiOutput("labels.cor"),
+                                       uiOutput("labels.cor2"),
+                                       p("If order of file is ID, logFC, P-value sort column to sort by logFC by 2 and 4 or p-value by 3 and 5"),
+                                       
                                        plotOutput("cor_graph",height = "600px"),
                                        p(" "),
-                                       p("If order of file is ID, logFC, P-value sort column to sort by logFC by 2 and 4 or p-value by 3 and 5"),
-                                       fluidRow(
-                                         column(2,checkboxInput("label3", label = "Display labels", value = FALSE)),
-                                         column(2, checkboxInput("ownlist.cor", "Own list",value = FALSE)),
-                                         column(3,sliderInput("sort_by","Column to sort by",min=2,max=5,value=2,step=1)),
-                                         column(5,checkboxInput("sort_direction", label = "Reverse label order", value = TRUE))
-                                         ),
-                                       fluidRow(
-                                         column(2,checkboxInput("reg.line", label = "Display regression line", value = FALSE)),
-                                         column(2,numericInput("min2", "Label range (min)", value=1)),
-                                         column(2,numericInput("max2", "Label range (max)", value=20)),
-                                         column(2,numericInput("label2", "Size of labels",value=8)),
-                                         column(2,numericInput("dist2", "Distance of label", value=1))),
-                                       
-                                     
-                                       h5("Correlation of all data points"),
-                                       textOutput("cor_test"),
-                                       h5("Correlation of all in positive direction"),
-                                       textOutput("cor_test_sig"),
-                                       h5("Correlation of all in negative direction"),
-                                       textOutput("cor_test_sig_neg"),
-                                       h4("Exporting the correlation plot"),
+  
                                        fluidRow(
                                          column(3,numericInput("cor_width", "Width of PDF", value=10)),
                                          column(3,numericInput("cor_height", "Height of PDF", value=8)),
@@ -349,9 +293,17 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                        ),
                                        
                                        
-                                       
+                            ## other cor -----           
                                        
                               ),
+                              tabPanel("correlation pearson statistics",
+                                       h5("Correlation of all data points"),
+                                       textOutput("cor_test"),
+                                       h5("Correlation of all in positive direction"),
+                                       textOutput("cor_test_sig"),
+                                       h5("Correlation of all in negative direction"),
+                                       textOutput("cor_test_sig_neg")
+                                       ),
                               tabPanel("correlation table",DT::dataTableOutput("Table5"),
                                        p(" "),
                                        h5("Download the data that has significant overlap"),
@@ -480,8 +432,6 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                             )
                  ))
 # sever -----
-
-# style file upload ... (download CSV and change numbers or colours)
 # preselected styles 
 server  <- function(input, output, session) {
   # style parameters -----
@@ -580,7 +530,18 @@ server  <- function(input, output, session) {
       numericInput("axis_text", "Axis numeric text size", min=0, value=df$axis.numeric.size),
       column(4,numericInput("xlow","x-axis lower range",value = df$x.min)),
       column(4,numericInput("xhigh","x-axis upper range",value = df$x.max)),
-      column(4, numericInput("xbreaks","x-axis tick marks",value = df$x.tick.marks)),
+      column(4,numericInput("xbreaks","x-axis tick marks",value = df$x.tick.marks)),
+      
+    )
+    
+    
+    
+    
+  })
+  
+  output$axis.parameters2 <- renderUI({
+    df <- values.cut.off()
+    fluidRow(
       column(4,numericInput("yhigh","y-axis upper range",value = df$y.max)),
       column(4,numericInput("ybreaks","y-axis tick marks",value = df$y.tick.marks)),
       
@@ -590,6 +551,8 @@ server  <- function(input, output, session) {
     
     
   })
+  
+  
   output$up.parameters <- renderUI({
     df <- values.cut.off()
     
@@ -683,7 +646,7 @@ server  <- function(input, output, session) {
     df <- values.cut.off()
     
     fluidRow(
-      column(4,selectInput('legend_location', 'Legend location', legend_location[df$legend.location])),
+      column(4,selectInput('legend_location', 'Legend location', choices=legend_location, selected = legend_location[df$legend.location])),
       column(4,numericInput("col", "# of legend columns", value=df$legend.col )),
       column(4, numericInput("legend_size", "Legend text size", value=df$legend.size))
     )
@@ -700,7 +663,6 @@ server  <- function(input, output, session) {
   vals2 <- reactiveValues(cor_graph=NULL)
   vals3 <- reactiveValues(logFC_direction=NULL)
   vals4 <- reactiveValues(savedInputs=NULL)
-  vals5 <- reactiveValues(savedInputs2=NULL)
   output$sessionInfo <- renderPrint({
     print(sessionInfo())
   })
@@ -1468,33 +1430,33 @@ server  <- function(input, output, session) {
     names(your_list_df) <- "ID"
     head(your_list_df)
     your_list_df$selected <- your_list_df$ID
-    
+
     dat <-  merge(df,your_list_df,by="ID",all.x=T)
     head(dat)
     dat[is.na(dat)] <- "not_selected"
-    
+
     num <- unique(as.data.frame(dat$selected))
     x = dim(num)[1]-1
     col.gg <- c("lightgrey",gg_fill_hue(x))
-    
+
     if (input$select.ggVolc_colour.choise == "default") {
       lapply(1:dim(num)[1], function(i) {
-        colourInput(paste("col.ggVolc", i, sep="_"), paste(num[i,]), col.gg[i])        
+        colourInput(paste("col.ggVolc", i, sep="_"), paste(num[i,]), col.gg[i])
       })
     }
-    
+
     else {
       lapply(1:dim(num)[1], function(i) {
-        colourInput(paste("col.ggVolc", i, sep="_"), paste(num[i,]), "grey")        
+        colourInput(paste("col.ggVolc", i, sep="_"), paste(num[i,]), "grey")
       })
-      
-      
+
+
     }
-    
-    
-    
+
+
+
   })
-  
+
   output$myPanel.ggVolCol <- renderUI({col.ggVolc.data()}) 
   
   colors.ggvolc.plot2 <- reactive({
@@ -1628,6 +1590,199 @@ server  <- function(input, output, session) {
   
   
 
+  # reactive UI cor plots ---------------------------------------------------
+  
+  input.data_parameters.cor <- reactive({switch(input$dataset_parameters.cor,"preset" = test.data_parameters.cor(),"user-uploaded" = own.data_parameters.cor())})
+  test.data_parameters.cor <- reactive({
+    dataframe = read.csv("test-data/test-parameters.cor.csv") })
+  own.data_parameters <- reactive({
+    inFile.style.cor <- input$file.style.cor 
+    if (is.null(inFile.style.cor)) return(NULL)
+    
+    else {
+      dataframe <- read.csv(
+        inFile.style.cor$datapath,
+        header=TRUE)}
+  })
+  
+  table.parameters <- function (){
+    df <- input.data_parameters.cor()
+    df
+  }
+  
+  output$downloadTABLE.parameters.cor <- downloadHandler(
+    filename = function(){
+      paste("preset-style",".csv", sep = "")
+    },
+    content = function(file){
+      write.csv(test.data_parameters.cor(),file, row.names = FALSE)
+    }
+  )
+  
+  values.cut.off.cor <- function(){
+    
+    df <- input.data_parameters.cor()
+    df <- as.data.frame(df)
+    
+    if (input$user.defined.cor == "Labelled") {
+      
+      subset(df,df$style.type=="Labelled")
+      
+    }
+    
+    else if (input$user.defined.cor == "Regression.line") {
+      
+      subset(df,df$style.type=="Regression.line")
+      
+    }
+    
+    
+    else if (input$user.defined.cor == "labelled.Regression.line") {
+      
+      subset(df,df$style.type=="labelled.Regression.line")
+      
+    }
+
+    else {
+      subset(df,df$style.type=="default")
+    }
+  }
+  output$font_cor <- renderUI({
+    df <- values.cut.off.cor()
+    selectInput('font2','Font type',choices = fonts, selected = fonts[df$font.type])
+    
+  })
+  output$cut.off.cor <- renderUI({
+    
+    df <- values.cut.off.cor()
+    fluidRow(
+      column(6,numericInput("Pvalue1", "p-value (x-axis)", value=df$Pvalue1)),
+      column(6,numericInput("FC1", "Absolute logFC (x-axis)", value = df$FC1)),
+      column(6,numericInput("Pvalue2", "p-value (y-axis)", value=df$Pvalue2)),
+      column(6,numericInput("FC2", "Absolute logFC (y-axis)", value=df$FC1))
+    )
+  })
+  output$axis.label.cor <- renderUI({
+    df <- values.cut.off.cor()
+    fluidRow(
+      
+      column(3,textInput(inputId = "title2", 
+                label = "Title of graph",
+                value = df$title.cor)),
+      column(3,textInput(inputId = "expression_x", 
+                                label = "x-axis label",
+                                value = df$expression_x)),
+             column(3,textInput(inputId = "expression_y", 
+                                label = "y-axis label",
+                                value = df$expression_y))
+             
+    )
+    
+  })
+  output$axis.text.size.cor <- renderUI({
+    df <- values.cut.off.cor()
+    fluidRow(
+      column(6,numericInput("axis2", "Axis label text size", min=0, value=df$axis.label)),
+      column(6,numericInput("axis_text2", "Axis numeric text size", min=0, value=df$axis.numeric))
+    )
+    
+  })
+  output$point.parameter.cor1 <- renderUI({
+    df <- values.cut.off.cor()
+    fluidRow(column(3,textInput(inputId = "col1", label = "Colour of up",value = df$colour.up)),
+             column(3, numericInput("cor_shape1","Shape of up",value = df$shape.up)),
+             column(3,numericInput("cor_size1","Size of up",value = df$size.up)),
+             column(3,numericInput("cor_alpha1", "Transparency of up", value = df$alpha.up))
+    )
+    
+  })
+  output$point.parameter.cor2 <- renderUI({
+    df <- values.cut.off.cor()
+    fluidRow(column(3,textInput(inputId = "col2", label = "Colour of down",value = df$colour.down)),
+             column(3, numericInput("cor_shape2","Shape of down",value = df$shape.down)),
+             column(3,numericInput("cor_size2","Size of down",value = df$size.down)),
+             column(3,numericInput("cor_alpha2", "Transparency of down", value = df$alpha.down))
+    )
+    
+  })
+  output$point.parameter.cor3 <- renderUI({
+    df <- values.cut.off.cor()
+    fluidRow(column(3,textInput(inputId = "col3", label = "Colour of opposite",value = df$colour.opposite)),
+             column(3, numericInput("cor_shape3","Shape of opposite",value = df$shape.opposite)),
+             column(3,numericInput("cor_size3","Size of opposite",value = df$size.opposite)),
+             column(3,numericInput("cor_alpha3", "Transparency of opposite", value = df$alpha.opposite))
+    )
+    
+  })
+  output$point.parameter.cor4 <- renderUI({
+    df <- values.cut.off.cor()
+    fluidRow(column(3,textInput(inputId = "col4", label = "Colour of other",value = df$colour.other)),
+             column(3, numericInput("cor_shape4","Shape of other",value = df$shape.other)),
+             column(3,numericInput("cor_size4","Size of other",value = df$size.other)),
+             column(3,numericInput("cor_alpha4", "Transparency of other", value = df$alpha.other))
+    )
+    
+  })
+  output$axis.tick.marks <- renderUI({
+    df <- values.cut.off.cor()
+    fluidRow(
+      column(3,numericInput("cor_xbreaks","x-axis tick marks",value = df$x.tick)),
+      column(3,numericInput("cor_ybreaks","y-axis tick marks",value = df$y.tick)),
+      column(3,textInput(inputId = "cor_sig_lines", label = "x=0,y=0 line colour",value = df$dotted.line)),
+    )
+    
+  })
+  output$correlation.line <- renderUI({
+    df <- values.cut.off.cor()
+    fluidRow(
+     
+      column(3,checkboxInput("reg.line", label = "Display regression line", value = df$Regression.line)),
+      column(3,textInput(inputId = "linecolour", label = "Correlation line colour",value = df$colour.regression.line)),
+      column(3,textInput(inputId = "CI95_fill", label = "95% CI colour",value = df$CI95.col))
+    )
+    
+  })
+  
+  
+  output$legend.par.cor <- renderUI({
+    df <- values.cut.off.cor()
+    fluidRow(
+      column(4,selectInput('legend_location2', 'Legend location', choices=legend_location, selected = legend_location[df$legend.location])),
+      column(4,numericInput("col.cor", "# of legend columns", value=1, step = df$no.legend.col)),
+      column(4,numericInput("legend_size2", "Legend text size", min=1, max=60, value=df$legend.text.size))
+    )
+    
+  })
+  
+  output$labels.cor <- renderUI({
+    df <- values.cut.off.cor()
+    
+    fluidRow(
+      column(2,checkboxInput("label3", label = "Display labels", value = df$Add.labels)),
+      column(2, checkboxInput("ownlist.cor", "Own list",value = df$display.ownlist)),
+      column(2,sliderInput("sort_by","Column to sort by",min=2,max=5,value=df$Sort.by,step=1)),
+      column(2,checkboxInput("sort_direction", label = "reorder LogFC or P-value by smallest to largest", value = df$Reverse.label.order)),
+      column(2,numericInput("label2", "Size of labels",value=df$size.label)),
+      column(2,numericInput("dist2", "Distance of label", value=df$dist.label)),
+
+    )
+    
+  })
+  
+  output$labels.cor2 <- renderUI({
+    df <- values.cut.off.cor()
+    
+    fluidRow(
+  
+      column(2,numericInput("min2", "Label range (min)", value=df$min.range)),
+      column(2,numericInput("max2", "Label range (max)", value=df$max.range))
+    )
+    
+  })
+  
+
+
+  
   # correlation graph server ------------------
   
   input.data3 <- reactive({switch(input$dataset2,"test-data" = test.data3(),"own" = own.data3())})
@@ -1663,7 +1818,7 @@ server  <- function(input, output, session) {
   
   input.data6 <- reactive({switch(input$dataset2,"test-data" = test.data6(),"own" = own.data6())})
   test.data6 <- reactive({
-    dataframe = read.csv("test-data/Refined list.csv") })
+                dataframe = read.csv("test-data/Refined list.csv") })
   own.data6 <- reactive({
     inFile6 <- input$file6 
     if (is.null(inFile6)) return(NULL)
@@ -1673,6 +1828,7 @@ server  <- function(input, output, session) {
         inFile6$datapath,
         header=TRUE)}
   })
+  
   
   # Merging the two plots ----
   plotInput2 <- function() {
@@ -1707,16 +1863,8 @@ server  <- function(input, output, session) {
                                        ifelse(dat5$logFC.x<neg1 & dat5$logFC.y<neg2,"both_down",
                                               ifelse(dat5$logFC.x<neg1 &  dat5$logFC.y>pos2, "opposite",
                                                      ifelse(dat5$logFC.x>pos1 & dat5$logFC.y<neg2, "opposite",
-                                                            "other")))),
-
-                      alpha=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha1,
-                                   ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha2, 
-                                          ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,
-                                                 ifelse( dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_alpha3,input$cor_alpha4)))),
-                      size_of_point=ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size1,
-                                           ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size2, 
-                                                  ifelse(dat5$logFC.x<neg1 & dat5$Pvalue.x<input$Pvalue1 &  dat5$logFC.y>pos2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,
-                                                         ifelse(dat5$logFC.x>pos1 & dat5$Pvalue.x<input$Pvalue1 & dat5$logFC.y<neg2 & dat5$Pvalue.x<input$Pvalue2, input$cor_size3,input$cor_size4)))))
+                                                            "other")))))
+    
     dat_all$colour <- paste(dat_all$sig,dat_all$direction,sep="_")
     
     unique(dat_all$colour)
@@ -1728,10 +1876,24 @@ server  <- function(input, output, session) {
     dat_all$colour <-gsub("sig_other","other",dat_all$colour)  
     
     
+    dat_all <- mutate(dat_all, alpha = ifelse(dat_all$colour=="sig_both_up",input$cor_alpha1,
+                                           ifelse(dat_all$colour=="sig_both_down",input$cor_alpha2,
+                                                  ifelse(dat_all$colour=="sig_opposite",input$cor_alpha3,input$cor_alpha4))),
+                      size_of_point = ifelse(dat_all$colour=="sig_both_up",input$cor_size1,
+                                             ifelse(dat_all$colour=="sig_both_down",input$cor_size2,
+                                                    ifelse(dat_all$colour=="sig_opposite",input$cor_size3,input$cor_size4))),
+                              )
+    
+    
     
     colour_class <- c("sig_both_up","sig_both_down","sig_opposite","other")
+    colour.df <- as.data.frame(c("sig_both_up","sig_both_down","sig_opposite","other"))
+    names(colour.df) <- "label"
+    colour.df$V1 <- c(input$col1,input$col2,input$col3,input$col4)
     
-    dat_all$colour <- factor(dat_all$colour, levels = colour_class)
+    colour.class1 <- colour.df[colour.df$label %in% unique(dat_all$colour),]
+    
+    dat_all$colour <- factor(dat_all$colour, levels = colour.class1$label)
     x_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_x)))
     y_lable1 <- bquote(Log[2]~Fold~Change~(.(input$expression_y)))
 
@@ -1757,8 +1919,8 @@ server  <- function(input, output, session) {
         labs(y=y_lable1,
              x=x_lable1,
              title=input$title2) +
-        scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
+        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
+        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
         theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
               axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
@@ -1795,8 +1957,8 @@ server  <- function(input, output, session) {
         labs(y=y_lable1,
              x=x_lable1,
              title=input$title2) +
-        scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
+        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
+        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
         theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
               axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
@@ -1834,8 +1996,8 @@ server  <- function(input, output, session) {
         labs(y=y_lable1,
              x=x_lable1,
              title=input$title2) +
-        scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
+        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
+        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
         theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
               axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
@@ -1858,6 +2020,7 @@ server  <- function(input, output, session) {
              error_message_val4)
       ) 
       
+      dat6 <- as.data.frame(dat6)
 
       ID_sig <- dat_all[dat_all$ID %in% dat6$ID,]
       ID_sig <-  ID_sig[order(ID_sig[,input$sort_by],decreasing = input$sort_direction),] 
@@ -1876,8 +2039,8 @@ server  <- function(input, output, session) {
         labs(y=y_lable1,
              x=x_lable1,
              title=input$title2) +
-        scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
+        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
+        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
         theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
               axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
@@ -1911,6 +2074,8 @@ server  <- function(input, output, session) {
              error_message_val4)
       ) 
       
+      dat6 <- as.data.frame(dat6)
+      
       ID_sig <- dat_all[dat_all$ID %in% dat6$ID,]
       ID_sig <-  ID_sig[order(ID_sig[,input$sort_by],decreasing = input$sort_direction),] 
       ID_sig <- ID_sig[input$min2:input$max2,]
@@ -1928,8 +2093,8 @@ server  <- function(input, output, session) {
         labs(y=y_lable1,
              x=x_lable1,
              title=input$title2) +
-        scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
+        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
+        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
         theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
               axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
@@ -1956,6 +2121,16 @@ server  <- function(input, output, session) {
       
     }
     else if (input$ownlist.cor == TRUE  && input$reg.line == FALSE &&  input$label3 == FALSE) {
+      dat6 <- input.data6();
+      
+      validate(
+        need(nrow(dat6)>0,
+             error_message_val4)
+      ) 
+      
+      dat6 <- as.data.frame(dat6)
+      
+      
       ID_sig <- dat_all[dat_all$ID %in% dat6$ID,]
       ID_sig <-  ID_sig[order(ID_sig[,input$sort_by],decreasing = input$sort_direction),] 
       ID_sig <- ID_sig[input$min2:input$max2,]
@@ -1973,8 +2148,8 @@ server  <- function(input, output, session) {
         labs(y=y_lable1,
              x=x_lable1,
              title=input$title2) +
-        scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
+        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
+        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
         theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
               axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
@@ -2026,8 +2201,8 @@ server  <- function(input, output, session) {
         labs(y=y_lable1,
              x=x_lable1,
              title=input$title2) +
-        scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
+        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
+        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
         theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
               axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
@@ -2067,8 +2242,8 @@ server  <- function(input, output, session) {
         labs(y=y_lable1,
              x=x_lable1,
              title=input$title2) +
-        scale_color_manual(name="legend",values=c(input$col1,input$col2,input$col3,input$col4), labels = c("overlapping up","overlapping down","opposite","other")) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = c("overlapping up","overlapping down","opposite","other")) +
+        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
+        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
         theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
               axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
@@ -2251,164 +2426,12 @@ server  <- function(input, output, session) {
     
   })
 
-# heatmap and upset  ------------------------------------------------------
-  
-  input.data.upset.heatmap <- reactive({switch(input$dataset.upset.heatmap,"test-data" = test.data.hm(),"own" = own.data.hm())})
-  
-  test.data.hm <- reactive({
-    dataframe = read.csv("test-data/Heatmap.upset.csv") })
-  own.data.hm <- reactive({
-    inFile.hm <- input$file.hm
-    if (is.null(inFile.hm)) return(NULL)
-    
-    else {
-      dataframe <- read.csv(
-        inFile.hm$datapath,
-        header=TRUE)}
-    
-  })
   
   
- file.heatmap  <- function () {
 
-   
-   file <- input.data.upset.heatmap();
-   min.FC <- min(file$logFC)
-   max.FC <- max(file$logFC)
-   
-   df.1 <- acast(file, ID~group, value.var="logFC")
-   if (input$hm.type == "all") {
-    
-     head(df.1)
-     df.1[is.na(df.1)] <- 0
-     dim(df.1)
-     
-     Heatmap(df.1[input$min.hm:input$max.hm,], row_names_gp = gpar(fontsize = input$heatmap.font.size),
-             col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red")))
-   }
-   
-  else {
-    df.1 <- acast(file, ID~group, value.var="logFC")
-    df2 <- as.data.frame(df.1)
-    in.both <- df2[complete.cases(df2),]
-    Heatmap(as.matrix(in.both), row_names_gp = gpar(fontsize = input$heatmap.font.size),
-            col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red"))
-            )
-    
-  }
-    
-  }
- 
-  output$heatmap.plot <- renderPlot({
-    withProgress(message = 'Figure is being generated...',
-                 detail = '', value = 0, {
-                   test_fun2()
-                 })
 
-    print(file.heatmap())
-  })
   
-  # downloading PDF heatmap -----
-  output$downloadPlot_heatmap <- downloadHandler(
-    
-    filename = function() {
-      x <- gsub(":", ".", Sys.time())
-      paste("ggVolcanoR_heatmap",gsub("/", "-", x), ".pdf", sep = "")
-    },
-    content = function(file) {
-      pdf(file, width=input$width_heatmap,height=input$height_heatmap, onefile = FALSE) # open the pdf device
-      print(file.heatmap())
-      dev.off()},
-    
-    contentType = "application/pdf"
-    
-  )
-  
-  output$downloadPlotPNG_heatmap <- downloadHandler(
-    filename = function() {
-      x <- gsub(":", ".", Sys.time())
-      paste("ggVolcanoR_", gsub("/", "-", x), ".png", sep = "")
-    },
-    content = function(file) {
-      
-      png(file, width = input$width_png_heatmap, height = input$height_png_heatmap, res = input$resolution_PNG_heatmap)
-      print(file.heatmap())
-      dev.off()},
-    
-    contentType = "application/png" # MIME type of the image
-    
-  )
-  
-  # upset plots ----
-  
-  observe({
-    updateSelectInput(
-      session,
-      "upset.group.select",
-      choices=names(input.data.upset.heatmap()),
-      selected = "group")
-    
-  })
-  
-  file.upset  <- function () {
-    file <- read.csv("test-data/Heatmap.upset.csv")
-    file$upset.present <- 1
-    
-    df.upset <- acast(file, ID~get(input$upset.group.select), value.var="upset.present")
-    df.upset <- acast(file, ID~group, value.var="upset.present")
-    head(df.upset)
-    df.upset[is.na(df.upset)] <- 0
-    df.x <- make_comb_mat(as.matrix(df.upset))
-    head(df.x)
-    UpSet(df.x, comb_order = order(comb_size(df.x)))
-    
-  }
-  
-  
-  
-  output$upset.plot <- renderPlot({
-    withProgress(message = 'Figure is being generated...',
-                 detail = '', value = 0, {
-                   test_fun2()
-                 })
-    
-    
-    print(file.upset())
-  })
-  
-  
-  # downloading PDF upset -----
-  output$downloadPlot_upset <- downloadHandler(
-    filename = function() {
-      x <- gsub(":", ".", Sys.time())
-      paste("ggVolcanoR_heatmap",gsub("/", "-", x), ".pdf", sep = "")
-    },
-    content = function(file) {
-      pdf(file, width=input$width_upset,height=input$height_upset, onefile = FALSE) # open the pdf device
-      print(file.upset())
-      dev.off()},
-    
-    contentType = "application/pdf"
-    
-  )
-  
-  output$downloadPlotPNG_upset <- downloadHandler(
-    filename = function() {
-      x <- gsub(":", ".", Sys.time())
-      paste("ggVolcanoR_", gsub("/", "-", x), ".png", sep = "")
-    },
-    content = function(file) {
-      
-      png(file, width = input$width_png_upset, height = input$height_png_upset, res = input$resolution_PNG_upset)
-      print(file.upset())
-      dev.off()},
-    
-    contentType = "application/png" # MIME type of the image
-    
-  )
-  
-  
-  
+
   # overall correlation test -----
   
   output$cor_test <- renderPrint({
@@ -2872,36 +2895,7 @@ server  <- function(input, output, session) {
     vals4$savedInputs
   })
   
-  
-  savedInputs2 <- reactive({
-    
-    vals5$savedInputs2 <-  c("user inputs included for correlation graph:",
-                             paste("The x-axis is from dataset ",input$expression_x," and the y-axis represents ",input$expression_y,sep=""),
-                             paste("The labels  appeared on the graph (",input$label3,")",sep=""),
-                             paste("    The list display was the users own list (",input$ownlist.cor,")",sep=""),
-                             paste("    The displayed labels were sorted by column ",input$sort_by,"and if ticked were ordered from right to left (",input$sort_direction,")",sep=""),
-                             paste("    The range of labels on the graph was from ",input$min2, " to ", input$max2," at a distance of ",input$dist2," with the text size ",input$label2,sep=""),
-                             paste("The font used: ",input$font2,sep=""),
-                             paste("The x-axis p-value=",input$Pvalue1," and the logFC=",input$FC1,sep=""),
-                             paste("The y-axis p-value=",input$Pvalue2," and the logFC=",input$FC2,sep=""),
-                             paste("The axis text size was ",input$axis2," and the numeric size was ",input$axis_text2,sep=""),
-                             paste("For both datasets the sig. upregulated IDs were coloured: ",input$col1," with the size of ",input$cor_size1," and shape ",input$cor_shape1,sep=""),
-                             paste("For both datasets the sig. downregualted IDs were coloured: ",input$col2," with the size of ",input$cor_size2," and shape ",input$cor_shape2,sep=""),
-                             paste("For both datasets the sig. IDs with opposite logFC were coloured: ",input$col3," with the size of ",input$cor_size3," and shape ",input$cor_shape3,sep=""),
-                             paste("The remaining ID were coloured: ",input$col4," with the size of ",input$cor_size4," and shape ",input$cor_shape4,sep=""),
-                             paste("The significance lines appeared on the graph (",input$reg.line,") that was coloured ",input$linecolour," and the 95% confidence interval",input$CI95_fill,sep=""),
-                             paste("The legend was located to the ", input$legend_location2," with the text size: ",input$legend_size2,sep=""),
-                             paste(" ",sep=""),
-                             paste("The follow are the features of the bar graph",sep=""),
-                            
-                             paste("The user chose to display: ",input$direction,sep=""),
-                             paste("the colour of ", input$expression_x," was ", input$col5,sep=""),
-                             paste("the colour of ", input$expression_y," was ", input$col6,sep=""),
-                             paste("The axis text size was ",input$axis3,"and the numeric size was ",input$bar_text_x," and the label size was ",input$bar_text_y,sep="")
-                             
-    )
-    vals5$savedInputs2
-  })
+
   
   
   output$downloadTABLE4 <- downloadHandler(
@@ -2913,13 +2907,165 @@ server  <- function(input, output, session) {
     })
   
   
-  output$downloadTABLE5 <- downloadHandler(
-    filename = function(){
-      paste("User defined corrleation graph and bar plot features_",gsub("-", ".", Sys.Date()),".csv", sep = "")
+  
+  
+  # heatmap and upset  ------------------------------------------------------
+  
+  input.data.upset.heatmap <- reactive({switch(input$dataset.upset.heatmap,"test-data" = test.data.hm(),"own" = own.data.hm())})
+  
+  test.data.hm <- reactive({
+    dataframe = read.csv("test-data/Heatmap.upset.csv") })
+  own.data.hm <- reactive({
+    inFile.hm <- input$file.hm
+    if (is.null(inFile.hm)) return(NULL)
+    
+    else {
+      dataframe <- read.csv(
+        inFile.hm$datapath,
+        header=TRUE)}
+    
+  })
+  
+  
+  file.heatmap  <- function () {
+    
+    
+    file <- input.data.upset.heatmap();
+    min.FC <- min(file$logFC)
+    max.FC <- max(file$logFC)
+    
+    df.1 <- acast(file, ID~group, value.var="logFC")
+    if (input$hm.type == "all") {
+      
+      head(df.1)
+      df.1[is.na(df.1)] <- 0
+      dim(df.1)
+      
+      Heatmap(df.1[input$min.hm:input$max.hm,], row_names_gp = gpar(fontsize = input$heatmap.font.size),
+              col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red")))
+    }
+    
+    else {
+      df.1 <- acast(file, ID~group, value.var="logFC")
+      df2 <- as.data.frame(df.1)
+      in.both <- df2[complete.cases(df2),]
+      Heatmap(as.matrix(in.both), row_names_gp = gpar(fontsize = input$heatmap.font.size),
+              col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red"))
+      )
+      
+    }
+    
+  }
+  
+  output$heatmap.plot <- renderPlot({
+    withProgress(message = 'Figure is being generated...',
+                 detail = '', value = 0, {
+                   test_fun2()
+                 })
+    
+    print(file.heatmap())
+  })
+  
+  # downloading PDF heatmap -----
+  output$downloadPlot_heatmap <- downloadHandler(
+    
+    filename = function() {
+      x <- gsub(":", ".", Sys.time())
+      paste("ggVolcanoR_heatmap",gsub("/", "-", x), ".pdf", sep = "")
     },
-    content = function(file){
-      write.table(savedInputs2(),file, row.names = FALSE, quote = F, sep=",",  col.names=FALSE)
-    })
+    content = function(file) {
+      pdf(file, width=input$width_heatmap,height=input$height_heatmap, onefile = FALSE) # open the pdf device
+      print(file.heatmap())
+      dev.off()},
+    
+    contentType = "application/pdf"
+    
+  )
+  
+  output$downloadPlotPNG_heatmap <- downloadHandler(
+    filename = function() {
+      x <- gsub(":", ".", Sys.time())
+      paste("ggVolcanoR_", gsub("/", "-", x), ".png", sep = "")
+    },
+    content = function(file) {
+      
+      png(file, width = input$width_png_heatmap, height = input$height_png_heatmap, res = input$resolution_PNG_heatmap)
+      print(file.heatmap())
+      dev.off()},
+    
+    contentType = "application/png" # MIME type of the image
+    
+  )
+  
+  # upset plots ----
+  
+  observe({
+    updateSelectInput(
+      session,
+      "upset.group.select",
+      choices=names(input.data.upset.heatmap()),
+      selected = "group")
+    
+  })
+  
+  file.upset  <- function () {
+    file <- read.csv("test-data/Heatmap.upset.csv")
+    file$upset.present <- 1
+    
+    df.upset <- acast(file, ID~get(input$upset.group.select), value.var="upset.present")
+    df.upset <- acast(file, ID~group, value.var="upset.present")
+    head(df.upset)
+    df.upset[is.na(df.upset)] <- 0
+    df.x <- make_comb_mat(as.matrix(df.upset))
+    head(df.x)
+    UpSet(df.x, comb_order = order(comb_size(df.x)))
+    
+  }
+  
+  
+  
+  output$upset.plot <- renderPlot({
+    withProgress(message = 'Figure is being generated...',
+                 detail = '', value = 0, {
+                   test_fun2()
+                 })
+    
+    
+    print(file.upset())
+  })
+  
+  
+  # downloading PDF upset -----
+  output$downloadPlot_upset <- downloadHandler(
+    filename = function() {
+      x <- gsub(":", ".", Sys.time())
+      paste("ggVolcanoR_heatmap",gsub("/", "-", x), ".pdf", sep = "")
+    },
+    content = function(file) {
+      pdf(file, width=input$width_upset,height=input$height_upset, onefile = FALSE) # open the pdf device
+      print(file.upset())
+      dev.off()},
+    
+    contentType = "application/pdf"
+    
+  )
+  
+  output$downloadPlotPNG_upset <- downloadHandler(
+    filename = function() {
+      x <- gsub(":", ".", Sys.time())
+      paste("ggVolcanoR_", gsub("/", "-", x), ".png", sep = "")
+    },
+    content = function(file) {
+      
+      png(file, width = input$width_png_upset, height = input$height_png_upset, res = input$resolution_PNG_upset)
+      print(file.upset())
+      dev.off()},
+    
+    contentType = "application/png" # MIME type of the image
+    
+  )
+  
+  
   
   
 }

@@ -3009,11 +3009,10 @@ server  <- function(input, output, session) {
   })
   
   file.upset  <- function () {
-    file <- read.csv("test-data/Heatmap.upset.csv")
+    file <- input.data.upset.heatmap();
     file$upset.present <- 1
     
     df.upset <- acast(file, ID~get(input$upset.group.select), value.var="upset.present")
-    df.upset <- acast(file, ID~group, value.var="upset.present")
     head(df.upset)
     df.upset[is.na(df.upset)] <- 0
     df.x <- make_comb_mat(as.matrix(df.upset))

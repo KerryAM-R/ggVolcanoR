@@ -293,6 +293,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                        ),
                                        
                                        
+                                       
                             ## other cor -----           
                                        
                               ),
@@ -343,6 +344,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          column(3,numericInput("bar_resolution_PNG","Resolution of PNG", value = 144)),
                                          column(3,style = "margin-top: 25px;",downloadButton('downloadPlotPNG3','Download PNG'))
                                        ),
+
                                        
                               )
                               
@@ -362,6 +364,11 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                       selectInput("dataset.upset.heatmap", "Choose a dataset:", choices = c("test-data", "own")),
                                       fileInput('file.hm', 'ID, logFC, Pvalue (x-axis)',
                                                 accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                      selectInput('font.hm','Font type',choices = fonts, selected = fonts[2]),
+                                      downloadButton('downloadTABLE.hm','Download heatmap table'),
+                                      p(" "),
+                                      downloadButton('downloadTABLE.upset','Download upset table')
+
 
                        ),
                       mainPanel(
@@ -371,6 +378,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                                      column(3, numericInput("min.hm","range (min)",value = 1)),
                                                     column(3, numericInput("max.hm","range (max)",value = 20)),
                                                      column(3, numericInput("heatmap.font.size","ID size",value = 12))),
+                                            
                                             plotOutput("heatmap.plot", height = "600px"),
                                             fluidRow(
                                               
@@ -391,7 +399,8 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                             ),
                                    tabPanel("upset plot",
                                             fluidRow(
-                                            column(3,selectInput("upset.group.select",label = h5("select group column (max 31 groups)"), choices = "",selected= ""))),
+                                            column(3,selectInput("upset.group.select",label = h5("select group column (max 31 groups)"), choices = "",selected= "")),
+                                            column(3, numericInput("font.size.anno.upset","size of numeric annotation",value=12))),
                                             plotOutput("upset.plot", height = "600px"),
                                             fluidRow(
                                               
@@ -2940,8 +2949,10 @@ server  <- function(input, output, session) {
       head(df.1)
       df.1[is.na(df.1)] <- 0
       dim(df.1)
-      
-      Heatmap(df.1[input$min.hm:input$max.hm,], row_names_gp = gpar(fontsize = input$heatmap.font.size),
+     # ha = HeatmapAnnotation(text = anno_text(df.1), which = "row", gp = gpar(fontfamily = "serif", fontface = "bold"))
+      Heatmap(df.1[input$min.hm:input$max.hm,], 
+              column_names_gp = gpar(fontfamily = input$font.hm),
+              row_names_gp = gpar(fontsize = input$heatmap.font.size, fontfamily = input$font.hm),
               col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red")))
     }
     
@@ -2949,7 +2960,10 @@ server  <- function(input, output, session) {
       df.1 <- acast(file, ID~group, value.var="logFC")
       df2 <- as.data.frame(df.1)
       in.both <- df2[complete.cases(df2),]
-      Heatmap(as.matrix(in.both), row_names_gp = gpar(fontsize = input$heatmap.font.size),
+      Heatmap(as.matrix(in.both), 
+              column_names_gp = gpar(fontfamily = input$font.hm),
+              row_names_gp = gpar(fontsize = input$heatmap.font.size, fontfamily = input$font.hm),
+            
               col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red"))
       )
       
@@ -2957,18 +2971,55 @@ server  <- function(input, output, session) {
     
   }
   
+  file.heatmap.table  <- function () {
+    
+    
+    file <- input.data.upset.heatmap();
+    min.FC <- min(file$logFC)
+    max.FC <- max(file$logFC)
+    
+    df.1 <- acast(file, ID~group, value.var="logFC")
+    if (input$hm.type == "all") {
+      
+      head(df.1)
+      df.1[is.na(df.1)] <- 0
+      
+      as.data.frame(df.1)
+
+    }
+    
+    else {
+      df.1 <- acast(file, ID~group, value.var="logFC")
+      df2 <- as.data.frame(df.1)
+      in.both <- df2[complete.cases(df2),]
+      as.data.frame(in.both)
+      
+    }
+    
+  }
+  
+  
   output$heatmap.plot <- renderPlot({
     withProgress(message = 'Figure is being generated...',
                  detail = '', value = 0, {
                    test_fun2()
                  })
-    
+    par(family = "serif")
     print(file.heatmap())
   })
   
   # downloading PDF heatmap -----
+  
+  output$downloadTABLE.hm <- downloadHandler(
+    filename = function(){
+      paste("heatmap file",".csv", sep = "")
+    },
+    content = function(file){
+      write.csv(file.heatmap.table(),file)
+    }
+  )
+  
   output$downloadPlot_heatmap <- downloadHandler(
-    
     filename = function() {
       x <- gsub(":", ".", Sys.time())
       paste("ggVolcanoR_heatmap",gsub("/", "-", x), ".pdf", sep = "")
@@ -2976,10 +3027,7 @@ server  <- function(input, output, session) {
     content = function(file) {
       pdf(file, width=input$width_heatmap,height=input$height_heatmap, onefile = FALSE) # open the pdf device
       print(file.heatmap())
-      dev.off()},
-    
-    contentType = "application/pdf"
-    
+      dev.off()},    contentType = "application/pdf"
   )
   
   output$downloadPlotPNG_heatmap <- downloadHandler(
@@ -2991,10 +3039,7 @@ server  <- function(input, output, session) {
       
       png(file, width = input$width_png_heatmap, height = input$height_png_heatmap, res = input$resolution_PNG_heatmap)
       print(file.heatmap())
-      dev.off()},
-    
-    contentType = "application/png" # MIME type of the image
-    
+      dev.off()},contentType = "application/png" # MIME type of the image
   )
   
   # upset plots ----
@@ -3011,13 +3056,28 @@ server  <- function(input, output, session) {
   file.upset  <- function () {
     file <- input.data.upset.heatmap();
     file$upset.present <- 1
-    
     df.upset <- acast(file, ID~get(input$upset.group.select), value.var="upset.present")
     head(df.upset)
     df.upset[is.na(df.upset)] <- 0
     df.x <- make_comb_mat(as.matrix(df.upset))
     head(df.x)
-    UpSet(df.x, comb_order = order(comb_size(df.x)))
+    
+    ht = draw(UpSet(df.x,
+                    row_names_gp =  gpar(fontfamily = input$font.hm),
+                    column_names_gp = gpar(fontfamily = input$font.hm),
+                    top_annotation = upset_top_annotation(df.x,
+                                                          annotation_name_gp = gpar(fontfamily = input$font.hm)
+                                                          ),
+                    right_annotation = upset_right_annotation(df.x,
+                                                              annotation_name_gp = gpar(fontfamily = input$font.hm))
+                    ))
+    od = column_order(ht)
+    cs = comb_size(df.x)
+    decorate_annotation("intersection_size", {
+      grid.text(cs[od], x = seq_along(cs), y = unit(cs[od], "native") + unit(2, "pt"), 
+                default.units = "native", just = "bottom", gp = gpar(fontsize = input$font.size.anno.upset, fontfamily = input$font.hm)
+                )
+    })
     
   }
   
@@ -3033,6 +3093,25 @@ server  <- function(input, output, session) {
     print(file.upset())
   })
   
+  file.upset.table  <- function () {
+    file <- input.data.upset.heatmap();
+    file$upset.present <- 1
+    
+    df.upset <- acast(file, ID~get(input$upset.group.select), value.var="upset.present")
+    head(df.upset)
+    df.upset[is.na(df.upset)] <- 0
+    df.upset
+    as.data.frame(df.upset)
+  }
+  
+  output$downloadTABLE.upset <- downloadHandler(
+    filename = function(){
+      paste("upset file",".csv", sep = "")
+    },
+    content = function(file){
+      write.csv(file.upset.table(),file)
+    }
+  )
   
   # downloading PDF upset -----
   output$downloadPlot_upset <- downloadHandler(

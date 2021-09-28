@@ -384,7 +384,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                               
                                               column(3,numericInput("width_heatmap", "Width of PDF", value=10)),
                                               column(3,numericInput("height_heatmap", "Height of PDF", value=16)),
-                                              column(3),
+                                              column(3,),
                                               column(3,style = "margin-top: 25px;",downloadButton('downloadPlot_heatmap','Download PDF'))
                                             ),
   
@@ -406,7 +406,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                               
                                               column(3,numericInput("width_upset", "Width of PDF", value=10)),
                                               column(3,numericInput("height_upset", "Height of PDF", value=8)),
-                                              column(3),
+                                              column(3,),
                                               column(3,style = "margin-top: 25px;",downloadButton('downloadPlot_upset','Download PDF'))
                                             ),
                                             

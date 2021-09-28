@@ -404,14 +404,14 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                             plotOutput("upset.plot", height = "600px"),
                                             fluidRow(
                                               
-                                              column(3,numericInput("width_upset", "Width of PDF", value=10)),
+                                              column(3,numericInput("width_upset", "Width of PDF", value=12)),
                                               column(3,numericInput("height_upset", "Height of PDF", value=8)),
                                               column(3,),
                                               column(3,style = "margin-top: 25px;",downloadButton('downloadPlot_upset','Download PDF'))
                                             ),
                                             
                                             fluidRow(
-                                              column(3,numericInput("width_png_upset","Width of PNG", value = 1600)),
+                                              column(3,numericInput("width_png_upset","Width of PNG", value = 1920)),
                                               column(3,numericInput("height_png_upset","Height of PNG", value = 1200)),
                                               column(3,numericInput("resolution_PNG_upset","Resolution of PNG", value = 144)),
                                               column(3,style = "margin-top: 25px;",downloadButton('downloadPlotPNG_upset','Download PNG'))

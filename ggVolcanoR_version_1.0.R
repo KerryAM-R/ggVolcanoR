@@ -1129,7 +1129,9 @@ server  <- function(input, output, session) {
   type.of.data <- function () {
     
     dat <- input.data();
-    dat <- dat[names(dat) %in% c("ID","LogFC","PValue"),]
+    
+    
+    dat <- dat[, c("ID","logFC","Pvalue")]
     
     ID.conversion <- read.csv("ID/uniprot.d.anno.210905.csv")
     head(ID.conversion)

@@ -1129,7 +1129,10 @@ server  <- function(input, output, session) {
   type.of.data <- function () {
     
     dat <- input.data();
+    dat <- dat[names(dat) %in% c("ID","LogFC","PValue"),]
     
+    ID.conversion <- read.csv("ID/uniprot.d.anno.210905.csv")
+    head(ID.conversion)
     dat <- as.data.frame(dat)
     dat <- dat[order(dat$Pvalue),]
     rownames(dat) <- 1:dim(dat)[1]

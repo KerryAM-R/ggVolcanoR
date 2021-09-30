@@ -88,7 +88,7 @@ style.cor.type <- c("default","Labelled","Regression.line","labelled.Regression.
 ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                  # UI Volcano plot ----
                  
-                 tabPanel("Single group analysis",
+                 tabPanel("Single-group analysis",
                           sidebarLayout(
                             sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 900px; position:relative;", width=3,
                                          tags$style(type="text/css", "body {padding-top: 70px; padding-left: 10px;}"),
@@ -217,7 +217,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                           )
                  ),
                  # correlation graphs -----
-                 tabPanel("two group analysis",
+                 tabPanel("Two-group analysis",
                           sidebarLayout(
                             sidebarPanel(id = "tPanel2",style = "overflow-y:scroll; max-height: 1000px; position:relative;", width=3,
                                          h4("Correlation plot parameters"),
@@ -263,7 +263,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                             ),
                             # main panl correlation -----
                             mainPanel(tabsetPanel(
-                              tabPanel("Multi-group analysis", 
+                              tabPanel("Correlation graph", 
                                        
                                        uiOutput("axis.label.cor"),
                                        h5("correlation line parameters"),
@@ -357,7 +357,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
 # heatmap and upset -------------------------------------------------------
 
                  
-                tabPanel("Heatmap and upset plots",
+                tabPanel("Multi-group analysis",
                          sidebarLayout(
                           sidebarPanel(id = "tPanel4",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=3,
                                       h4("Corrleation plot parameters"),

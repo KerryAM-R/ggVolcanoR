@@ -142,10 +142,6 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          
                                          h4("Legend parameters"),
                                          uiOutput("legend.parameters"),
-                                         
-                                         fluidRow(
-                                           column(3, downloadButton("downloadTABLE4","Download parameters"))
-                                         )
                             ),
                             mainPanel(tabsetPanel(
                               tabPanel("Volcano plot", 
@@ -222,7 +218,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                             sidebarPanel(id = "tPanel2",style = "overflow-y:scroll; max-height: 1000px; position:relative;", width=3,
                                          h4("Correlation plot parameters"),
                                          selectInput("dataset_parameters.cor","Select preset or user uploaded parameters",choices = c("preset","user-uploaded")),
-                                         downloadButton("downloadTABLE.parameters.cor","download style guide"),
+                                         downloadButton("downloadTABLE.parameters.cor","Download parameter guide"),
                                          fileInput('file.style.cor', 'Upload parameters',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          selectInput("user.defined.cor","Types of parameters",choices = style.cor.type),

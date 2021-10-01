@@ -94,15 +94,15 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          tags$style(type="text/css", "body {padding-top: 70px; padding-left: 10px;}"),
                                          tags$head(tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}"))),
                                          tags$head(tags$style(HTML('.progress-bar {background-color: blue;}'))),
-                                         selectInput("dataset_parameters","select preset or user uploaded style",choices = c("preset","user-uploaded")),
-                                         downloadButton("downloadTABLE.parameters","download style guide"),
-                                         fileInput('file.style', 'upload-style',
+                                         selectInput("dataset_parameters","Select preset or user uploaded parameters",choices = c("preset","user-uploaded")),
+                                         downloadButton("downloadTABLE.parameters","download parameters guide"),
+                                         fileInput('file.style', 'Upload parameters',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          fluidRow(
                                            column(6,radioButtons('sep.style', 'Separator', c( Tab='\t', Comma=','), ',')),
                                            column(6,radioButtons('quote.style', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
                                          ),
-                                         selectInput("user.defined","types of styles",choices = style.volcano.type),
+                                         selectInput("user.defined","Types of preset parameters",choices = style.volcano.type),
                                          selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file1', 'ID, logFC, Pvalue',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
@@ -113,7 +113,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          
                                          tags$hr(),
                                          h4("Type of graph"),
-                                         p("there are 5 labelling options: none, both, up, down or own list"),
+                                         p("There are 5 labelling options: none, both, up, down or own list"),
                                          uiOutput("label.graph.type"),
                                          fileInput('file2', 'Choose selected gene file (.csv)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
@@ -221,7 +221,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                           sidebarLayout(
                             sidebarPanel(id = "tPanel2",style = "overflow-y:scroll; max-height: 1000px; position:relative;", width=3,
                                          h4("Correlation plot parameters"),
-                                         selectInput("dataset_parameters.cor","select preset or user uploaded style",choices = c("preset","user-uploaded")),
+                                         selectInput("dataset_parameters.cor","Select preset or user uploaded style",choices = c("preset","user-uploaded")),
                                          downloadButton("downloadTABLE.parameters.cor","download style guide"),
                                          fileInput('file.style.cor', 'own parameters',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
@@ -266,7 +266,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                               tabPanel("Correlation graph", 
                                        
                                        uiOutput("axis.label.cor"),
-                                       h5("correlation line parameters"),
+                                       h5("Correlation line parameters"),
                                        
                                        uiOutput("correlation.line"),
                                        h5("Label options"),
@@ -297,7 +297,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                             ## other cor -----           
                                        
                               ),
-                              tabPanel("correlation pearson statistics",
+                              tabPanel("Correlation pearson statistics",
                                        h5("Correlation of all data points"),
                                        textOutput("cor_test"),
                                        h5("Correlation of all in positive direction"),
@@ -376,10 +376,14 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                    tabPanel("Heatmap",
                                             fluidRow(column(3, selectInput("hm.type","select type of filter",choices = c("all",">0 in all"))),
                                                      column(3, numericInput("min.hm","range (min)",value = 1)),
-                                                    column(3, numericInput("max.hm","range (max)",value = 20)),
+                                                     column(3, numericInput("max.hm","range (max)",value = 20)),
                                                      column(3, numericInput("heatmap.font.size","ID size",value = 12))),
                                             
                                             plotOutput("heatmap.plot", height = "1200px"),
+                                            
+                                            h4(" "),
+                                            h4("Download Heatmap plot"),
+                                            
                                             fluidRow(
                                               
                                               column(3,numericInput("width_heatmap", "Width of PDF", value=10)),
@@ -401,6 +405,9 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                             selectInput("upset.group.select",label = h5("Select group column (max 31 groups)"), choices = "",selected= ""),
                                             numericInput("font.size.anno.upset","Size of numeric annotation",value=12),
                                             plotOutput("upset.plot", height = "600px"),
+                                            
+                                            h4(" "),
+                                            h4("Download Upset plot"),
                                             fluidRow(
                                               
                                               column(3,numericInput("width_upset", "Width of PDF", value=12)),
@@ -2959,10 +2966,6 @@ server  <- function(input, output, session) {
               column_names_gp = gpar(fontfamily = input$font.hm),
               row_names_gp = gpar(fontsize = input$heatmap.font.size, fontfamily = input$font.hm),
               heatmap_legend_param = list(title = "logFC"),
-              gap = unit(10, "mm"),
-              row_gap = unit(10, "mm"),
-              column_gap = unit(10, "mm"),
-              column_names_max_height = unit(10, "cm"),
               col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red")))
     }
     

@@ -380,6 +380,10 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                                      column(3, numericInput("heatmap.font.size","ID size",value = 12))),
                                             
                                             plotOutput("heatmap.plot", height = "1200px"),
+                                            
+                                            h4(" "),
+                                            h4("Download Heatmap plot"),
+                                            
                                             fluidRow(
                                               
                                               column(3,numericInput("width_heatmap", "Width of PDF", value=10)),
@@ -401,6 +405,9 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                             selectInput("upset.group.select",label = h5("Select group column (max 31 groups)"), choices = "",selected= ""),
                                             numericInput("font.size.anno.upset","Size of numeric annotation",value=12),
                                             plotOutput("upset.plot", height = "600px"),
+                                            
+                                            h4(" "),
+                                            h4("Download Upset plot"),
                                             fluidRow(
                                               
                                               column(3,numericInput("width_upset", "Width of PDF", value=12)),
@@ -2959,10 +2966,6 @@ server  <- function(input, output, session) {
               column_names_gp = gpar(fontfamily = input$font.hm),
               row_names_gp = gpar(fontsize = input$heatmap.font.size, fontfamily = input$font.hm),
               heatmap_legend_param = list(title = "logFC"),
-              gap = unit(10, "mm"),
-              row_gap = unit(10, "mm"),
-              column_gap = unit(10, "mm"),
-              column_names_max_height = unit(10, "cm"),
               col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red")))
     }
     

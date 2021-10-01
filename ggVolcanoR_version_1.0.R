@@ -379,7 +379,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                                     column(3, numericInput("max.hm","range (max)",value = 20)),
                                                      column(3, numericInput("heatmap.font.size","ID size",value = 12))),
                                             
-                                            plotOutput("heatmap.plot", height = "600px"),
+                                            plotOutput("heatmap.plot", height = "1200px"),
                                             fluidRow(
                                               
                                               column(3,numericInput("width_heatmap", "Width of PDF", value=10)),

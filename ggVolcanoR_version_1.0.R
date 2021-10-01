@@ -98,10 +98,10 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          downloadButton("downloadTABLE.parameters","download parameters guide"),
                                          fileInput('file.style', 'Upload parameters',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         fluidRow(
-                                           column(6,radioButtons('sep.style', 'Separator', c( Tab='\t', Comma=','), ',')),
-                                           column(6,radioButtons('quote.style', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
-                                         ),
+                                         # fluidRow(
+                                         #   column(6,radioButtons('sep.style', 'Separator', c( Tab='\t', Comma=','), ',')),
+                                         #   column(6,radioButtons('quote.style', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                         # ),
                                          selectInput("user.defined","Types of preset parameters",choices = style.volcano.type),
                                          selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file1', 'ID, logFC, Pvalue',
@@ -239,7 +239,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          ),
                                          fileInput('file6', 'Choose selected gene file (.csv)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         h4("font type"),
+                                         h4("Font type"),
                                         uiOutput("font_cor"),
                                          h4("Cut-offs"),
                                         uiOutput("cut.off.cor"),
@@ -456,9 +456,7 @@ server  <- function(input, output, session) {
     else {
       dataframe <- read.csv(
         inFile.style$datapath,
-        header=TRUE,
-        sep=input$sep.style,
-        quote=input$quote.style)}
+        header=TRUE)}
   })
   
   table.parameters <- function (){

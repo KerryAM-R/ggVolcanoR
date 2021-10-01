@@ -357,17 +357,17 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
 # heatmap and upset -------------------------------------------------------
 
                  
-                tabPanel("Heatmap & upset plot (Multi-group)",
+                tabPanel("Heatmap & Upset plot (Multi-group)",
                          sidebarLayout(
                           sidebarPanel(id = "tPanel4",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=3,
-                                      h4("Corrleation plot parameters"),
+                                      h4("Heatmap & Upset plot"),
                                       selectInput("dataset.upset.heatmap", "Choose a dataset:", choices = c("test-data", "own")),
-                                      fileInput('file.hm', 'ID, logFC, Pvalue (x-axis)',
+                                      fileInput('file.hm', 'ID, logFC, Pvalue, group, group.direction (.csv)',
                                                 accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                       selectInput('font.hm','Font type',choices = fonts, selected = fonts[2]),
-                                      downloadButton('downloadTABLE.hm','Download heatmap table'),
+                                      downloadButton('downloadTABLE.hm','Download Heatmap table'),
                                       p(" "),
-                                      downloadButton('downloadTABLE.upset','Download upset table')
+                                      downloadButton('downloadTABLE.upset','Download Upset table')
 
 
                        ),
@@ -397,10 +397,10 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                             
                                             
                                             ),
-                                   tabPanel("upset plot",
+                                   tabPanel("Upset plot",
                                             fluidRow(
-                                            column(3,selectInput("upset.group.select",label = h5("select group column (max 31 groups)"), choices = "",selected= "")),
-                                            column(3, numericInput("font.size.anno.upset","size of numeric annotation",value=12))),
+                                            column(3,selectInput("upset.group.select",label = h5("Select group column (max 31 groups)"), choices = "",selected= "")),
+                                            column(3, numericInput("font.size.anno.upset","Size of numeric annotation",value=12))),
                                             plotOutput("upset.plot", height = "600px"),
                                             fluidRow(
                                               

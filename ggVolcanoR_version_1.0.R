@@ -398,9 +398,8 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                             
                                             ),
                                    tabPanel("Upset plot",
-                                            fluidRow(
-                                            column(3,selectInput("upset.group.select",label = h5("Select group column (max 31 groups)"), choices = "",selected= "")),
-                                            column(3, style = "margin-top: 25px;", numericInput("font.size.anno.upset","Size of numeric annotation",value=12))),
+                                            selectInput("upset.group.select",label = h5("Select group column (max 31 groups)"), choices = "",selected= ""),
+                                            numericInput("font.size.anno.upset","Size of numeric annotation",value=12),
                                             plotOutput("upset.plot", height = "600px"),
                                             fluidRow(
                                               

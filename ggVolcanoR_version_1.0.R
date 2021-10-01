@@ -2953,10 +2953,16 @@ server  <- function(input, output, session) {
       head(df.1)
       df.1[is.na(df.1)] <- 0
       dim(df.1)
+      ?Heatmap
      # ha = HeatmapAnnotation(text = anno_text(df.1), which = "row", gp = gpar(fontfamily = "serif", fontface = "bold"))
       Heatmap(df.1[input$min.hm:input$max.hm,], 
               column_names_gp = gpar(fontfamily = input$font.hm),
               row_names_gp = gpar(fontsize = input$heatmap.font.size, fontfamily = input$font.hm),
+              heatmap_legend_param = list(title = "logFC"),
+              gap = unit(10, "mm"),
+              row_gap = unit(10, "mm"),
+              column_gap = unit(10, "mm"),
+              column_names_max_height = unit(10, "cm"),
               col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red")))
     }
     
@@ -2967,7 +2973,7 @@ server  <- function(input, output, session) {
       Heatmap(as.matrix(in.both), 
               column_names_gp = gpar(fontfamily = input$font.hm),
               row_names_gp = gpar(fontsize = input$heatmap.font.size, fontfamily = input$font.hm),
-            
+              heatmap_legend_param = list(title = "logFC"),
               col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red"))
       )
       

@@ -98,10 +98,10 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          downloadButton("downloadTABLE.parameters","download parameters guide"),
                                          fileInput('file.style', 'Upload parameters',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         # fluidRow(
-                                         #   column(6,radioButtons('sep.style', 'Separator', c( Tab='\t', Comma=','), ',')),
-                                         #   column(6,radioButtons('quote.style', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
-                                         # ),
+                                         fluidRow(
+                                           column(6,radioButtons('sep.style', 'Separator', c( Tab='\t', Comma=','), ',')),
+                                           column(6,radioButtons('quote.style', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                         ),
                                          selectInput("user.defined","Types of preset parameters",choices = style.volcano.type),
                                          selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file1', 'ID, logFC, Pvalue',
@@ -446,7 +446,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
 # preselected styles 
 server  <- function(input, output, session) {
   # style parameters -----
-  input.data_parameters <- reactive({switch(input$dataset_parameters,"preset" = test.data_parameters(),"user-uploaded" = own.data_parameters())})
+  input.data_parameters <- reactive({switch(input$dataset_parameters.cor,"preset" = test.data_parameters(),"user-uploaded" = own.data_parameters())})
   test.data_parameters <- reactive({
     dataframe = read.csv("test-data/test-parameters.csv") })
   own.data_parameters <- reactive({
@@ -616,7 +616,7 @@ server  <- function(input, output, session) {
   })
   output$transparancy3 <- renderUI({
     df <- values.cut.off()
-    sliderInput("alpha1", "Transparency of selected", min=0.00, max=1, value=df$transparancy.labelled,step = 0.01)
+    numericInput("alpha1", "Transparency of selected", min=0.00, max=1, value=df$transparancy.labelled,step = 0.01)
   })
   output$labelled.parameters <- renderUI({
     df <- values.cut.off()
@@ -1612,7 +1612,7 @@ server  <- function(input, output, session) {
   input.data_parameters.cor <- reactive({switch(input$dataset_parameters.cor,"preset" = test.data_parameters.cor(),"user-uploaded" = own.data_parameters.cor())})
   test.data_parameters.cor <- reactive({
     dataframe = read.csv("test-data/test-parameters.cor.csv") })
-  own.data_parameters <- reactive({
+  own.data_parameters.cor <- reactive({
     inFile.style.cor <- input$file.style.cor 
     if (is.null(inFile.style.cor)) return(NULL)
     

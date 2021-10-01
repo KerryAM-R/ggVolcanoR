@@ -533,12 +533,15 @@ server  <- function(input, output, session) {
   output$axis.parameters <- renderUI({
     df <- values.cut.off()
     fluidRow(
-      textInput(inputId = "sig_lines", label = "Significance lines",value = df$sig.col.line),
-      textInput(inputId = "expression_y2", 
-                label = "Y-axis label",
-                value = df$x.axis.lab),
-      numericInput("axis", "Axis label text size", min=0, value=df$axis.text.size),
-      numericInput("axis_text", "Axis numeric text size", min=0, value=df$axis.numeric.size),
+      column(12, textInput(inputId = "sig_lines", label = "Significance lines",value = df$sig.col.line)),
+      column(12,  textInput(inputId = "expression_y2", 
+                            label = "Y-axis label",
+                            value = df$x.axis.lab)),
+      column(12, numericInput("axis", "Axis label text size", min=0, value=df$axis.text.size)),
+      column(12,  numericInput("axis_text", "Axis numeric text size", min=0, value=df$axis.numeric.size)),
+     
+      
+     
       column(4,numericInput("xlow","x-axis lower range",value = df$x.min)),
       column(4,numericInput("xhigh","x-axis upper range",value = df$x.max)),
       column(4,numericInput("xbreaks","x-axis tick marks",value = df$x.tick.marks)),

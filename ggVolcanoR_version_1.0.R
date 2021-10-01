@@ -221,9 +221,9 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                           sidebarLayout(
                             sidebarPanel(id = "tPanel2",style = "overflow-y:scroll; max-height: 1000px; position:relative;", width=3,
                                          h4("Correlation plot parameters"),
-                                         selectInput("dataset_parameters.cor","Select preset or user uploaded style",choices = c("preset","user-uploaded")),
+                                         selectInput("dataset_parameters.cor","Select preset or user uploaded parameters",choices = c("preset","user-uploaded")),
                                          downloadButton("downloadTABLE.parameters.cor","download style guide"),
-                                         fileInput('file.style.cor', 'own parameters',
+                                         fileInput('file.style.cor', 'Own parameters',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          selectInput("user.defined.cor","types of styles",choices = style.cor.type),
                                          
@@ -305,7 +305,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                        h5("Correlation of all in negative direction"),
                                        textOutput("cor_test_sig_neg")
                                        ),
-                              tabPanel("correlation table",DT::dataTableOutput("Table5"),
+                              tabPanel("Correlation table",DT::dataTableOutput("Table5"),
                                        p(" "),
                                        h5("Download the data that has significant overlap"),
                                        downloadButton("downloadTABLE2", "Filtered Table")

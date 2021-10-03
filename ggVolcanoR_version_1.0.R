@@ -1522,12 +1522,17 @@ server  <- function(input, output, session) {
     dat2 <-  merge(df,your_list_df,by="ID")
     dat$selected <- factor(dat$selected, levels = num$V1,labels = num$V1)
     dat$selected
-    dat$alpha.test <- ifelse(dat$selected=="not_selected",0.25,1)
+    dat$alpha.test <- ifelse(dat$selected=="not_selected",input$alpha3,input$alpha1)
+    dat$shape.test <- ifelse(dat$selected=="not_selected",input$shape3,input$shape1)
+    dat$size.test <- ifelse(dat$selected=="not_selected",input$size3,input$size1)
     palette.complex <- unlist(colors.ggvolc.plot2())
+    
 
     vals6$volc.plot2 <- ggplot(dat,aes(x=logFC,y=-log10(Pvalue),colour = selected)) + 
-      geom_point(alpha = dat$alpha.test) +
+      geom_point(aes(shape = as.factor(shape.test), size = factor(size.test)), alpha = dat$alpha.test) +
       scale_color_manual(values=palette.complex) +
+      scale_shape_manual(values = c(input$shape3,input$shape1))+
+      scale_size_manual(values = c(input$size3,input$size1)) +
       geom_text_repel(data=dat2,aes(x=logFC, 
                                     y=  -log10(Pvalue),
                                     label= ID), colour="black",
@@ -1535,10 +1540,9 @@ server  <- function(input, output, session) {
                       segment.alpha = 0.5, 
                       show.legend = F,box.padding = unit(input$dist, 'lines'), 
                       max.overlaps = Inf)+
-
-      guides(shape = guide_legend(override.aes = list(size = 5))) +
       guides(fill = guide_legend(override.aes = list(shape = NA))) +
       theme_bw(base_size = 18)+
+      
       theme(panel.border = element_blank(), panel.grid.major = element_blank(),
             panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
       geom_vline(xintercept=pos, linetype="dashed", color = input$sig_lines) +
@@ -1554,7 +1558,7 @@ server  <- function(input, output, session) {
             legend.text = element_text(size=input$legend_size),
             legend.position = input$legend_location,
             legend.justification = "top")+
-      guides(size=FALSE, col = guide_legend(ncol=input$col))+
+      guides(size=FALSE, shape = F, col = guide_legend(ncol=input$col))+
       scale_alpha(guide = 'none')+ 
       scale_y_continuous(limits = c(0, input$yhigh) ,breaks = seq(0, input$yhigh, by = input$ybreaks))+
       scale_x_continuous(limits = c(input$xlow, input$xhigh), breaks = seq(input$xlow, input$xhigh, by = input$xbreaks))+

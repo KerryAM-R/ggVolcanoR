@@ -1331,6 +1331,7 @@ server  <- function(input, output, session) {
     dat$group <- input$group.name
     dat$direction <- ifelse(dat$logFC>0,'up','down')
     dat$group.direction <- paste(dat$group,dat$direction,sep=".")
+    dat <- dat[ , -which(names(dat) %in% c("direction"))]
     
     if (input$export=="upregulated") {
       positive <- subset(dat, dat$Pvalue<input$Pvalue & dat$logFC>pos)

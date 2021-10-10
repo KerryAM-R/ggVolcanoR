@@ -293,7 +293,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                             ## other cor -----           
                                        
                               ),
-                              tabPanel("Correlation pearson statistics",
+                              tabPanel("Correlation Pearson statistics",
                                        h5("Correlation of all data points"),
                                        textOutput("cor_test"),
                                        h5("Correlation of all in positive direction"),

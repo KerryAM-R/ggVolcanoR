@@ -1127,7 +1127,11 @@ server  <- function(input, output, session) {
                  detail = '', value = 0, {
                    test_fun()
                  })
-    print(plotInput())
+    
+    
+    grid.arrange(plotInput(),ncol=1,padding=unit(5,"line"),top="",bottom="",right="",left="")
+    
+
   })
   type.of.data <- function () {
     
@@ -1576,7 +1580,8 @@ server  <- function(input, output, session) {
                  detail = '', value = 0, {
                    test_fun()
                  })
-    print(plot.col.ggplot())
+    
+    grid.arrange(plot.col.ggplot(),ncol=1,padding=unit(1,"line"),top="",bottom="",right="",left="")
   })
   
   
@@ -2291,8 +2296,8 @@ server  <- function(input, output, session) {
                  detail = '', value = 0, {
                    test_fun2()
                  })
-    
-    print(plotInput2())
+    grid.arrange(plotInput2(),ncol=1,padding=unit(1,"line"),top="",bottom="",right="",left="")
+
   })
   
   # correlation table displayed -----
@@ -2950,8 +2955,6 @@ server  <- function(input, output, session) {
   
   
   file.heatmap  <- function () {
-    
-    
     file <- input.data.upset.heatmap();
     min.FC <- min(file$logFC)
     max.FC <- max(file$logFC)
@@ -2964,23 +2967,29 @@ server  <- function(input, output, session) {
       dim(df.1)
       ?Heatmap
      # ha = HeatmapAnnotation(text = anno_text(df.1), which = "row", gp = gpar(fontfamily = "serif", fontface = "bold"))
-      Heatmap(df.1[input$min.hm:input$max.hm,], 
+     ht <- Heatmap(df.1[input$min.hm:input$max.hm,], 
               column_names_gp = gpar(fontfamily = input$font.hm),
+              
               row_names_gp = gpar(fontsize = input$heatmap.font.size, fontfamily = input$font.hm),
               heatmap_legend_param = list(title = "logFC"),
               col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red")))
+      
+      draw(ht, padding = unit(c(10, 10, 10, 10), "mm"))
+      
     }
     
     else {
       df.1 <- acast(file, ID~group, value.var="logFC")
       df2 <- as.data.frame(df.1)
       in.both <- df2[complete.cases(df2),]
-      Heatmap(as.matrix(in.both), 
+      ht <- Heatmap(as.matrix(in.both), 
               column_names_gp = gpar(fontfamily = input$font.hm),
               row_names_gp = gpar(fontsize = input$heatmap.font.size, fontfamily = input$font.hm),
               heatmap_legend_param = list(title = "logFC"),
               col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red"))
       )
+      
+      draw(ht, padding = unit(c(10, 10, 10, 10), "mm"))
       
     }
     
@@ -3020,7 +3029,11 @@ server  <- function(input, output, session) {
                    test_fun2()
                  })
     par(family = "serif")
-    print(file.heatmap())
+    par(oma=c(3,3,3,3)) # all sides have 3 lines of space
+    par(mar=c(5,4,4,2) + 1)
+    
+    # grid.arrange(plotInput2(),ncol=1,padding=unit(1,"line"),top="",bottom="",right="",left="")
+   file.heatmap()
   })
   
   # downloading PDF heatmap -----
@@ -3077,7 +3090,7 @@ server  <- function(input, output, session) {
     df.x <- make_comb_mat(as.matrix(df.upset))
     head(df.x)
     
-    ht = draw(UpSet(df.x,
+   ht = draw(UpSet(df.x,
                     row_names_gp =  gpar(fontfamily = input$font.hm),
                     column_names_gp = gpar(fontfamily = input$font.hm),
                     top_annotation = upset_top_annotation(df.x,
@@ -3085,7 +3098,7 @@ server  <- function(input, output, session) {
                                                           ),
                     right_annotation = upset_right_annotation(df.x,
                                                               annotation_name_gp = gpar(fontfamily = input$font.hm))
-                    ))
+                    ), padding = unit(c(20, 20, 20, 20), "mm"))
     od = column_order(ht)
     cs = comb_size(df.x)
     decorate_annotation("intersection_size", {
@@ -3104,7 +3117,7 @@ server  <- function(input, output, session) {
                    test_fun2()
                  })
     
-    
+   
     print(file.upset())
   })
   

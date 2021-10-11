@@ -446,7 +446,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
 # preselected styles 
 server  <- function(input, output, session) {
   # style parameters -----
-  input.data_parameters <- reactive({switch(input$dataset_parameters.cor,"preset" = test.data_parameters(),"user-uploaded" = own.data_parameters())})
+  input.data_parameters <- reactive({switch(input$dataset_parameters,"preset" = test.data_parameters(),"user-uploaded" = own.data_parameters())})
   test.data_parameters <- reactive({
     dataframe = read.csv("test-data/test-parameters.csv") })
   own.data_parameters <- reactive({

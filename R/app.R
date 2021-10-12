@@ -2,6 +2,8 @@
 # Allow files up to 10 Mb
 options(shiny.maxRequestSize=10*1024^2)
 
+
+
 runApp <- function(...) {
 ## volcano plots
 require("tidyverse")
@@ -421,25 +423,9 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                       )
                      )
                   )
-                ),
-                 
-                 navbarMenu("More",
-                            tabPanel("Volcano plot Read Me file",
-                                     fluidRow(includeMarkdown("README.md")
-                                              
-                                     )
-                            ),
-                            
-                            tabPanel("Correlation graph Read Me file",
-                                     fluidRow(includeMarkdown("README_Correlationplot.md")
-                                              
-                                     )
-                            ),
-                            
-                            tabPanel("Session info", 
-                                     tabPanel("Session info", verbatimTextOutput("sessionInfo"))
-                            )
-                 ))
+                )
+
+)
 # sever -----
 # preselected styles 
 server  <- function(input, output, session) {

@@ -424,13 +424,13 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                 ),
 navbarMenu("More",
            tabPanel("Volcano plot Read Me file",
-                    fluidRow(includeMarkdown("README.md")
+                    fluidRow(includeMarkdown(system.file("extdata","README.md",package = "ggVolcanoR"))
                              
                     )
            ),
            
            tabPanel("Correlation graph Read Me file",
-                    fluidRow(includeMarkdown("README_Correlationplot.md")
+                    fluidRow(includeMarkdown(system.file("extdata","README_Correlationplot.md",package = "ggVolcanoR"))
                              
                     )
            ),

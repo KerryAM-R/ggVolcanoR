@@ -2,7 +2,7 @@
 # Allow files up to 10 Mb
 options(shiny.maxRequestSize=10*1024^2)
 
-
+myApp <- function(...) {
 ## volcano plots
 require("tidyverse")
 require("ggplot2") #Best plots
@@ -50,9 +50,7 @@ gg_fill_hue <- function(n) {
 
 error_message_1 <- c("No data found"," ","types of errors","    (1) Symbol doesn't match; in test-data MAR10 has been converted to Mar-10 in excel","    (2) Not using a human database","    (3) Not a characterised protein","    (4) Was added to the database after June 2021")
 
-ID.conversion <- read.csv("../ID/uniprot.d.anno.210611.csv",row.names = 1)
-head(ID.conversion)
-names(ID.conversion) <- c("Ensembl","Uniprot_human","UNIPROT","Chrom","Gene.Name","Biotype")
+
 
 filtered_table <- c("upregulated" = "upregulated",
                     "downregulated" ="downregulated",
@@ -70,7 +68,7 @@ y_options <- c("-Log10(p-value)","FDR", "adjusted")
 legend_location <- c("right","bottom","left","top","none")
 species <- c("BOVIN","CHICK","ECOLI","HORSE","HUMAN","MAIZE","MOUSE","PEA", "PIG","RABIT","RAT","SHEEP","SOYBN","TOBAC","WHEAT","YEAST","Other")
 lab <- c("significant up","significant down","non-significant")
-names.conversion <- names(ID.conversion)[c(1:3,5)]
+
 name.conversion.required <- c(FALSE,TRUE) 
 label3 <- c(TRUE,FALSE)
 direction <- c("all.sig","up","down","same","opposite","own list")
@@ -425,13 +423,13 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                  
                  navbarMenu("More",
                             tabPanel("Volcano plot Read Me file",
-                                     fluidRow(includeMarkdown("../README.md")
+                                     fluidRow(includeMarkdown("README.md")
                                               
                                      )
                             ),
                             
                             tabPanel("Correlation graph Read Me file",
-                                     fluidRow(includeMarkdown("../README_Correlationplot.md")
+                                     fluidRow(includeMarkdown("README_Correlationplot.md")
                                               
                                      )
                             ),
@@ -446,7 +444,7 @@ server  <- function(input, output, session) {
   # style parameters -----
   input.data_parameters <- reactive({switch(input$dataset_parameters,"preset" = test.data_parameters(),"user-uploaded" = own.data_parameters())})
   test.data_parameters <- reactive({
-    dataframe = read.csv("../test-data/test-parameters.csv") })
+    dataframe = read.csv("test-data/test-parameters.csv") })
   own.data_parameters <- reactive({
     inFile.style <- input$file.style 
     if (is.null(inFile.style)) return(NULL)
@@ -682,7 +680,7 @@ server  <- function(input, output, session) {
   input.data <- reactive({switch(input$dataset,"test-data" = test.data(),"own" = own.data())})
   
   test.data <- reactive({
-    dataframe = read.csv("../test-data/Proteomics data.csv") })
+    dataframe = read.csv("test-data/Proteomics data.csv") })
   own.data <- reactive({
     inFile <- input$file1 
     if (is.null(inFile)) return(NULL)
@@ -698,7 +696,7 @@ server  <- function(input, output, session) {
   
   input.data2 <- reactive({switch(input$dataset,"test-data" = test.data2(),"own" = own.data2())})
   test.data2 <- reactive({ 
-    dataframe2= read.csv("../test-data/Refined list.csv")})
+    dataframe2= read.csv("test-data/Refined list.csv")})
   own.data2 <- reactive({
     inFile2 <- input$file2
     if (is.null(inFile2)) return(NULL)
@@ -1619,7 +1617,7 @@ server  <- function(input, output, session) {
   
   input.data_parameters.cor <- reactive({switch(input$dataset_parameters.cor,"preset" = test.data_parameters.cor(),"user-uploaded" = own.data_parameters.cor())})
   test.data_parameters.cor <- reactive({
-    dataframe = read.csv("../test-data/test-parameters.cor.csv") })
+    dataframe = read.csv("test-data/test-parameters.cor.csv") })
   own.data_parameters.cor <- reactive({
     inFile.style.cor <- input$file.style.cor 
     if (is.null(inFile.style.cor)) return(NULL)
@@ -1812,7 +1810,7 @@ server  <- function(input, output, session) {
   
   input.data3 <- reactive({switch(input$dataset2,"test-data" = test.data3(),"own" = own.data3())})
   test.data3 <- reactive({
-    dataframe = read.csv("../test-data/Proteomics data.csv") })
+    dataframe = read.csv("test-data/Proteomics data.csv") })
   own.data3 <- reactive({
     inFile3 <- input$file3 
     if (is.null(inFile3)) return(NULL)
@@ -1827,7 +1825,7 @@ server  <- function(input, output, session) {
   })
   input.data4 <- reactive({switch(input$dataset2,"test-data" = test.data4(),"own" = own.data4())})
   test.data4 <- reactive({
-    dataframe = read.csv("../test-data/Transcriptomics data.csv") })
+    dataframe = read.csv("test-data/Transcriptomics data.csv") })
   own.data4 <- reactive({
     inFile4 <- input$file4 
     if (is.null(inFile4)) return(NULL)
@@ -1843,7 +1841,7 @@ server  <- function(input, output, session) {
   
   input.data6 <- reactive({switch(input$dataset2,"test-data" = test.data6(),"own" = own.data6())})
   test.data6 <- reactive({
-                dataframe = read.csv("../test-data/Refined list.csv") })
+                dataframe = read.csv("test-data/Refined list.csv") })
   own.data6 <- reactive({
     inFile6 <- input$file6 
     if (is.null(inFile6)) return(NULL)
@@ -2939,7 +2937,7 @@ server  <- function(input, output, session) {
   input.data.upset.heatmap <- reactive({switch(input$dataset.upset.heatmap,"test-data" = test.data.hm(),"own" = own.data.hm())})
   
   test.data.hm <- reactive({
-    dataframe = read.csv("../test-data/Heatmap.upset.csv") })
+    dataframe = read.csv("test-data/Heatmap.upset.csv") })
   own.data.hm <- reactive({
     inFile.hm <- input$file.hm
     if (is.null(inFile.hm)) return(NULL)
@@ -3175,4 +3173,7 @@ server  <- function(input, output, session) {
 }
 
 shinyApp(ui, server)
+
+}
+
 

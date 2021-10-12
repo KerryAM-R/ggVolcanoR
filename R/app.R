@@ -50,7 +50,7 @@ gg_fill_hue <- function(n) {
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
 
-error_message_1 <- c("No data found"," ","types of errors","    (1) Symbol doesn't match; in data/test-data MAR10 has been converted to Mar-10 in excel","    (2) Not using a human database","    (3) Not a characterised protein","    (4) Was added to the database after June 2021")
+error_message_1 <- c("No data found"," ","types of errors","    (1) Symbol doesn't match; in test-data MAR10 has been converted to Mar-10 in excel","    (2) Not using a human database","    (3) Not a characterised protein","    (4) Was added to the database after June 2021")
 
 
 
@@ -103,7 +103,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                            column(6,radioButtons('quote.style', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
                                          ),
                                          selectInput("user.defined","Types of preset parameters",choices = style.volcano.type),
-                                         selectInput("dataset", "Choose a dataset:", choices = c("data/test-data", "own")),
+                                         selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file1', 'ID, logFC, Pvalue',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          fluidRow(
@@ -221,7 +221,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          selectInput("user.defined.cor","Types of parameters",choices = style.cor.type),
                                          
-                                         selectInput("dataset2", "Choose a dataset:", choices = c("data/test-data", "own")),
+                                         selectInput("dataset2", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file3', 'ID, logFC, Pvalue (x-axis)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          fluidRow(
@@ -355,7 +355,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                          sidebarLayout(
                           sidebarPanel(id = "tPanel4",style = "overflow-y:scroll; max-height: 800px; position:relative;", width=3,
                                       h4("Heatmap & Upset plot"),
-                                      selectInput("dataset.upset.heatmap", "Choose a dataset:", choices = c("data/test-data", "own")),
+                                      selectInput("dataset.upset.heatmap", "Choose a dataset:", choices = c("test-data", "own")),
                                       fileInput('file.hm', 'ID, logFC, Pvalue, group, group.direction (.csv)',
                                                 accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                       selectInput('font.hm','Font type',choices = fonts, selected = fonts[2]),
@@ -665,12 +665,12 @@ server  <- function(input, output, session) {
   
   options(shiny.sanitize.errors = F)
   
-  input.data <- reactive({switch(input$dataset,"test-data" = test.data(),"own" = own.data())})
+  input.data <- reactive({switch(input$dataset,"test-data" = test.data.prot(),"own" = own.data.prot())})
   
-  test.data <- reactive({
-    dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR"))
+  test.data.prot <- reactive({
+    dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR"),header = T)
                           })
-  own.data <- reactive({
+  own.data.prot <- reactive({
     inFile <- input$file1 
     if (is.null(inFile)) return(NULL)
     
@@ -1799,7 +1799,7 @@ server  <- function(input, output, session) {
   
   # correlation graph server ------------------
   
-  input.data3 <- reactive({switch(input$dataset2,"data/test-data" = test.data3(),"own" = own.data3())})
+  input.data3 <- reactive({switch(input$dataset2,"test-data" = test.data3(),"own" = own.data3())})
   test.data3 <- reactive({
     
     dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR")) })
@@ -1815,7 +1815,7 @@ server  <- function(input, output, session) {
         quote=input$quote3)}
     
   })
-  input.data4 <- reactive({switch(input$dataset2,"data/test-data" = test.data4(),"own" = own.data4())})
+  input.data4 <- reactive({switch(input$dataset2,"test-data" = test.data4(),"own" = own.data4())})
   test.data4 <- reactive({
     
     dataframe = read.csv(system.file("extdata","Transcriptomics data.csv",package = "ggVolcanoR"))

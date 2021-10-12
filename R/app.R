@@ -26,9 +26,7 @@ require("ComplexHeatmap", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/
 
 # install.packages("circlize",lib = "../ggVolcanoR/local.lib/", dependencies = T)
 # install.packages("ComplexHeatmap",lib = "../ggVolcanoR/local.lib/", dependencies = T)
-
-
-
+  
 test_fun <- function()
 {
   for (i in 1:15) {
@@ -667,7 +665,7 @@ server  <- function(input, output, session) {
   
   options(shiny.sanitize.errors = F)
   
-  input.data <- reactive({switch(input$dataset,"data/test-data" = test.data(),"own" = own.data())})
+  input.data <- reactive({switch(input$dataset,"test-data" = test.data(),"own" = own.data())})
   
   test.data <- reactive({
     dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR"))
@@ -685,7 +683,7 @@ server  <- function(input, output, session) {
     
   })
   
-  input.data2 <- reactive({switch(input$dataset,"data/test-data" = test.data2(),"own" = own.data2())})
+  input.data2 <- reactive({switch(input$dataset,"test-data" = test.data2(),"own" = own.data2())})
   test.data2 <- reactive({ 
     dataframe2= read.csv("data/test-data/Refined list.csv")})
   own.data2 <- reactive({
@@ -1608,7 +1606,8 @@ server  <- function(input, output, session) {
   
   input.data_parameters.cor <- reactive({switch(input$dataset_parameters.cor,"preset" = test.data_parameters.cor(),"user-uploaded" = own.data_parameters.cor())})
   test.data_parameters.cor <- reactive({
-    dataframe = read.csv("data/test-data/test-parameters.cor.csv") })
+    dataframe = read.csv(system.file("extdata","test-parameters.cor.csv",package = "ggVolcanoR"))
+                                       })
   own.data_parameters.cor <- reactive({
     inFile.style.cor <- input$file.style.cor 
     if (is.null(inFile.style.cor)) return(NULL)
@@ -1831,9 +1830,10 @@ server  <- function(input, output, session) {
     
   })
   
-  input.data6 <- reactive({switch(input$dataset2,"data/test-data" = test.data6(),"own" = own.data6())})
+  input.data6 <- reactive({switch(input$dataset2,"test-data" = test.data6(),"own" = own.data6())})
   test.data6 <- reactive({
-                dataframe = read.csv("data/test-data/Refined list.csv") })
+    dataframe = read.csv(system.file("extdata","Refined list.csv",package = "ggVolcanoR"))
+                })
   own.data6 <- reactive({
     inFile6 <- input$file6 
     if (is.null(inFile6)) return(NULL)
@@ -2926,11 +2926,12 @@ server  <- function(input, output, session) {
   
   # heatmap and upset  ------------------------------------------------------
   
-  input.data.upset.heatmap <- reactive({switch(input$dataset.upset.heatmap,"data/test-data" = test.data.hm(),"own" = own.data.hm())})
+  input.data.upset.heatmap <- reactive({switch(input$dataset.upset.heatmap,"test-data" = test.data.hm(),"own" = own.data.hm())})
   
   test.data.hm <- reactive({
+  
+    dataframe <- read.csv(system.file("extdata","Heatmap.upset.csv",package = "ggVolcanoR"))
     
-    dataframe = read.csv(system.file("extdata","Heatmap.upset.csv",package = "ggVolcanoR"))
     })
   own.data.hm <- reactive({
     inFile.hm <- input$file.hm

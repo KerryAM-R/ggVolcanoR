@@ -685,7 +685,8 @@ server  <- function(input, output, session) {
   
   input.data2 <- reactive({switch(input$dataset,"test-data" = test.data2(),"own" = own.data2())})
   test.data2 <- reactive({ 
-    dataframe2= read.csv("data/test-data/Refined list.csv")})
+    dataframe2 = read.csv(system.file("extdata","Refined list.csv",package = "ggVolcanoR"))
+    })
   own.data2 <- reactive({
     inFile2 <- input$file2
     if (is.null(inFile2)) return(NULL)
@@ -1816,7 +1817,9 @@ server  <- function(input, output, session) {
   })
   input.data4 <- reactive({switch(input$dataset2,"data/test-data" = test.data4(),"own" = own.data4())})
   test.data4 <- reactive({
-    dataframe = read.csv("data/test-data/Transcriptomics data.csv") })
+    
+    dataframe = read.csv(system.file("extdata","Transcriptomics data.csv",package = "ggVolcanoR"))
+     })
   own.data4 <- reactive({
     inFile4 <- input$file4 
     if (is.null(inFile4)) return(NULL)

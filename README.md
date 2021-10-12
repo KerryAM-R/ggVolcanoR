@@ -9,7 +9,7 @@ If using the local GitHub, run the following command in R or Rstudio to download
 ```
 install.packages("devtools")
 devtools::install_github("KerryAM-R/ggVolcanoR")
-ggVolcanoR::myApp()
+ggVolcanoR::runApp()
 
 ```
 

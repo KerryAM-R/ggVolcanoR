@@ -2,7 +2,7 @@
 # Allow files up to 10 Mb
 options(shiny.maxRequestSize=10*1024^2)
 
-myApp <- function(...) {
+runApp <- function(...) {
 ## volcano plots
 require("tidyverse")
 require("ggplot2") #Best plots
@@ -3177,5 +3177,3 @@ server  <- function(input, output, session) {
 shinyApp(ui, server)
 
 }
-
-

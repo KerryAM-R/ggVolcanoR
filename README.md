@@ -7,14 +7,19 @@ Please contact: Chen.Li@monash.edu or Kerry.Mullan@monash.edu to report errors.
 If using the local GitHub, run the following command in R or Rstudio to download and install the required packages. 
 
 ```
-install.packages(c("tidyverse", "ggplot2", "ggrepel", "shiny", "shinyBS", "gridExtra", "DT", "plyr", "dplyr", "reshape2","colourpicker","devtools"), dependencies = T, type="source")
-
-devtools::install_github("jokergoo/ComplexHeatmap")
-
+install.packages("devtools")
 devtools::install_github("KerryAM-R/ggVolcanoR")
 ggVolcanoR::myApp()
 
 ```
+
+If the application does not install the dependencies, run the following lines of code
+
+```
+install.packages(c("tidyverse", "ggplot2", "ggrepel", "shiny", "shinyBS", "gridExtra", "DT", "plyr", "dplyr", "reshape2","colourpicker","devtools"), type="source")
+devtools::install_github("jokergoo/ComplexHeatmap")
+```
+
 
 ## File types accepted
 

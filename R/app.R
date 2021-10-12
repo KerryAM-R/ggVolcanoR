@@ -432,8 +432,7 @@ server  <- function(input, output, session) {
   # style parameters -----
   input.data_parameters <- reactive({switch(input$dataset_parameters,"preset" = test.data_parameters(),"user-uploaded" = own.data_parameters())})
   test.data_parameters <- reactive({
-    dataframe.test.parameters = read.csv("data/data/test-data/test-parameters.csv") 
-    usethis::use_data(dataframe.test.parameters)
+    dataframe.test.parameters <- read.csv(system.file("extdata","test-parameters.csv",package = "ggVolcanoR"))
     
     })
   own.data_parameters <- reactive({
@@ -671,7 +670,8 @@ server  <- function(input, output, session) {
   input.data <- reactive({switch(input$dataset,"data/test-data" = test.data(),"own" = own.data())})
   
   test.data <- reactive({
-    dataframe = read.csv("data/test-data/Proteomics data.csv") })
+    dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR"))
+                          })
   own.data <- reactive({
     inFile <- input$file1 
     if (is.null(inFile)) return(NULL)
@@ -1801,7 +1801,8 @@ server  <- function(input, output, session) {
   
   input.data3 <- reactive({switch(input$dataset2,"data/test-data" = test.data3(),"own" = own.data3())})
   test.data3 <- reactive({
-    dataframe = read.csv("data/test-data/Proteomics data.csv") })
+    
+    dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR")) })
   own.data3 <- reactive({
     inFile3 <- input$file3 
     if (is.null(inFile3)) return(NULL)
@@ -2928,7 +2929,9 @@ server  <- function(input, output, session) {
   input.data.upset.heatmap <- reactive({switch(input$dataset.upset.heatmap,"data/test-data" = test.data.hm(),"own" = own.data.hm())})
   
   test.data.hm <- reactive({
-    dataframe = read.csv("data/test-data/Heatmap.upset.csv") })
+    
+    dataframe = read.csv(system.file("extdata","Heatmap.upset.csv",package = "ggVolcanoR"))
+    })
   own.data.hm <- reactive({
     inFile.hm <- input$file.hm
     if (is.null(inFile.hm)) return(NULL)

@@ -20,7 +20,6 @@ install.packages(c("tidyverse", "ggplot2", "ggrepel", "shiny", "shinyBS", "gridE
 devtools::install_github("jokergoo/ComplexHeatmap")
 ```
 
-
 ## File types accepted
 
 The file must contain headers: ID, logFC and Pvalue. 

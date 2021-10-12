@@ -5,3 +5,7 @@ Title: ggVolcanoR: a Shiny app for customizable visualization of differential ex
 Description: A shiny application
 Author: Kerry A Mullan <kerry.mullan@monash.edu>
 Maintainer: Kerry A Mullan <kerry.mullan@monash.edu>
+Depends:
+    ggplot2
+Remotes:
+    jokergoo/ComplexHeatmap

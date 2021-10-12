@@ -14,9 +14,11 @@ require("DT")
 require("plyr")
 require("dplyr")
 require("reshape2")
-require("colourpicker", lib.loc = "local.lib/")
+require("colourpicker")
 require("circlize")
 require("ComplexHeatmap")
+  
+require("colourpicker", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
 require("circlize", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
 require("ComplexHeatmap", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
 

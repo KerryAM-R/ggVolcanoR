@@ -1,9 +1,0 @@
-importFrom("stats", "lm", "na.omit", "nls", "nls.control", "optim", "sd")
-
-S3method(summary, bezierArcLength)
-S3method(summary, bezierCurveFit)
-
-S3method(print, summary.bezierArcLength)
-S3method(print, summary.bezierCurveFit)
-
-exportPattern("^[[:alpha:]]+")

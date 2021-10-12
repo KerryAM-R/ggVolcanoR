@@ -3,7 +3,17 @@ Version: 1.0
 Date: 2021-10-12
 Title: ggVolcanoR: a Shiny app for customizable visualization of differential expression datasets
 Description: A shiny application that can generate customizable figure for differential expression datasets. This includes Volcano plots, correlation plots, heatmaps and upset plots. 
-Author: Kerry A. Mullan
+Author: Kerry A. Mullan, 
+  Liesl M. Bramberger,
+  Prithvi Raj Munday,
+  Gabriel Goncalves,
+  Jerico Revote,
+  Nicole A. Mifsud,
+  Patricia T. Illing,
+  Alison Anderson,
+  Patrick Kwan,
+  Anthony W. Purcell,
+  Chen Li
 Maintainer: Kerry A Mullan <kerry.mullan@monash.edu>
 Depends:
   ggplot2,

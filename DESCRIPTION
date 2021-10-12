@@ -6,17 +6,17 @@ Description: A shiny application that can generate customizable figure for diffe
 Author: Kerry A. Mullan
 Maintainer: Kerry A Mullan <kerry.mullan@monash.edu>
 Depends:
-  ggplot2
-  tidyverse
-  ggrepel
-  shiny
-  shinyBS
-  gridExtra
-  DT
-  plyr
-  dplyr
-  shape2
-  colourpicker
+  ggplot2,
+  tidyverse,
+  ggrepel,
+  shiny,
+  shinyBS,
+  gridExtra,
+  DT,
+  plyr,
+  dplyr,
+  reshape2,
+  colourpicker,
   circlize
 Remotes:
   jokergoo/ComplexHeatmap

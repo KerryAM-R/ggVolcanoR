@@ -1,6 +1,0 @@
-<!--
-%\VignetteEngine{knitr}
-%\VignetteIndexEntry{circlize vignette}
--->
-
-Please go to https://jokergoo.github.io/circlize_book/book/ for the full vignette.

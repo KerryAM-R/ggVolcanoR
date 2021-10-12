@@ -421,7 +421,24 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                       )
                      )
                   )
-                )
+                ),
+navbarMenu("More",
+           tabPanel("Volcano plot Read Me file",
+                    fluidRow(includeMarkdown("README.md")
+                             
+                    )
+           ),
+           
+           tabPanel("Correlation graph Read Me file",
+                    fluidRow(includeMarkdown("README_Correlationplot.md")
+                             
+                    )
+           ),
+           
+           tabPanel("Session info", 
+                    tabPanel("Session info", verbatimTextOutput("sessionInfo"))
+           )
+)
 
 )
 # sever -----

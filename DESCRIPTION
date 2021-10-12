@@ -16,17 +16,18 @@ Author: Kerry A. Mullan,
   Chen Li
 Maintainer: Kerry A Mullan <kerry.mullan@monash.edu>
 Depends:
-  ggplot2,
-  tidyverse,
-  ggrepel,
-  shiny,
-  shinyBS,
-  gridExtra,
-  DT,
-  plyr,
-  dplyr,
-  reshape2,
-  colourpicker,
-  circlize
+    ggplot2,
+    tidyverse,
+    ggrepel,
+    shiny,
+    shinyBS,
+    gridExtra,
+    DT,
+    plyr,
+    dplyr,
+    reshape2,
+    colourpicker,
+    circlize,
+    R (>= 2.10)
 Remotes:
   jokergoo/ComplexHeatmap

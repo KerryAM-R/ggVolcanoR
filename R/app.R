@@ -1643,7 +1643,7 @@ server  <- function(input, output, session) {
   
   output$downloadTABLE.parameters.cor <- downloadHandler(
     filename = function(){
-      paste("preset-style",".csv", sep = "")
+      paste("preset-style.cor",".csv", sep = "")
     },
     content = function(file){
       write.csv(test.data_parameters.cor(),file, row.names = FALSE)

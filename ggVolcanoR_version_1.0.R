@@ -398,14 +398,13 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                             
                                             ),
                                    tabPanel("Upset plot",
-                                            selectInput("upset.group.select",label = h5("Select group column (max 31 groups)"), choices = "",selected= ""),
-                                            numericInput("font.size.anno.upset","Size of numeric annotation",value=12),
+                                            fluidRow(column(4,selectInput("upset.group.select",label = h5("Select group column (max 31 groups)"), choices = "",selected= "")),
+                                                     column(4, numericInput("font.size.anno.upset","Size of numeric annotation",value=12))),
+                                            selectInput("order.of.group",label = h5("Group column (max 31 groups)"), choices = "",selected= "", multiple = T, width = "1200px"),
                                             plotOutput("upset.plot", height = "600px"),
-                                            
                                             h4(" "),
                                             h4("Download Upset plot"),
                                             fluidRow(
-                                              
                                               column(3,numericInput("width_upset", "Width of PDF", value=12)),
                                               column(3,numericInput("height_upset", "Height of PDF", value=8)),
                                               column(3,),
@@ -3081,6 +3080,29 @@ server  <- function(input, output, session) {
     
   })
   
+  select_group <- function () {
+    df <- input.data.upset.heatmap();
+    
+    validate(
+      need(nrow(df)>0,
+           error_message_val1)
+    )
+    
+    df2 <- as.data.frame(unique(df[names(df) %in% input$upset.group.select]))
+    df2 <- as.data.frame(df2)
+    #names(df2) <- "V1"
+    df2
+  }
+  
+  observe({
+    updateSelectInput(
+      session,
+      "order.of.group",
+      choices=select_group(),
+      selected = c("Proteomics","Transcriptomics"))
+  })
+  
+  
   file.upset  <- function () {
     file <- input.data.upset.heatmap();
     file$upset.present <- 1
@@ -3097,7 +3119,8 @@ server  <- function(input, output, session) {
                                                           annotation_name_gp = gpar(fontfamily = input$font.hm)
                                                           ),
                     right_annotation = upset_right_annotation(df.x,
-                                                              annotation_name_gp = gpar(fontfamily = input$font.hm))
+                                                              annotation_name_gp = gpar(fontfamily = input$font.hm)),
+                   set_order  = c(input$order.of.group)
                     ), padding = unit(c(20, 20, 20, 20), "mm"))
     od = column_order(ht)
     cs = comb_size(df.x)

@@ -570,7 +570,7 @@ server  <- function(input, output, session) {
     df <- values.cut.off()
     
     fluidRow(
-      column(4,textInput(inputId = "up", label = "Colour up",value = df$up.colour)),
+      column(4,colourInput(inputId = "up", label = "Colour up",value = df$up.colour)),
       column(4,numericInput("shape1.1","Shape of up",value = df$up.symbol)),
       column(4, numericInput("size1.1","Size of up",value = df$up.size))
     )
@@ -581,7 +581,7 @@ server  <- function(input, output, session) {
     df <- values.cut.off()
     
     fluidRow(
-      column(4,textInput(inputId = "down",  label = "Colour down", value = df$down.colour)),
+      column(4,colourInput(inputId = "down",  label = "Colour down", value = df$down.colour)),
       column(4,numericInput("shape2","Shape of down",value = df$down.symbol)),
       column(4,numericInput("size2","Size of down",value = df$down.size)),
       
@@ -597,7 +597,7 @@ server  <- function(input, output, session) {
     
     df <- values.cut.off()
     fluidRow(
-      column(4,textInput(inputId = "NS", label = "Colour of non-significant",value = df$NS.colour)),
+      column(4,colourInput(inputId = "NS", label = "Colour of non-significant",value = df$NS.colour)),
       column(4,numericInput("shape3","Shape of non-significant",value = df$NS.shape)),
       column(4,numericInput("size3","Size of non-significant",value = df$NS.size))
     )
@@ -622,17 +622,17 @@ server  <- function(input, output, session) {
   output$labelled.parameters <- renderUI({
     df <- values.cut.off()
     fluidRow(
-      column(6,textInput(inputId = "col_lab1", label = "Colour of label 1",value = df$lab1.colour)),
+      column(6,colourInput(inputId = "col_lab1", label = "Colour of label 1",value = df$lab1.colour)),
       column(6,selectInput(inputId = "lab1", 
                            label = "label 1", 
                            choices = lab, 
                            selected = lab[df$lab1])),
-      column(6,textInput(inputId = "col_lab2", label = "Colour of label 2",value = df$lab2.colour)),
+      column(6,colourInput(inputId = "col_lab2", label = "Colour of label 2",value = df$lab2.colour)),
       column(6,selectInput(inputId = "lab2", 
                            label = "label 2", 
                            choices = lab, 
                            selected = lab[df$lab2])),
-      column(6,textInput(inputId = "col_lab3", label = "Colour of label 3",value = df$lab3.colour)),
+      column(6,colourInput(inputId = "col_lab3", label = "Colour of label 3",value = df$lab3.colour)),
       column(6,selectInput(inputId = "lab3", 
                            label = "label 3", 
                            choices = lab, 
@@ -1717,7 +1717,7 @@ server  <- function(input, output, session) {
   })
   output$point.parameter.cor1 <- renderUI({
     df <- values.cut.off.cor()
-    fluidRow(column(3,textInput(inputId = "col1", label = "Colour of up",value = df$colour.up)),
+    fluidRow(column(3,colourInput(inputId = "col1", label = "Colour of up",value = df$colour.up)),
              column(3, numericInput("cor_shape1","Shape of up",value = df$shape.up)),
              column(3,numericInput("cor_size1","Size of up",value = df$size.up)),
              column(3,numericInput("cor_alpha1", "Transparency of up", value = df$alpha.up))
@@ -1726,7 +1726,7 @@ server  <- function(input, output, session) {
   })
   output$point.parameter.cor2 <- renderUI({
     df <- values.cut.off.cor()
-    fluidRow(column(3,textInput(inputId = "col2", label = "Colour of down",value = df$colour.down)),
+    fluidRow(column(3,colourInput(inputId = "col2", label = "Colour of down",value = df$colour.down)),
              column(3, numericInput("cor_shape2","Shape of down",value = df$shape.down)),
              column(3,numericInput("cor_size2","Size of down",value = df$size.down)),
              column(3,numericInput("cor_alpha2", "Transparency of down", value = df$alpha.down))
@@ -1735,7 +1735,7 @@ server  <- function(input, output, session) {
   })
   output$point.parameter.cor3 <- renderUI({
     df <- values.cut.off.cor()
-    fluidRow(column(3,textInput(inputId = "col3", label = "Colour of opposite",value = df$colour.opposite)),
+    fluidRow(column(3,colourInput(inputId = "col3", label = "Colour of opposite",value = df$colour.opposite)),
              column(3, numericInput("cor_shape3","Shape of opposite",value = df$shape.opposite)),
              column(3,numericInput("cor_size3","Size of opposite",value = df$size.opposite)),
              column(3,numericInput("cor_alpha3", "Transparency of opposite", value = df$alpha.opposite))
@@ -1744,7 +1744,7 @@ server  <- function(input, output, session) {
   })
   output$point.parameter.cor4 <- renderUI({
     df <- values.cut.off.cor()
-    fluidRow(column(3,textInput(inputId = "col4", label = "Colour of other",value = df$colour.other)),
+    fluidRow(column(3,colourInput(inputId = "col4", label = "Colour of other",value = df$colour.other)),
              column(3, numericInput("cor_shape4","Shape of other",value = df$shape.other)),
              column(3,numericInput("cor_size4","Size of other",value = df$size.other)),
              column(3,numericInput("cor_alpha4", "Transparency of other", value = df$alpha.other))
@@ -1765,8 +1765,8 @@ server  <- function(input, output, session) {
     fluidRow(
      
       column(3,checkboxInput("reg.line", label = "Display regression line", value = df$Regression.line)),
-      column(3,textInput(inputId = "linecolour", label = "Correlation line colour",value = df$colour.regression.line)),
-      column(3,textInput(inputId = "CI95_fill", label = "95% CI colour",value = df$CI95.col))
+      column(3,colourInput(inputId = "linecolour", label = "Correlation line colour",value = df$colour.regression.line)),
+      column(3,colourInput(inputId = "CI95_fill", label = "95% CI colour",value = df$CI95.col))
     )
     
   })

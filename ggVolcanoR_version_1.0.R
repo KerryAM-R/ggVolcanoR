@@ -374,10 +374,12 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                                      column(3, numericInput("min.hm","range (min)",value = 1)),
                                                      column(3, numericInput("max.hm","range (max)",value = 20)),
                                                      column(3, numericInput("heatmap.font.size","ID size",value = 12))),
+                                            fluidRow(column(3, colourInput("lowcol","<0 logFC colour",value = "#0076c0")),
+                                                     column(3, colourInput("hicol",">0 logFC colour",value = "#a30234"))
+                                                     ),
                                             
-                                            plotOutput("heatmap.plot", height = "1200px"),
-                                            
-                                            h4(" "),
+                                            plotOutput("heatmap.plot", height = "600px"),
+                                             h4(" "),
                                             h4("Download Heatmap plot"),
                                             
                                             fluidRow(
@@ -2971,7 +2973,8 @@ server  <- function(input, output, session) {
               
               row_names_gp = gpar(fontsize = input$heatmap.font.size, fontfamily = input$font.hm),
               heatmap_legend_param = list(title = "logFC"),
-              col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red")))
+              col = colorRamp2(c(min.FC, 0, max.FC), c(input$lowcol, "white", input$hicol))
+              )
       
       draw(ht, padding = unit(c(10, 10, 10, 10), "mm"))
       
@@ -2985,7 +2988,7 @@ server  <- function(input, output, session) {
               column_names_gp = gpar(fontfamily = input$font.hm),
               row_names_gp = gpar(fontsize = input$heatmap.font.size, fontfamily = input$font.hm),
               heatmap_legend_param = list(title = "logFC"),
-              col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red"))
+              col = colorRamp2(c(min.FC, 0, max.FC), c(input$lowcol, "white", input$hicol))
       )
       
       draw(ht, padding = unit(c(10, 10, 10, 10), "mm"))

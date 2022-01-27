@@ -697,7 +697,7 @@ runApp <- function(...) {
     
     options(shiny.sanitize.errors = F)
     
-    input.data <- reactive({switch(input$dataset,"test-data" = test.data.prot(),"own" = own.data.prot())})
+    input.data_old <- reactive({switch(input$dataset,"test-data" = test.data.prot(),"own" = own.data.prot())})
     
     test.data.prot <- reactive({
       dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR"),header = T)
@@ -714,6 +714,22 @@ runApp <- function(...) {
           quote=input$quote)}
       
     })
+    
+    
+    input.data <- function () {
+      df <- input.data_old()
+      df <- as.data.frame(df)
+      if  (nchar(names(df)[1])>4) {
+        names(df)[1] <- gsub("^...","",names(df)[1] )
+        df
+      }
+      
+      else {
+        df
+      }
+      
+    }
+    
     
     input.data2 <- reactive({switch(input$dataset,"test-data" = test.data2(),"own" = own.data2())})
     test.data2 <- reactive({ 

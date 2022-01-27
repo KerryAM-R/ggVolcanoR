@@ -1,6 +1,4 @@
-# Allow files up to 10 Mb
 options(shiny.maxRequestSize=10*1024^2)
-
 
 
 runApp <- function(...) {
@@ -447,228 +445,236 @@ runApp <- function(...) {
     input.data_parameters <- reactive({switch(input$dataset_parameters,"preset" = test.data_parameters(),"user-uploaded" = own.data_parameters())})
     test.data_parameters <- reactive({
       dataframe.test.parameters <- read.csv(system.file("extdata","test-parameters.csv",package = "ggVolcanoR"))
+      if  (nchar(names(dataframe.test.parameters)[1])==13) {
+     
+        names(dataframe.test.parameters)[1] <- gsub("^...","",names(dataframe.test.parameters)[1] )
+      }
+      
+      else {
+        dataframe.test.parameters
+      }
       
     })
-      own.data_parameters <- reactive({
-        inFile.style <- input$file.style 
-        if (is.null(inFile.style)) return(NULL)
-        
-        else {
-          dataframe <- read.csv(
-            inFile.style$datapath,
-            header=TRUE)}
-      })
+    own.data_parameters <- reactive({
+      inFile.style <- input$file.style 
+      if (is.null(inFile.style)) return(NULL)
       
-      table.parameters <- function (){
-        df <- input.data_parameters()
-        df
+      else {
+        dataframe <- read.csv(
+          inFile.style$datapath,
+          header=TRUE)}
+    })
+    
+    table.parameters <- function (){
+      df <- input.data_parameters()
+      df
+    }
+    
+    output$downloadTABLE.parameters <- downloadHandler(
+      filename = function(){
+        paste("preset-style",".csv", sep = "")
+      },
+      content = function(file){
+        write.csv(test.data_parameters(),file, row.names = FALSE)
       }
+    )
+    
+    values.cut.off <- function(){
       
-      output$downloadTABLE.parameters <- downloadHandler(
-        filename = function(){
-          paste("preset-style",".csv", sep = "")
-        },
-        content = function(file){
-          write.csv(test.data_parameters(),file, row.names = FALSE)
-        }
+      df <- input.data_parameters()
+      
+      if (input$user.defined == "all.datapoints") {
+        
+        subset(df,df$style.type=="all.datapoints")
+        
+      }
+      else if (input$user.defined == "up.ID") {
+        subset(df,df$style.type=="up.ID")
+        
+        
+      }
+      else if (input$user.defined == "down.ID") {
+        subset(df,df$style.type=="down.ID")
+        
+        
+      }
+      else if (input$user.defined == "selected.ID") {
+        subset(df,df$style.type=="selected.ID")
+      }
+      else {
+        subset(df,df$style.type=="default")
+      }
+    }
+    
+    
+    #  output$x <- renderUI({
+    # df <- values.cut.off()
+    #})
+    output$font.type <- renderUI({
+      df <- values.cut.off()
+      selectInput('font','Font type',choices = fonts, selected = fonts[df$font.type])
+      
+    })
+    output$label.graph.type <- renderUI({
+      
+      df <- values.cut.off()
+      
+      selectInput('selected', 'Type of output', 
+                  choices = selected_present, 
+                  selected= selected_present[df$label.type])
+      
+    })
+    output$cut.offs <- renderUI({
+      
+      df <- values.cut.off()
+      
+      fluidRow(
+        column(6,numericInput("Pvalue", "p-value", value=df$Pvalue)),
+        column(6,numericInput("FC", "Absolute logFC", value=df$FC))
       )
       
-      values.cut.off <- function(){
+    })
+    output$axis.parameters <- renderUI({
+      df <- values.cut.off()
+      fluidRow(
+        column(12, textInput(inputId = "sig_lines", label = "Significance lines",value = df$sig.col.line)),
+        column(12,  textInput(inputId = "expression_y2", 
+                              label = "Y-axis label",
+                              value = df$x.axis.lab)),
+        column(12, numericInput("axis", "Axis label text size", min=0, value=df$axis.text.size)),
+        column(12,  numericInput("axis_text", "Axis numeric text size", min=0, value=df$axis.numeric.size)),
         
-        df <- input.data_parameters()
         
-        if (input$user.defined == "all.datapoints") {
-          
-          subset(df,df$style.type=="all.datapoints")
-          
-        }
-        else if (input$user.defined == "up.ID") {
-          subset(df,df$style.type=="up.ID")
-          
-          
-        }
-        else if (input$user.defined == "down.ID") {
-          subset(df,df$style.type=="down.ID")
-          
-          
-        }
-        else if (input$user.defined == "selected.ID") {
-          subset(df,df$style.type=="selected.ID")
-        }
-        else {
-          subset(df,df$style.type=="default")
-        }
-      }
+        
+        column(4,numericInput("xlow","x-axis lower range",value = df$x.min)),
+        column(4,numericInput("xhigh","x-axis upper range",value = df$x.max)),
+        column(4,numericInput("xbreaks","x-axis tick marks",value = df$x.tick.marks)),
+        
+      )
       
       
-      #  output$x <- renderUI({
-      # df <- values.cut.off()
-      #})
-      output$font.type <- renderUI({
-        df <- values.cut.off()
-        selectInput('font','Font type',choices = fonts, selected = fonts[df$font.type])
-        
-      })
-      output$label.graph.type <- renderUI({
-        
-        df <- values.cut.off()
-        
-        selectInput('selected', 'Type of output', 
-                    choices = selected_present, 
-                    selected= selected_present[df$label.type])
-        
-      })
-      output$cut.offs <- renderUI({
-        
-        df <- values.cut.off()
-        
-        fluidRow(
-          column(6,numericInput("Pvalue", "p-value", value=df$Pvalue)),
-          column(6,numericInput("FC", "Absolute logFC", value=df$FC))
-        )
-        
-      })
-      output$axis.parameters <- renderUI({
-        df <- values.cut.off()
-        fluidRow(
-          column(12, textInput(inputId = "sig_lines", label = "Significance lines",value = df$sig.col.line)),
-          column(12,  textInput(inputId = "expression_y2", 
-                                label = "Y-axis label",
-                                value = df$x.axis.lab)),
-          column(12, numericInput("axis", "Axis label text size", min=0, value=df$axis.text.size)),
-          column(12,  numericInput("axis_text", "Axis numeric text size", min=0, value=df$axis.numeric.size)),
-          
-          
-          
-          column(4,numericInput("xlow","x-axis lower range",value = df$x.min)),
-          column(4,numericInput("xhigh","x-axis upper range",value = df$x.max)),
-          column(4,numericInput("xbreaks","x-axis tick marks",value = df$x.tick.marks)),
-          
-        )
-        
-        
-        
-        
-      })
-      
-      output$axis.parameters2 <- renderUI({
-        df <- values.cut.off()
-        fluidRow(
-          column(4,numericInput("yhigh","y-axis upper range",value = df$y.max)),
-          column(4,numericInput("ybreaks","y-axis tick marks",value = df$y.tick.marks)),
-          
-        )
-        
-        
-        
-        
-      })
       
       
-      output$up.parameters <- renderUI({
-        df <- values.cut.off()
+    })
+    
+    output$axis.parameters2 <- renderUI({
+      df <- values.cut.off()
+      fluidRow(
+        column(4,numericInput("yhigh","y-axis upper range",value = df$y.max)),
+        column(4,numericInput("ybreaks","y-axis tick marks",value = df$y.tick.marks)),
         
-        fluidRow(
-          column(4,colourInput(inputId = "up", label = "Colour up",value = df$up.colour)),
-          column(4,numericInput("shape1.1","Shape of up",value = df$up.symbol)),
-          column(4, numericInput("size1.1","Size of up",value = df$up.size))
-        )
+      )
+      
+      
+      
+      
+    })
+    
+    
+    output$up.parameters <- renderUI({
+      df <- values.cut.off()
+      
+      fluidRow(
+        column(4,colourInput(inputId = "up", label = "Colour up",value = df$up.colour)),
+        column(4,numericInput("shape1.1","Shape of up",value = df$up.symbol)),
+        column(4, numericInput("size1.1","Size of up",value = df$up.size))
+      )
+      
+    })
+    output$down.parameters <- renderUI({
+      
+      df <- values.cut.off()
+      
+      fluidRow(
+        column(4,colourInput(inputId = "down",  label = "Colour down", value = df$down.colour)),
+        column(4,numericInput("shape2","Shape of down",value = df$down.symbol)),
+        column(4,numericInput("size2","Size of down",value = df$down.size)),
         
-      })
-      output$down.parameters <- renderUI({
+      )
+      
+    })
+    output$transparancy1 <- renderUI({
+      df <- values.cut.off()
+      
+      sliderInput("alpha2", "Transparency of up and down", min=0, max=1, value=df$up.down.transparancy,step = 0.01)
+    })
+    output$NS.parameters <- renderUI({
+      
+      df <- values.cut.off()
+      fluidRow(
+        column(4,colourInput(inputId = "NS", label = "Colour of non-significant",value = df$NS.colour)),
+        column(4,numericInput("shape3","Shape of non-significant",value = df$NS.shape)),
+        column(4,numericInput("size3","Size of non-significant",value = df$NS.size))
+      )
+    })
+    output$transparancy2 <- renderUI({
+      df <- values.cut.off()
+      sliderInput("alpha3", "Transparency of non-significant", min=0, max=1, value=df$NS.transparancy,step = 0.01)
+    })
+    output$shape.size.selected <- renderUI({
+      df <- values.cut.off()
+      
+      fluidRow(
+        column(4,numericInput("shape1","Shape of selected",value = df$shape.labelled)),
+        column(4, numericInput("size1","Size of selected",value = df$size.labelled))
         
-        df <- values.cut.off()
-        
-        fluidRow(
-          column(4,colourInput(inputId = "down",  label = "Colour down", value = df$down.colour)),
-          column(4,numericInput("shape2","Shape of down",value = df$down.symbol)),
-          column(4,numericInput("size2","Size of down",value = df$down.size)),
-          
-        )
-        
-      })
-      output$transparancy1 <- renderUI({
-        df <- values.cut.off()
-        
-        sliderInput("alpha2", "Transparency of up and down", min=0, max=1, value=df$up.down.transparancy,step = 0.01)
-      })
-      output$NS.parameters <- renderUI({
-        
-        df <- values.cut.off()
-        fluidRow(
-          column(4,colourInput(inputId = "NS", label = "Colour of non-significant",value = df$NS.colour)),
-          column(4,numericInput("shape3","Shape of non-significant",value = df$NS.shape)),
-          column(4,numericInput("size3","Size of non-significant",value = df$NS.size))
-        )
-      })
-      output$transparancy2 <- renderUI({
-        df <- values.cut.off()
-        sliderInput("alpha3", "Transparency of non-significant", min=0, max=1, value=df$NS.transparancy,step = 0.01)
-      })
-      output$shape.size.selected <- renderUI({
-        df <- values.cut.off()
-        
-        fluidRow(
-          column(4,numericInput("shape1","Shape of selected",value = df$shape.labelled)),
-          column(4, numericInput("size1","Size of selected",value = df$size.labelled))
-          
-        )
-      })
-      output$transparancy3 <- renderUI({
-        df <- values.cut.off()
-        numericInput("alpha1", "Transparency of selected", min=0.00, max=1, value=df$transparancy.labelled,step = 0.01)
-      })
-      output$labelled.parameters <- renderUI({
-        df <- values.cut.off()
-        fluidRow(
-          column(6,colourInput(inputId = "col_lab1", label = "Colour of label 1",value = df$lab1.colour)),
-          column(6,selectInput(inputId = "lab1", 
-                               label = "label 1", 
-                               choices = lab, 
-                               selected = lab[df$lab1])),
-          column(6,colourInput(inputId = "col_lab2", label = "Colour of label 2",value = df$lab2.colour)),
-          column(6,selectInput(inputId = "lab2", 
-                               label = "label 2", 
-                               choices = lab, 
-                               selected = lab[df$lab2])),
-          column(6,colourInput(inputId = "col_lab3", label = "Colour of label 3",value = df$lab3.colour)),
-          column(6,selectInput(inputId = "lab3", 
-                               label = "label 3", 
-                               choices = lab, 
-                               selected = lab[df$lab3]))
-        )
-        
-      })
-      output$label.range <- renderUI({
-        df <- values.cut.off()
-        
-        fluidRow(
-          column(6,numericInput("min", "Label range (min)", value=df$label.range.min)),
-          column(6, numericInput("max", "Label range (max)", value=df$label.range.max))
-        )
-      })
-      output$dist.size.label <- renderUI({
-        df <- values.cut.off()
-        fluidRow(
-          column(6,numericInput("dist", "Distance of label", min=0, value=df$dist.label)), 
-          column(6,numericInput("label", "Size of labels", min=0, value=df$size.label),
-          ))
-      })
-      output$legend.parameters <- renderUI({
-        df <- values.cut.off()
-        
-        fluidRow(
-          column(4,selectInput('legend_location', 'Legend location', choices=legend_location, selected = legend_location[df$legend.location])),
-          column(4,numericInput("col", "# of legend columns", value=df$legend.col )),
-          column(4, numericInput("legend_size", "Legend text size", value=df$legend.size))
-        )
-      })
-      output$title.volc <- renderUI({
-        df <- values.cut.off()
-        textInput(inputId = "title", 
-                  label = "",
-                  value = df$title.volcano.plot)
-      })
+      )
+    })
+    output$transparancy3 <- renderUI({
+      df <- values.cut.off()
+      numericInput("alpha1", "Transparency of selected", min=0.00, max=1, value=df$transparancy.labelled,step = 0.01)
+    })
+    output$labelled.parameters <- renderUI({
+      df <- values.cut.off()
+      fluidRow(
+        column(6,colourInput(inputId = "col_lab1", label = "Colour of label 1",value = df$lab1.colour)),
+        column(6,selectInput(inputId = "lab1", 
+                             label = "label 1", 
+                             choices = lab, 
+                             selected = lab[df$lab1])),
+        column(6,colourInput(inputId = "col_lab2", label = "Colour of label 2",value = df$lab2.colour)),
+        column(6,selectInput(inputId = "lab2", 
+                             label = "label 2", 
+                             choices = lab, 
+                             selected = lab[df$lab2])),
+        column(6,colourInput(inputId = "col_lab3", label = "Colour of label 3",value = df$lab3.colour)),
+        column(6,selectInput(inputId = "lab3", 
+                             label = "label 3", 
+                             choices = lab, 
+                             selected = lab[df$lab3]))
+      )
+      
+    })
+    output$label.range <- renderUI({
+      df <- values.cut.off()
+      
+      fluidRow(
+        column(6,numericInput("min", "Label range (min)", value=df$label.range.min)),
+        column(6, numericInput("max", "Label range (max)", value=df$label.range.max))
+      )
+    })
+    output$dist.size.label <- renderUI({
+      df <- values.cut.off()
+      fluidRow(
+        column(6,numericInput("dist", "Distance of label", min=0, value=df$dist.label)), 
+        column(6,numericInput("label", "Size of labels", min=0, value=df$size.label),
+        ))
+    })
+    output$legend.parameters <- renderUI({
+      df <- values.cut.off()
+      
+      fluidRow(
+        column(4,selectInput('legend_location', 'Legend location', choices=legend_location, selected = legend_location[df$legend.location])),
+        column(4,numericInput("col", "# of legend columns", value=df$legend.col )),
+        column(4, numericInput("legend_size", "Legend text size", value=df$legend.size))
+      )
+    })
+    output$title.volc <- renderUI({
+      df <- values.cut.off()
+      textInput(inputId = "title", 
+                label = "",
+                value = df$title.volcano.plot)
+    })
     
     
     

@@ -473,7 +473,7 @@ runApp <- function(...) {
     
    extra.char <- function () {
      df <- input.data_parameters()
-     df <- as.data.frame
+     df <- as.data.frame(df)
      if  (nchar(names(df)[1])==13) {
       names(df)[1] <- gsub("^...","",names(df)[1] )
       df

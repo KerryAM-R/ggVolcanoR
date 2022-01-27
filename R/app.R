@@ -731,7 +731,7 @@ runApp <- function(...) {
     }
     
     
-    input.data2 <- reactive({switch(input$dataset,"test-data" = test.data2(),"own" = own.data2())})
+    input.data2_old <- reactive({switch(input$dataset,"test-data" = test.data2(),"own" = own.data2())})
     test.data2 <- reactive({ 
       dataframe2 = read.csv(system.file("extdata","Refined list.csv",package = "ggVolcanoR"))
     })
@@ -743,6 +743,22 @@ runApp <- function(...) {
           inFile2$datapath,
           header=T)}
     })
+    
+    input.data2 <- function () {
+      df <- input.data2_old()
+      df <- as.data.frame(df)
+      if  (nchar(names(df)[1])>4) {
+        names(df)[1] <- gsub("^...","",names(df)[1] )
+        df
+      }
+      
+      else {
+        df
+      }
+      
+    }
+    
+    
     output$summary_table <-DT::renderDataTable({
       
       dat <- input.data();
@@ -1174,7 +1190,7 @@ runApp <- function(...) {
       
       dat <- dat[, c("ID","logFC","Pvalue")]
       
-      ID.conversion <- read.csv("ID/uniprot.d.anno.210905.csv")
+      ID.conversion <- read.csv(system.file("extdata","uniprot.d.anno.210905.csv",package = "ggVolcanoR"))
       head(ID.conversion)
       dat <- as.data.frame(dat)
       dat <- dat[order(dat$Pvalue),]
@@ -1653,7 +1669,7 @@ runApp <- function(...) {
     
     # reactive UI cor plots ---------------------------------------------------
     
-    input.data_parameters.cor <- reactive({switch(input$dataset_parameters.cor,"preset" = test.data_parameters.cor(),"user-uploaded" = own.data_parameters.cor())})
+    input.data_parameters.cor_old <- reactive({switch(input$dataset_parameters.cor,"preset" = test.data_parameters.cor(),"user-uploaded" = own.data_parameters.cor())})
     test.data_parameters.cor <- reactive({
       dataframe = read.csv(system.file("extdata","test-parameters.cor.csv",package = "ggVolcanoR"))
     })
@@ -1666,6 +1682,21 @@ runApp <- function(...) {
           inFile.style.cor$datapath,
           header=TRUE)}
     })
+    
+    
+    input.data_parameters.cor <- function () {
+      df <- input.data_parameters.cor_old()
+      df <- as.data.frame(df)
+      if  (nchar(names(df)[1])>11) {
+        names(df)[1] <- gsub("^...","",names(df)[1] )
+        df
+      }
+      
+      else {
+        df
+      }
+      
+    }
     
     table.parameters <- function (){
       df <- input.data_parameters.cor()
@@ -1847,7 +1878,7 @@ runApp <- function(...) {
     
     # correlation graph server ------------------
     
-    input.data3 <- reactive({switch(input$dataset2,"test-data" = test.data3(),"own" = own.data3())})
+    input.data3_old <- reactive({switch(input$dataset2,"test-data" = test.data3(),"own" = own.data3())})
     test.data3 <- reactive({
       
       dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR")) })
@@ -1863,7 +1894,22 @@ runApp <- function(...) {
           quote=input$quote3)}
       
     })
-    input.data4 <- reactive({switch(input$dataset2,"test-data" = test.data4(),"own" = own.data4())})
+    
+    input.data3 <- function () {
+      df <- input.data3_old()
+      df <- as.data.frame(df)
+      if  (nchar(names(df)[1])>4) {
+        names(df)[1] <- gsub("^...","",names(df)[1] )
+        df
+      }
+      
+      else {
+        df
+      }
+      
+    }
+    
+    input.data4_old <- reactive({switch(input$dataset2,"test-data" = test.data4(),"own" = own.data4())})
     test.data4 <- reactive({
       
       dataframe = read.csv(system.file("extdata","Transcriptomics data.csv",package = "ggVolcanoR"))
@@ -1881,7 +1927,21 @@ runApp <- function(...) {
       
     })
     
-    input.data6 <- reactive({switch(input$dataset2,"test-data" = test.data6(),"own" = own.data6())})
+    input.data4 <- function () {
+      df <- input.data4_old()
+      df <- as.data.frame(df)
+      if  (nchar(names(df)[1])>4) {
+        names(df)[1] <- gsub("^...","",names(df)[1] )
+        df
+      }
+      
+      else {
+        df
+      }
+      
+    }
+    
+    input.data6_old <- reactive({switch(input$dataset2,"test-data" = test.data6(),"own" = own.data6())})
     test.data6 <- reactive({
       dataframe = read.csv(system.file("extdata","Refined list.csv",package = "ggVolcanoR"))
     })
@@ -1894,6 +1954,20 @@ runApp <- function(...) {
           inFile6$datapath,
           header=TRUE)}
     })
+    
+    input.data6 <- function () {
+      df <- input.data6_old()
+      df <- as.data.frame(df)
+      if  (nchar(names(df)[1])>4) {
+        names(df)[1] <- gsub("^...","",names(df)[1] )
+        df
+      }
+      
+      else {
+        df
+      }
+      
+    }
     
     
     # Merging the two plots ----
@@ -2437,8 +2511,6 @@ runApp <- function(...) {
       data5 <- as.numeric(dim(dat5)[1]) 
       cat(noquote(paste("There are ", data3," from ", input$expression_x, " and ", data4," from ", input$expression_y, "with", data5, "common to both")))
     })
-    
-    
     dataExpTable2 <- reactive({
       neg1 <- -1*input$FC1
       pos1 <- input$FC1
@@ -2491,13 +2563,6 @@ runApp <- function(...) {
       dat.sig
       
     })
-    
-    
-    
-    
-    
-    
-    
     # overall correlation test -----
     
     output$cor_test <- renderPrint({

@@ -1979,6 +1979,9 @@ runApp <- function(...) {
       dat4 <- input.data4();
       dat3 <- input.data3();
       
+      dat4 <- as.data.frame(dat4)
+      dat3 <- as.data.frame(dat3)
+      
       neg1 <- -1*input$FC1
       pos1 <- input$FC1
       
@@ -2426,6 +2429,7 @@ runApp <- function(...) {
       dat4 <- input.data4();
       dat3 <- input.data3();
       
+      
       validate(
         need(nrow(dat3)>0,
              error_message_val1)
@@ -2612,6 +2616,8 @@ runApp <- function(...) {
       pos2 <- input$FC2
       dat4 <- input.data4();
       dat3 <- input.data3();
+      
+      
       
       validate(
         need(nrow(dat3)>0,

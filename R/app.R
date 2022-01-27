@@ -474,7 +474,7 @@ runApp <- function(...) {
    extra.char <- function () {
      df <- input.data_parameters()
      df <- as.data.frame(df)
-     if  (nchar(names(df)[1])==13) {
+     if  (nchar(names(df)[1])>11) {
       names(df)[1] <- gsub("^...","",names(df)[1] )
       df
     }
@@ -488,7 +488,7 @@ runApp <- function(...) {
     values.cut.off <- function(){
       
       df <- extra.char()
-      
+      df <- as.data.frame(df)
       if (input$user.defined == "all.datapoints") {
         
         subset(df,df$style.type=="all.datapoints")
@@ -517,7 +517,7 @@ runApp <- function(...) {
     # df <- values.cut.off()
     #})
     output$font.type <- renderUI({
-      df <- values.cut.off()
+      df <- as.data.frame(values.cut.off())
       selectInput('font','Font type',choices = fonts, selected = fonts[df$font.type])
       
     })

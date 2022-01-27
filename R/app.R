@@ -474,7 +474,7 @@ runApp <- function(...) {
    extra.char <- function () {
      df <- input.data_parameters()
      df <- as.data.frame(df)
-     if  (nchar(names(df)[1])==13) {
+     if  (nchar(names(df)[1])>11) {
       names(df)[1] <- gsub("^...","",names(df)[1] )
       df
     }
@@ -488,7 +488,7 @@ runApp <- function(...) {
     values.cut.off <- function(){
       
       df <- extra.char()
-      
+      df <- as.data.frame(df)
       if (input$user.defined == "all.datapoints") {
         
         subset(df,df$style.type=="all.datapoints")
@@ -517,7 +517,7 @@ runApp <- function(...) {
     # df <- values.cut.off()
     #})
     output$font.type <- renderUI({
-      df <- values.cut.off()
+      df <- as.data.frame(values.cut.off())
       selectInput('font','Font type',choices = fonts, selected = fonts[df$font.type])
       
     })
@@ -697,7 +697,7 @@ runApp <- function(...) {
     
     options(shiny.sanitize.errors = F)
     
-    input.data <- reactive({switch(input$dataset,"test-data" = test.data.prot(),"own" = own.data.prot())})
+    input.data_old <- reactive({switch(input$dataset,"test-data" = test.data.prot(),"own" = own.data.prot())})
     
     test.data.prot <- reactive({
       dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR"),header = T)
@@ -714,6 +714,22 @@ runApp <- function(...) {
           quote=input$quote)}
       
     })
+    
+    
+    input.data <- function () {
+      df <- input.data_old()
+      df <- as.data.frame(df)
+      if  (nchar(names(df)[1])>4) {
+        names(df)[1] <- gsub("^...","",names(df)[1] )
+        df
+      }
+      
+      else {
+        df
+      }
+      
+    }
+    
     
     input.data2 <- reactive({switch(input$dataset,"test-data" = test.data2(),"own" = own.data2())})
     test.data2 <- reactive({ 

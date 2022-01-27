@@ -1671,7 +1671,7 @@ runApp <- function(...) {
     
     input.data_parameters.cor_old <- reactive({switch(input$dataset_parameters.cor,"preset" = test.data_parameters.cor(),"user-uploaded" = own.data_parameters.cor())})
     test.data_parameters.cor <- reactive({
-      dataframe = read.table(system.file("extdata","test-parameters.cor.csv",package = "ggVolcanoR"))
+      dataframe = read.csv(system.file("extdata","test-parameters.cor.csv",package = "ggVolcanoR"))
       
       })
     own.data_parameters.cor <- reactive({

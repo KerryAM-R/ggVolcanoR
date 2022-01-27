@@ -1424,14 +1424,7 @@ runApp <- function(...) {
         both }
     })
     output$number_of_points <- renderPrint({
-      
       dat <- input.data();
-      
-      validate(
-        need(nrow(dat)>0,
-             error_message_val1)
-      )
-      
       dat <- as.data.frame(dat)
       dat <- dat[order(dat$Pvalue),]
       dat$logP <- -log10(dat$Pvalue)

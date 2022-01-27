@@ -1671,8 +1671,9 @@ runApp <- function(...) {
     
     input.data_parameters.cor_old <- reactive({switch(input$dataset_parameters.cor,"preset" = test.data_parameters.cor(),"user-uploaded" = own.data_parameters.cor())})
     test.data_parameters.cor <- reactive({
-      dataframe = read.csv(system.file("extdata","test-parameters.cor.csv",package = "ggVolcanoR"))
-    })
+      dataframe = read.table(system.file("extdata","test-parameters.cor.csv",package = "ggVolcanoR"))
+      
+      })
     own.data_parameters.cor <- reactive({
       inFile.style.cor <- input$file.style.cor 
       if (is.null(inFile.style.cor)) return(NULL)
@@ -1881,7 +1882,10 @@ runApp <- function(...) {
     input.data3_old <- reactive({switch(input$dataset2,"test-data" = test.data3(),"own" = own.data3())})
     test.data3 <- reactive({
       
-      dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR")) })
+      dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR")) 
+      
+      })
+    
     own.data3 <- reactive({
       inFile3 <- input$file3 
       if (is.null(inFile3)) return(NULL)

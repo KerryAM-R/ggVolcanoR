@@ -718,8 +718,6 @@ runApp <- function(...) {
           quote=input$quote)}
       
     })
-    
-    
     input.data <- function () {
       df <- input.data_old()
       df <- as.data.frame(df)
@@ -772,13 +770,19 @@ runApp <- function(...) {
              error_message_val1)
       )
       
-      dat2 <- input.data2();
-      list <- dat2$ID
+      
+      
       dat <- as.data.frame(dat)
       neg <- -1*input$FC
       pos <- input$FC
       
       if (input$selected=="own list") {
+        dat2 <- input.data2();
+        validate(
+          need(nrow(dat2)>0,
+               "Upload own list")
+        )
+        list <- dat2$ID
         sub.mutateddf.gene3 <- mutate(dat,
                                       significance=ifelse(dat$ID %in% list & abs(dat$logFC)>pos & dat$Pvalue<input$Pvalue,"sig_list",
                                                           ifelse(dat$ID %in% list, "list not significant","not in list")))
@@ -832,12 +836,11 @@ runApp <- function(...) {
       )
       
       
-      dat2 <- input.data2();
+
       dat <- as.data.frame(dat)
       dat <- dat[order(dat$Pvalue),]
       
-      list <- dat2$ID
-      list2 <- dat2$ID
+ 
       neg <- -1*input$FC
       pos <- input$FC
       
@@ -852,7 +855,7 @@ runApp <- function(...) {
       mutateddf.gene <- mutate(mutateddf, top=ifelse(mutateddf$ID %in% gene_list, "top", "other"))
       mutateddf.gene
       
-      # no labels 
+      # no labels -----
       sub.mutateddf.gene <- mutate(mutateddf.gene,
                                    colour=ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,"sig_up",
                                                  ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")),
@@ -862,7 +865,7 @@ runApp <- function(...) {
                                                 ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3)),
                                    size=ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size1.1,
                                                ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))
-      # range of genes
+      # range of genes -----
       sub.mutateddf.gene2 <- mutate(mutateddf.gene,
                                     colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "top_up",
                                                   ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "top_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
@@ -1068,7 +1071,16 @@ runApp <- function(...) {
         
       }
       else if (input$selected=="own list") {
+        dat2 <- input.data2();
+        validate(
+          need(nrow(dat2)>0,
+               
+               "Upload own list")
+        )
         
+        
+        list <- dat2$ID
+        list2 <- dat2$ID
         
         merged_list <- mutateddf[mutateddf$ID %in% list2,]
         merged_list <- merged_list[order(merged_list$Pvalue),]
@@ -1285,6 +1297,11 @@ runApp <- function(...) {
       
       else { # selected ID
         dat2 <- input.data2();
+        validate(
+          need(nrow(dat2)>0,
+               "Upload own list")
+        )
+        
         list <- dat2$ID
         dat <- dat[dat$ID %in% list,]
         dat
@@ -2165,13 +2182,13 @@ runApp <- function(...) {
         vals2$cor_graph}
       else if (input$ownlist.cor == TRUE  && input$reg.line == FALSE &&  input$label3 == TRUE) {
         dat6 <- input.data6();
-        
+        dat6 <- as.data.frame(dat6)
         validate(
           need(nrow(dat6)>0,
                error_message_val4)
         ) 
         
-        dat6 <- as.data.frame(dat6)
+        
         
         ID_sig <- dat_all[dat_all$ID %in% dat6$ID,]
         ID_sig <-  ID_sig[order(ID_sig[,input$sort_by],decreasing = input$sort_direction),] 

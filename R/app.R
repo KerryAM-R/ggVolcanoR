@@ -445,16 +445,6 @@ runApp <- function(...) {
     input.data_parameters <- reactive({switch(input$dataset_parameters,"preset" = test.data_parameters(),"user-uploaded" = own.data_parameters())})
     test.data_parameters <- reactive({
       dataframe.test.parameters <- read.csv(system.file("extdata","test-parameters.csv",package = "ggVolcanoR"))
-      dataframe.test.parameters <- as.data.frame(dataframe.test.parameters)
-      if  (nchar(names(dataframe.test.parameters)[1])==13) {
-        names(dataframe.test.parameters)[1] <- gsub("^...","",names(dataframe.test.parameters)[1] )
-        dataframe.test.parameters
-      }
-      
-      else {
-        dataframe.test.parameters
-      }
-      
     })
     own.data_parameters <- reactive({
       inFile.style <- input$file.style 
@@ -480,9 +470,24 @@ runApp <- function(...) {
       }
     )
     
+    
+   extra.char <- function () {
+     df <- input.data_parameters()
+     df <- as.data.frame
+     if  (nchar(names(df)[1])==13) {
+      names(df)[1] <- gsub("^...","",names(df)[1] )
+      df
+    }
+    
+    else {
+      df
+    }
+     
+     }
+    
     values.cut.off <- function(){
       
-      df <- input.data_parameters()
+      df <- extra.char()
       
       if (input$user.defined == "all.datapoints") {
         

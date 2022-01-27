@@ -447,8 +447,8 @@ runApp <- function(...) {
       dataframe.test.parameters <- read.csv(system.file("extdata","test-parameters.csv",package = "ggVolcanoR"))
       dataframe.test.parameters <- as.data.frame(dataframe.test.parameters)
       if  (nchar(names(dataframe.test.parameters)[1])==13) {
-     
         names(dataframe.test.parameters)[1] <- gsub("^...","",names(dataframe.test.parameters)[1] )
+        dataframe.test.parameters
       }
       
       else {

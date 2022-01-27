@@ -1397,7 +1397,6 @@ runApp <- function(...) {
     })
     dataExpTable <- reactive({
       dat <- input.data();
-      dat2 <- input.data2();
       dat <- as.data.frame(dat)
       dat <- dat[order(dat$Pvalue),]
       list <- dat2$ID
@@ -1417,7 +1416,7 @@ runApp <- function(...) {
         negative
       }
       else if (input$export=="own list") {
-        
+        dat2 <- input.data2();
         ownlist <- dat[dat$ID %in% list & dat$Pvalue<input$Pvalue & abs(dat$logFC)>input$FC,]
       }
       else { 
@@ -1433,12 +1432,8 @@ runApp <- function(...) {
              error_message_val1)
       )
       
-      
-      dat2 <- input.data2();
       dat <- as.data.frame(dat)
       dat <- dat[order(dat$Pvalue),]
-      list <- dat2$ID
-      list2 <- dat2$ID
       dat$logP <- -log10(dat$Pvalue)
       total <- as.numeric(dim(dat)[1])
       subsetted <- subset(dat, dat$logP<input$yhigh)
@@ -1458,9 +1453,6 @@ runApp <- function(...) {
         need(nrow(dat)>0,
              " ")
       )
-      
-      
-      dat2 <- input.data2();
       dat <- as.data.frame(dat)
       dat <- dat[order(dat$Pvalue),]
       

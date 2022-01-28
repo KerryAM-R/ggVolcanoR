@@ -112,6 +112,7 @@ runApp <- function(...) {
                                            h4("Type of graph"),
                                            p("There are 5 labelling options: none, both, up, down or own list"),
                                            uiOutput("label.graph.type"),
+                                           selectInput("dataset_list", "Choose a list-dataset:", choices = c("test-data-list", "own_list")),
                                            fileInput('file2', 'Choose selected gene file (.csv)',
                                                      accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                            h4("Select font for graph"),
@@ -566,7 +567,6 @@ runApp <- function(...) {
       
       
     })
-    
     output$axis.parameters2 <- renderUI({
       df <- values.cut.off()
       fluidRow(
@@ -579,8 +579,6 @@ runApp <- function(...) {
       
       
     })
-    
-    
     output$up.parameters <- renderUI({
       df <- values.cut.off()
       
@@ -685,11 +683,7 @@ runApp <- function(...) {
                 label = "",
                 value = df$title.volcano.plot)
     })
-    
-    
-    
-    
-    
+
     # reactive values -----
     vals <- reactiveValues(ggplot=NULL)
     vals2 <- reactiveValues(cor_graph=NULL)
@@ -720,6 +714,10 @@ runApp <- function(...) {
     })
     input.data <- function () {
       df <- input.data_old()
+      validate(
+        shiny::need(nrow(df)>0, "Upload data")
+      )
+      
       df <- as.data.frame(df)
       if  (nchar(names(df)[1])>4) {
         names(df)[1] <- gsub("^...","",names(df)[1] )
@@ -733,7 +731,7 @@ runApp <- function(...) {
     }
     
     
-    input.data2_old <- reactive({switch(input$dataset,"test-data" = test.data2(),"own" = own.data2())})
+    input.data2_old <- reactive({switch(input$dataset_list,"test-data-list" = test.data2(),"own_list" = own.data2())})
     test.data2 <- reactive({ 
       dataframe2 = read.csv(system.file("extdata","Refined list.csv",package = "ggVolcanoR"))
     })
@@ -762,26 +760,14 @@ runApp <- function(...) {
     
     
     output$summary_table <-DT::renderDataTable({
-      
       dat <- input.data();
-      
-      validate(
-        need(nrow(dat)>0,
-             error_message_val1)
-      )
-      
-      
-      
       dat <- as.data.frame(dat)
       neg <- -1*input$FC
       pos <- input$FC
       
       if (input$selected=="own list") {
         dat2 <- input.data2();
-        validate(
-          need(nrow(dat2)>0,
-               "Upload own list")
-        )
+        dat2 <- as.data.frame(dat2)
         list <- dat2$ID
         sub.mutateddf.gene3 <- mutate(dat,
                                       significance=ifelse(dat$ID %in% list & abs(dat$logFC)>pos & dat$Pvalue<input$Pvalue,"sig_list",
@@ -793,9 +779,14 @@ runApp <- function(...) {
         summary$V4 <- a
         summary <- as.data.frame(t(summary))
         rownames(summary) <- 1:4
-        summary
+        if(nrow(summary)>0) {
+          summary
+        }
+        else {
+          as.data.frame("Missing own list")
+        }
+        
       }
-      
       else if (input$selected=="no labels") {
         sub.mutateddf.gene3 <- mutate(dat,
                                       significance=ifelse(dat$Pvalue<input$Pvalue & dat$logFC>pos,"upregulated",
@@ -810,7 +801,6 @@ runApp <- function(...) {
         rownames(summary) <- 1:4
         summary
       }
-      
       else {
         sub.mutateddf.gene3 <- mutate(dat,
                                       significance=ifelse(dat$Pvalue<input$Pvalue & dat$logFC>pos,"upregulated",
@@ -824,20 +814,13 @@ runApp <- function(...) {
         summary <- as.data.frame(t(summary))
         rownames(summary) <- 1:4
         summary}
+
       
     })
     
     plotInput <- function() {
       dat <- input.data();
-      
-      validate(
-        need(nrow(dat)>0,
-             error_message_val2)
-      )
-      
-      
-
-      dat <- as.data.frame(dat)
+       dat <- as.data.frame(dat)
       dat <- dat[order(dat$Pvalue),]
       
  
@@ -888,6 +871,7 @@ runApp <- function(...) {
       
       y_lable1 <- bquote("-"~Log[10]~(.(input$expression_y2)))
       y_lable1
+      # if statments -----
       if (input$selected=="range (both directions)") {
         vals$ggplot <- ggplot() + 
           geom_point(aes(x=sub.mutateddf.gene2$logFC, y=-log10(sub.mutateddf.gene2$Pvalue),

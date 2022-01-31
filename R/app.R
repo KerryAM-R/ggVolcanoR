@@ -112,6 +112,7 @@ runApp <- function(...) {
                                            h4("Type of graph"),
                                            p("There are 5 labelling options: none, both, up, down or own list"),
                                            uiOutput("label.graph.type"),
+                                           selectInput("dataset_list", "Choose a list-dataset:", choices = c("test-data-list", "own_list")),
                                            fileInput('file2', 'Choose selected gene file (.csv)',
                                                      accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                            h4("Select font for graph"),
@@ -369,6 +370,9 @@ runApp <- function(...) {
                                                     column(3, numericInput("min.hm","range (min)",value = 1)),
                                                     column(3, numericInput("max.hm","range (max)",value = 20)),
                                                     column(3, numericInput("heatmap.font.size","ID size",value = 12))),
+                                           fluidRow(column(3, colourInput("lowcol","<0 logFC colour",value = "#0076c0")),
+                                                    column(3, colourInput("hicol",">0 logFC colour",value = "#a30234"))
+                                           ),
                                            
                                            plotOutput("heatmap.plot", height = "1200px"),
                                            
@@ -393,8 +397,9 @@ runApp <- function(...) {
                                            
                                   ),
                                   tabPanel("Upset plot",
-                                           selectInput("upset.group.select",label = h5("Select group column (max 31 groups)"), choices = "",selected= ""),
-                                           numericInput("font.size.anno.upset","Size of numeric annotation",value=12),
+                                           fluidRow(column(4,selectInput("upset.group.select",label = h5("Select group column (max 31 groups)"), choices = "",selected= "")),
+                                                    column(4, numericInput("font.size.anno.upset","Size of numeric annotation",value=12))),
+                                           selectInput("order.of.group",label = h5("Group column (max 31 groups)"), choices = "",selected= "", multiple = T, width = "1200px"),
                                            plotOutput("upset.plot", height = "600px"),
                                            
                                            h4(" "),
@@ -562,7 +567,6 @@ runApp <- function(...) {
       
       
     })
-    
     output$axis.parameters2 <- renderUI({
       df <- values.cut.off()
       fluidRow(
@@ -575,8 +579,6 @@ runApp <- function(...) {
       
       
     })
-    
-    
     output$up.parameters <- renderUI({
       df <- values.cut.off()
       
@@ -681,11 +683,7 @@ runApp <- function(...) {
                 label = "",
                 value = df$title.volcano.plot)
     })
-    
-    
-    
-    
-    
+
     # reactive values -----
     vals <- reactiveValues(ggplot=NULL)
     vals2 <- reactiveValues(cor_graph=NULL)
@@ -714,10 +712,12 @@ runApp <- function(...) {
           quote=input$quote)}
       
     })
-    
-    
     input.data <- function () {
       df <- input.data_old()
+      validate(
+        shiny::need(nrow(df)>0, "Upload data")
+      )
+      
       df <- as.data.frame(df)
       if  (nchar(names(df)[1])>4) {
         names(df)[1] <- gsub("^...","",names(df)[1] )
@@ -731,7 +731,7 @@ runApp <- function(...) {
     }
     
     
-    input.data2_old <- reactive({switch(input$dataset,"test-data" = test.data2(),"own" = own.data2())})
+    input.data2_old <- reactive({switch(input$dataset_list,"test-data-list" = test.data2(),"own_list" = own.data2())})
     test.data2 <- reactive({ 
       dataframe2 = read.csv(system.file("extdata","Refined list.csv",package = "ggVolcanoR"))
     })
@@ -760,21 +760,15 @@ runApp <- function(...) {
     
     
     output$summary_table <-DT::renderDataTable({
-      
       dat <- input.data();
-      
-      validate(
-        need(nrow(dat)>0,
-             error_message_val1)
-      )
-      
-      dat2 <- input.data2();
-      list <- dat2$ID
       dat <- as.data.frame(dat)
       neg <- -1*input$FC
       pos <- input$FC
       
       if (input$selected=="own list") {
+        dat2 <- input.data2();
+        dat2 <- as.data.frame(dat2)
+        list <- dat2$ID
         sub.mutateddf.gene3 <- mutate(dat,
                                       significance=ifelse(dat$ID %in% list & abs(dat$logFC)>pos & dat$Pvalue<input$Pvalue,"sig_list",
                                                           ifelse(dat$ID %in% list, "list not significant","not in list")))
@@ -785,9 +779,14 @@ runApp <- function(...) {
         summary$V4 <- a
         summary <- as.data.frame(t(summary))
         rownames(summary) <- 1:4
-        summary
+        if(nrow(summary)>0) {
+          summary
+        }
+        else {
+          as.data.frame("Missing own list")
+        }
+        
       }
-      
       else if (input$selected=="no labels") {
         sub.mutateddf.gene3 <- mutate(dat,
                                       significance=ifelse(dat$Pvalue<input$Pvalue & dat$logFC>pos,"upregulated",
@@ -802,7 +801,6 @@ runApp <- function(...) {
         rownames(summary) <- 1:4
         summary
       }
-      
       else {
         sub.mutateddf.gene3 <- mutate(dat,
                                       significance=ifelse(dat$Pvalue<input$Pvalue & dat$logFC>pos,"upregulated",
@@ -816,24 +814,16 @@ runApp <- function(...) {
         summary <- as.data.frame(t(summary))
         rownames(summary) <- 1:4
         summary}
+
       
     })
     
     plotInput <- function() {
       dat <- input.data();
-      
-      validate(
-        need(nrow(dat)>0,
-             error_message_val2)
-      )
-      
-      
-      dat2 <- input.data2();
-      dat <- as.data.frame(dat)
+       dat <- as.data.frame(dat)
       dat <- dat[order(dat$Pvalue),]
       
-      list <- dat2$ID
-      list2 <- dat2$ID
+ 
       neg <- -1*input$FC
       pos <- input$FC
       
@@ -848,7 +838,7 @@ runApp <- function(...) {
       mutateddf.gene <- mutate(mutateddf, top=ifelse(mutateddf$ID %in% gene_list, "top", "other"))
       mutateddf.gene
       
-      # no labels 
+      # no labels -----
       sub.mutateddf.gene <- mutate(mutateddf.gene,
                                    colour=ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,"sig_up",
                                                  ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")),
@@ -858,7 +848,7 @@ runApp <- function(...) {
                                                 ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3)),
                                    size=ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size1.1,
                                                ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))
-      # range of genes
+      # range of genes -----
       sub.mutateddf.gene2 <- mutate(mutateddf.gene,
                                     colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "top_up",
                                                   ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "top_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
@@ -881,6 +871,7 @@ runApp <- function(...) {
       
       y_lable1 <- bquote("-"~Log[10]~(.(input$expression_y2)))
       y_lable1
+      # if statments -----
       if (input$selected=="range (both directions)") {
         vals$ggplot <- ggplot() + 
           geom_point(aes(x=sub.mutateddf.gene2$logFC, y=-log10(sub.mutateddf.gene2$Pvalue),
@@ -1064,7 +1055,16 @@ runApp <- function(...) {
         
       }
       else if (input$selected=="own list") {
+        dat2 <- input.data2();
+        validate(
+          need(nrow(dat2)>0,
+               
+               "Upload own list")
+        )
         
+        
+        list <- dat2$ID
+        list2 <- dat2$ID
         
         merged_list <- mutateddf[mutateddf$ID %in% list2,]
         merged_list <- merged_list[order(merged_list$Pvalue),]
@@ -1281,6 +1281,11 @@ runApp <- function(...) {
       
       else { # selected ID
         dat2 <- input.data2();
+        validate(
+          need(nrow(dat2)>0,
+               "Upload own list")
+        )
+        
         list <- dat2$ID
         dat <- dat[dat$ID %in% list,]
         dat
@@ -1376,7 +1381,6 @@ runApp <- function(...) {
     })
     dataExpTable <- reactive({
       dat <- input.data();
-      dat2 <- input.data2();
       dat <- as.data.frame(dat)
       dat <- dat[order(dat$Pvalue),]
       list <- dat2$ID
@@ -1396,7 +1400,7 @@ runApp <- function(...) {
         negative
       }
       else if (input$export=="own list") {
-        
+        dat2 <- input.data2();
         ownlist <- dat[dat$ID %in% list & dat$Pvalue<input$Pvalue & abs(dat$logFC)>input$FC,]
       }
       else { 
@@ -1404,20 +1408,9 @@ runApp <- function(...) {
         both }
     })
     output$number_of_points <- renderPrint({
-      
       dat <- input.data();
-      
-      validate(
-        need(nrow(dat)>0,
-             error_message_val1)
-      )
-      
-      
-      dat2 <- input.data2();
       dat <- as.data.frame(dat)
       dat <- dat[order(dat$Pvalue),]
-      list <- dat2$ID
-      list2 <- dat2$ID
       dat$logP <- -log10(dat$Pvalue)
       total <- as.numeric(dim(dat)[1])
       subsetted <- subset(dat, dat$logP<input$yhigh)
@@ -1437,9 +1430,6 @@ runApp <- function(...) {
         need(nrow(dat)>0,
              " ")
       )
-      
-      
-      dat2 <- input.data2();
       dat <- as.data.frame(dat)
       dat <- dat[order(dat$Pvalue),]
       
@@ -1672,7 +1662,8 @@ runApp <- function(...) {
     input.data_parameters.cor_old <- reactive({switch(input$dataset_parameters.cor,"preset" = test.data_parameters.cor(),"user-uploaded" = own.data_parameters.cor())})
     test.data_parameters.cor <- reactive({
       dataframe = read.csv(system.file("extdata","test-parameters.cor.csv",package = "ggVolcanoR"))
-    })
+      
+      })
     own.data_parameters.cor <- reactive({
       inFile.style.cor <- input$file.style.cor 
       if (is.null(inFile.style.cor)) return(NULL)
@@ -1881,7 +1872,10 @@ runApp <- function(...) {
     input.data3_old <- reactive({switch(input$dataset2,"test-data" = test.data3(),"own" = own.data3())})
     test.data3 <- reactive({
       
-      dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR")) })
+      dataframe = read.csv(system.file("extdata","Proteomics data.csv",package = "ggVolcanoR")) 
+      
+      })
+    
     own.data3 <- reactive({
       inFile3 <- input$file3 
       if (is.null(inFile3)) return(NULL)
@@ -1974,6 +1968,9 @@ runApp <- function(...) {
     plotInput2 <- function() {
       dat4 <- input.data4();
       dat3 <- input.data3();
+      
+      dat4 <- as.data.frame(dat4)
+      dat3 <- as.data.frame(dat3)
       
       neg1 <- -1*input$FC1
       pos1 <- input$FC1
@@ -2154,13 +2151,13 @@ runApp <- function(...) {
         vals2$cor_graph}
       else if (input$ownlist.cor == TRUE  && input$reg.line == FALSE &&  input$label3 == TRUE) {
         dat6 <- input.data6();
-        
+        dat6 <- as.data.frame(dat6)
         validate(
           need(nrow(dat6)>0,
                error_message_val4)
         ) 
         
-        dat6 <- as.data.frame(dat6)
+        
         
         ID_sig <- dat_all[dat_all$ID %in% dat6$ID,]
         ID_sig <-  ID_sig[order(ID_sig[,input$sort_by],decreasing = input$sort_direction),] 
@@ -2422,6 +2419,7 @@ runApp <- function(...) {
       dat4 <- input.data4();
       dat3 <- input.data3();
       
+      
       validate(
         need(nrow(dat3)>0,
              error_message_val1)
@@ -2608,6 +2606,8 @@ runApp <- function(...) {
       pos2 <- input$FC2
       dat4 <- input.data4();
       dat3 <- input.data3();
+      
+      
       
       validate(
         need(nrow(dat3)>0,
@@ -3079,7 +3079,8 @@ runApp <- function(...) {
                       
                       row_names_gp = gpar(fontsize = input$heatmap.font.size, fontfamily = input$font.hm),
                       heatmap_legend_param = list(title = "logFC"),
-                      col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red")))
+                      col = colorRamp2(c(min.FC, 0, max.FC), c(input$lowcol, "white", input$hicol))
+                      )
         
         draw(ht, padding = unit(c(10, 10, 10, 10), "mm"))
         
@@ -3093,7 +3094,7 @@ runApp <- function(...) {
                       column_names_gp = gpar(fontfamily = input$font.hm),
                       row_names_gp = gpar(fontsize = input$heatmap.font.size, fontfamily = input$font.hm),
                       heatmap_legend_param = list(title = "logFC"),
-                      col = colorRamp2(c(min.FC, 0, max.FC), c("blue", "white", "red"))
+                      col = colorRamp2(c(min.FC, 0, max.FC), c(input$lowcol, "white", input$hicol))
         )
         
         draw(ht, padding = unit(c(10, 10, 10, 10), "mm"))
@@ -3188,6 +3189,28 @@ runApp <- function(...) {
       
     })
     
+    select_group <- function () {
+      df <- input.data.upset.heatmap();
+      
+      validate(
+        need(nrow(df)>0,
+             error_message_val1)
+      )
+      
+      df2 <- as.data.frame(unique(df[names(df) %in% input$upset.group.select]))
+      df2 <- as.data.frame(df2)
+      #names(df2) <- "V1"
+      df2
+    }
+    
+    observe({
+      updateSelectInput(
+        session,
+        "order.of.group",
+        choices=select_group(),
+        selected = c("Proteomics","Transcriptomics"))
+    })
+    
     file.upset  <- function () {
       file <- input.data.upset.heatmap();
       file$upset.present <- 1
@@ -3204,7 +3227,8 @@ runApp <- function(...) {
                                                             annotation_name_gp = gpar(fontfamily = input$font.hm)
                       ),
                       right_annotation = upset_right_annotation(df.x,
-                                                                annotation_name_gp = gpar(fontfamily = input$font.hm))
+                                                                annotation_name_gp = gpar(fontfamily = input$font.hm)),
+                      set_order  = c(input$order.of.group)
       ), padding = unit(c(20, 20, 20, 20), "mm"))
       od = column_order(ht)
       cs = comb_size(df.x)

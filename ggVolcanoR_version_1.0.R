@@ -830,6 +830,7 @@ server  <- function(input, output, session) {
     
     sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour_class)
     
+    
     y_lable1 <- bquote("-"~Log[10]~(.(input$expression_y2)))
     y_lable1
     if (input$selected=="range (both directions)") {
@@ -2966,7 +2967,6 @@ server  <- function(input, output, session) {
       head(df.1)
       df.1[is.na(df.1)] <- 0
       dim(df.1)
-      ?Heatmap
      # ha = HeatmapAnnotation(text = anno_text(df.1), which = "row", gp = gpar(fontfamily = "serif", fontface = "bold"))
      ht <- Heatmap(df.1[input$min.hm:input$max.hm,], 
               column_names_gp = gpar(fontfamily = input$font.hm),

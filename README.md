@@ -134,7 +134,8 @@ The table includes links to several databases:
 - The Human Protein Atlas (atlas)
 - UniProt 16 species (UniProt_species)
     * If the user is using one of the 16 common species, they can select this from the list. 
-    * Using the Symbol_species, aided in finding the correct information. 
+    * Using the Symbol_species, aided in finding the c
+    orrect information. 
     
 - UniProt other species (UniProt_other)
     * If a non-standard species is being used or uniprot ID's, use this column to find the related information. 

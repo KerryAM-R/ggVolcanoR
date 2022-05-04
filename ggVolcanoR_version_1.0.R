@@ -89,7 +89,7 @@ style.cor.type <- c("default","Labelled","Regression.line","labelled.Regression.
 
 ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                  # UI Volcano plot ----
-                 
+                 tags$head(includeHTML(("google-analytics.html"))),
                  tabPanel("Volcano plot (Single-group)",
                           sidebarLayout(
                             sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 900px; position:relative;", width=3,
@@ -827,10 +827,7 @@ server  <- function(input, output, session) {
     
     
     colour_class <- c("NS","sig_down","sig_up","top_down","top_up")
-    
     sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour_class)
-    
-    
     y_lable1 <- bquote("-"~Log[10]~(.(input$expression_y2)))
     y_lable1
     if (input$selected=="range (both directions)") {

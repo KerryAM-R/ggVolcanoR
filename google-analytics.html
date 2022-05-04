@@ -6,4 +6,21 @@
     gtag('js', new Date());
     
     gtag('config', 'G-B4PFHDL7GS');
+    
+    // Event Tracking Code
+    $(document).on('shiny:inputchanged', function(event) {
+      if(event.name == 'font' || event.name == 'Times New Roman'){
+        ga('send', 'event', 'input',
+          'updates', event.name, event.value);
+      }
+    });
+    
+    
+    // User Tracking Code
+    $(document).one('shiny:idle', function() {
+      ga('set','userId', Shiny.user);
+    });
+    
+
+    
     </script>

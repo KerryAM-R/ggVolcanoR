@@ -88,11 +88,14 @@ style.volcano.type <- c("default","all.datapoints","up.ID","down.ID","selected.I
 style.cor.type <- c("default","Labelled","Regression.line","labelled.Regression.line")
 
 ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
+                 tags$head(includeHTML(("google-analytics.html"))),     
                  # UI Volcano plot ----
-                 tags$head(includeHTML(("google-analytics.html"))),
+                 
                  tabPanel("Volcano plot (Single-group)",
+                         
                           sidebarLayout(
                             sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 900px; position:relative;", width=3,
+                                        
                                          tags$style(type="text/css", "body {padding-top: 70px; padding-left: 10px;}"),
                                          tags$head(tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}"))),
                                          tags$head(tags$style(HTML('.progress-bar {background-color: blue;}'))),
@@ -473,7 +476,7 @@ server  <- function(input, output, session) {
       write.csv(test.data_parameters(),file, row.names = FALSE)
     }
   )
-  
+
   values.cut.off <- function(){
     
     df <- input.data_parameters()
@@ -500,8 +503,6 @@ server  <- function(input, output, session) {
       subset(df,df$style.type=="default")
     }
   }
-
-  
   #  output$x <- renderUI({
   # df <- values.cut.off()
   #})

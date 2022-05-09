@@ -88,7 +88,7 @@ style.volcano.type <- c("default","all.datapoints","up.ID","down.ID","selected.I
 style.cor.type <- c("default","Labelled","Regression.line","labelled.Regression.line")
 
 ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
-                 tags$head(includeHTML(("google-analytics.html"))),     
+                      
                  # UI Volcano plot ----
                  
                  tabPanel("Volcano plot (Single-group)",
@@ -443,7 +443,8 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                             ),
                             
                             tabPanel("Session info", 
-                                     tabPanel("Session info", verbatimTextOutput("sessionInfo"))
+                                     tabPanel("Session info", verbatimTextOutput("sessionInfo")),
+                                     tags$head(HTML(("google-analytics.html")))
                             )
                  ))
 # sever -----

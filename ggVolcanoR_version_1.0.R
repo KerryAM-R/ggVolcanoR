@@ -87,9 +87,11 @@ style.volcano.type <- c("default","all.datapoints","up.ID","down.ID","selected.I
 
 style.cor.type <- c("default","Labelled","Regression.line","labelled.Regression.line")
 
-ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
+ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE, 
                       
                  # UI Volcano plot ----
+                 
+               
                  
                  tabPanel("Volcano plot (Single-group)",
                          
@@ -97,8 +99,8 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                             sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 900px; position:relative;", width=3,
                                         
                                          tags$style(type="text/css", "body {padding-top: 70px; padding-left: 10px;}"),
-                                         tags$head(tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}"))),
-                                         tags$head(tags$style(HTML('.progress-bar {background-color: blue;}'))),
+                                         # tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}")),
+                                         # tags$style(HTML('.progress-bar {background-color: blue;}')),
                                          selectInput("dataset_parameters","Select preset or user uploaded parameters",choices = c("preset","user-uploaded")),
                                          downloadButton("downloadTABLE.parameters","download parameters guide"),
                                          fileInput('file.style', 'Upload parameters',
@@ -444,7 +446,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                             
                             tabPanel("Session info", 
                                      tabPanel("Session info", verbatimTextOutput("sessionInfo")),
-                                     tags$head(HTML(("google-analytics.html")))
+                                     tags$head(includeHTML(("google-analytics.html")))
                             )
                  ))
 # sever -----

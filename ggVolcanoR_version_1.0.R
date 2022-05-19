@@ -113,6 +113,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file1', 'ID, logFC, Pvalue',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                         h5("P-value need to be between 0 to 1"),
                                          fluidRow(
                                            column(6,radioButtons('sep', 'Separator', c( Tab='\t', Comma=','), ',')),
                                            column(6,radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
@@ -621,26 +622,17 @@ server  <- function(input, output, session) {
   })
   output$transparancy3 <- renderUI({
     df <- values.cut.off()
-    numericInput("alpha1", "Transparency of selected", min=0.00, max=1, value=df$transparancy.labelled,step = 0.01)
+    sliderInput("alpha1", "Transparency of selected", min=0.00, max=1, value=df$transparancy.labelled,step = 0.01)
   })
   output$labelled.parameters <- renderUI({
     df <- values.cut.off()
     fluidRow(
-      column(6,colourInput(inputId = "col_lab1", label = "Colour of label 1",value = df$lab1.colour)),
-      column(6,selectInput(inputId = "lab1", 
-                           label = "label 1", 
-                           choices = lab, 
-                           selected = lab[df$lab1])),
-      column(6,colourInput(inputId = "col_lab2", label = "Colour of label 2",value = df$lab2.colour)),
-      column(6,selectInput(inputId = "lab2", 
-                           label = "label 2", 
-                           choices = lab, 
-                           selected = lab[df$lab2])),
-      column(6,colourInput(inputId = "col_lab3", label = "Colour of label 3",value = df$lab3.colour)),
-      column(6,selectInput(inputId = "lab3", 
-                           label = "label 3", 
-                           choices = lab, 
-                           selected = lab[df$lab3]))
+      column(4,colourInput(inputId = "col_lab1", label = "Labelled-down",value = df$lab1.colour)),
+
+      column(4,colourInput(inputId = "col_lab2", label = "Labelled-up",value = df$lab2.colour)),
+
+      column(4,colourInput(inputId = "col_lab3", label = "Labelled-NS",value = df$lab3.colour)),
+
     )
     
   })
@@ -803,7 +795,7 @@ server  <- function(input, output, session) {
     mutateddf.gene <- mutate(mutateddf, top=ifelse(mutateddf$ID %in% gene_list, "top", "other"))
     mutateddf.gene
     
-    # no labels 
+    # no labels -----
     sub.mutateddf.gene <- mutate(mutateddf.gene,
                                  colour=ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,"sig_up",
                                                ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")),
@@ -813,11 +805,11 @@ server  <- function(input, output, session) {
                                               ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3)),
                                  size=ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size1.1,
                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))
-    # range of genes
+    # range of genes -----
     sub.mutateddf.gene2 <- mutate(mutateddf.gene,
-                                  colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "top_up",
-                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "top_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
-                                                                                                                                                                                                                                                                      ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")))),
+                                  colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_up",
+                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"Significant-up",
+                                                                                                                                                                                                                                                                      ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"Significant-down","Non-significant")))),
                                   alpha=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))),
                                   size=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$size1,
@@ -830,11 +822,23 @@ server  <- function(input, output, session) {
     
     
     
-    colour_class <- c("NS","sig_down","sig_up","top_down","top_up")
-    sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour_class)
+    
     y_lable1 <- bquote("-"~Log[10]~(.(input$expression_y2)))
     y_lable1
+    
     if (input$selected=="range (both directions)") {
+      
+      colour_class3 <- c("Significant-down","Significant-up","Labelled_down","Labelled_up","Non-significant")
+      colour.df3 <- as.data.frame(c("Significant-down","Significant-up","Labelled_down","Labelled_up","Non-significant"))
+      names(colour.df3) <- "label"
+      colour.df3$V1 <- c(input$down,input$up,input$col_lab1,input$col_lab2,input$NS)
+      colour.df3$shape <- c(input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape3)
+      colour.class4 <- colour.df3[colour.df3$label %in% unique(sub.mutateddf.gene2$colour),]
+      
+      sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour.class4$label)
+    
+      
+      
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene2$logFC, y=-log10(sub.mutateddf.gene2$Pvalue),
                        col=sub.mutateddf.gene2$colour,shape=sub.mutateddf.gene2$colour),size=sub.mutateddf.gene2$size,alpha=sub.mutateddf.gene2$alpha) +
@@ -848,11 +852,10 @@ server  <- function(input, output, session) {
                         show.legend = F,box.padding = unit(input$dist, 'lines'), 
                         max.overlaps = Inf) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
-        scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab1,input$col_lab2),
-                           labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2)) +
-        scale_shape_manual(values=c(input$shape3,input$shape2,input$shape1.1,input$shape1,input$shape1),
-                           labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2)) +
         
+        scale_color_manual(name="legend",values=colour.class4$V1, labels = colour.class4$label) +
+        scale_shape_manual(name="legend",values=colour.class4$shape, labels=colour.class4$label)+
+
         theme_bw(base_size = 18)+
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
               panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
@@ -888,9 +891,9 @@ server  <- function(input, output, session) {
       top <- mutateddf.gene2[(input$min:input$max),]
       gene_list <- top$ID
       sub.mutateddf.gene2 <- mutate(mutateddf.gene,
-                                    colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "top_up",
-                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "top_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
-                                                                                                                                                                                                                                                                        ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")))),
+                                    colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_up",
+                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"Significant-up",
+                                                                                                                                                                                                                                                                             ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"Significant-down","Non-significant")))),
                                     alpha=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))),
                                     size=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$size1,
@@ -899,9 +902,14 @@ server  <- function(input, output, session) {
                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$shape2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3))))
       )
       
-      colour_class <- c("NS","sig_down","sig_up","top_down","top_up")
+      colour_class3 <- c("Significant-down","Significant-up","Labelled_down","Labelled_up","Non-significant")
+      colour.df3 <- as.data.frame(c("Significant-down","Significant-up","Labelled_down","Labelled_up","Non-significant"))
+      names(colour.df3) <- "label"
+      colour.df3$V1 <- c(input$down,input$up,input$col_lab1,input$col_lab2,input$NS)
+      colour.df3$shape <- c(input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape3)
+      colour.class4 <- colour.df3[colour.df3$label %in% unique(sub.mutateddf.gene2$colour),]
       
-      sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour_class)
+      sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour.class4$label)
       
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene2$logFC, y=-log10(sub.mutateddf.gene2$Pvalue),
@@ -916,8 +924,9 @@ server  <- function(input, output, session) {
                         show.legend = F,box.padding = unit(input$dist, 'lines'), 
                         max.overlaps = Inf) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
-        scale_color_manual(name= "legend",values=c(input$NS,input$down,input$up,input$col_lab2),labels=c("non-significant","down-regulated","up-regulated",input$lab2)) +
-        scale_shape_manual(name= "legend",values=c(input$shape3,input$shape2,input$shape1.1,input$shape1),labels=c("non-significant","down-regulated","up-regulated",input$lab2)) +
+        scale_color_manual(name="legend",values=colour.class4$V1, labels = colour.class4$label) +
+        scale_shape_manual(name="legend",values=colour.class4$shape, labels=colour.class4$label)+
+        
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme_bw(base_size = 18)+
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -951,26 +960,28 @@ server  <- function(input, output, session) {
       
       
       mutateddf.gene2 <- subset(mutateddf.gene,mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue)
-      Ordered_df <-  mutateddf.gene2[order(mutateddf.gene2$Pvalue,decreasing = F),]
-      
       top <- mutateddf.gene2[(input$min:input$max),]
       gene_list <- top$ID
       sub.mutateddf.gene2 <- mutate(mutateddf.gene,
-                                    colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "top_up",
-                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "top_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
-                                                                                                                                                                                                                                                                        ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")))),
-                                    alpha=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
-                                                 ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))),
-                                    size=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$size1,
-                                                ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$size1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size1.1,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))),
-                                    shape=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,
-                                                 ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$shape2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3))))
+                                      colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_up",
+                                                    ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"Significant-up",
+                                                                                                                                                                                                                                                                               ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"Significant-down","Non-significant")))),
+                                      alpha=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,
+                                                   ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$alpha1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$alpha2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$alpha2,input$alpha3)))),
+                                      size=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$size1,
+                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$size1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$size1.1,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$size2,input$size3)))),
+                                      shape=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,
+                                                   ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, input$shape1,                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,input$shape2,                                                                                                                              ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,input$shape2,input$shape3))))
       )
       
+      colour_class3 <- c("Significant-down","Significant-up","Labelled_down","Labelled_up","Non-significant")
+      colour.df3 <- as.data.frame(c("Significant-down","Significant-up","Labelled_down","Labelled_up","Non-significant"))
+      names(colour.df3) <- "label"
+      colour.df3$V1 <- c(input$down,input$up,input$col_lab1,input$col_lab2,input$NS)
+      colour.df3$shape <- c(input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape3)
+      colour.class4 <- colour.df3[colour.df3$label %in% unique(sub.mutateddf.gene2$colour),]
       
-      colour_class <- c("NS","sig_down","sig_up","top_down","top_up")
-      
-      sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour_class)
+      sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour.class4$label)
       
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene2$logFC, y=-log10(sub.mutateddf.gene2$Pvalue),
@@ -985,8 +996,8 @@ server  <- function(input, output, session) {
                         show.legend = F,box.padding = unit(input$dist, 'lines'), 
                         max.overlaps = Inf) +
         guides(shape = guide_legend(override.aes = list(size = 5))) +
-        scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab1),labels=c("non-significant","down-regulated","up-regulated",input$lab1)) +
-        scale_shape_manual(values=c(input$shape3,input$shape2,input$shape1.1,input$shape1),labels=c("non-significant","down-regulated","up-regulated",input$lab1)) +
+        scale_color_manual(name="legend",values=colour.class4$V1, labels = colour.class4$label) +
+        scale_shape_manual(name="legend",values=colour.class4$shape, labels=colour.class4$label)+
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme_bw(base_size = 18)+
         theme(panel.border = element_blank(), panel.grid.major = element_blank(),
@@ -1028,14 +1039,14 @@ server  <- function(input, output, session) {
       list2 <- sig2$ID
       
       sub.mutateddf.gene_list <- mutate(mutateddf.gene,
-                                        colour=ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "zlist_1",
-                                                      ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "zlist_2",
-                                                             ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue>input$Pvalue, "zlist_3",
-                                                                    ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue>input$Pvalue, "zlist_3",
-                                                                           ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue<input$Pvalue, "zlist_3",
-                                                                                  ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue<input$Pvalue,  "zlist_3",
-                                                                                         ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"sig_up",
-                                                                                                ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"sig_down","NS")))))))),
+                                        colour=ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_up",
+                                                      ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_down",
+                                                             ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue>input$Pvalue, "labelled-Non-significant",
+                                                                    ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue>input$Pvalue, "labelled-Non-significant",
+                                                                           ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue<input$Pvalue, "labelled-Non-significant",
+                                                                                  ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue<input$Pvalue,  "labelled-Non-significant",
+                                                                                         ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"Significant-up",
+                                                                                                ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"Significant-down","Non-significant")))))))),
                                         alpha=ifelse(mutateddf.gene$ID %in% list2, input$alpha1, 
                                                      ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC>pos,input$alpha2,
                                                             ifelse(mutateddf.gene$Pvalue<input$Pvalue & mutateddf.gene$logFC<neg,input$alpha2,input$alpha3))),
@@ -1050,7 +1061,14 @@ server  <- function(input, output, session) {
       
       colour_class <- c("NS","sig_down","sig_up","zlist_1","zlist_2","zlist_3")
       
-      sub.mutateddf.gene_list$colour <- factor(sub.mutateddf.gene_list$colour, levels = colour_class)
+      colour_class3 <- c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant")
+      colour.df3 <- as.data.frame(c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant"))
+      names(colour.df3) <- "label"
+      colour.df3$V1 <- c(input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3,input$NS)
+      colour.df3$shape <- c(input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape1,input$shape3)
+      colour.class4 <- colour.df3[colour.df3$label %in% unique(sub.mutateddf.gene_list$colour),]
+      
+      sub.mutateddf.gene_list$colour <- factor(sub.mutateddf.gene_list$colour, levels = colour.class4$label)
       
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),col=sub.mutateddf.gene_list$colour,shape=sub.mutateddf.gene_list$colour),size=sub.mutateddf.gene_list$size,alpha=sub.mutateddf.gene_list$alpha) +
@@ -1062,8 +1080,11 @@ server  <- function(input, output, session) {
                         segment.alpha = 0.5, 
                         show.legend = F,box.padding = unit(input$dist, 'lines'), 
                         max.overlaps = Inf) +
-        scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2,input$lab3)) +
-        scale_shape_manual(values=c(input$shape3,input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape1),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2,input$lab3)) +
+        # scale_color_manual(values=c(input$NS,input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2,input$lab3)) +
+        # scale_shape_manual(values=c(input$shape3,input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape1),labels=c("non-significant","down-regulated","up-regulated",input$lab1,input$lab2,input$lab3)) +
+        scale_color_manual(name="legend",values=colour.class4$V1, labels = colour.class4$label) +
+        scale_shape_manual(name="legend",values=colour.class4$shape, labels=colour.class4$label)+
+        
         guides(shape = guide_legend(override.aes = list(size = 5))) +
         guides(fill = guide_legend(override.aes = list(shape = NA))) +
         theme_bw(base_size = 18)+
@@ -1093,10 +1114,26 @@ server  <- function(input, output, session) {
       vals$ggplot
     }
     else  {     
+      
+      
+      
+      colour_class <- c("NS","sig_down","sig_up")
+      colour.df <- as.data.frame(c("NS","sig_down","sig_up"))
+      names(colour.df) <- "label"
+      colour.df$V1 <- c(input$NS,input$down,input$up)
+      
+      colour.class1 <- colour.df[colour.df$label %in% unique(sub.mutateddf.gene$colour),]
+      
+      sub.mutateddf.gene$colour <- factor(sub.mutateddf.gene$colour, levels = colour.class1$label)
+ 
+      
       vals$ggplot <- ggplot() + 
         geom_point(aes(x=sub.mutateddf.gene$logFC, y=-log10(sub.mutateddf.gene$Pvalue),col=sub.mutateddf.gene$colour,shape=sub.mutateddf.gene$colour),size=sub.mutateddf.gene$size,alpha=sub.mutateddf.gene$alpha) +
-        scale_color_manual(values=c(input$NS,input$down,input$up),labels=c("non-significant","down-regulated","up-regulated")) + 
-        scale_shape_manual(values=c(input$shape3,input$shape2,input$shape1.1),labels=c("non-significant","down-regulated","up-regulated"))+
+        
+        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
+        # scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
+
+        scale_shape_manual(name="legend",values=c(input$shape3,input$shape2,input$shape1.1), labels=colour.class1$label)+
         theme_bw(base_size = 18)+
         guides(shape = guide_legend(override.aes = list(size = 5))) +
         theme(panel.border = element_blank(), panel.grid.major = element_blank(), 
@@ -2926,8 +2963,6 @@ server  <- function(input, output, session) {
   })
   
 
-  
-  
   output$downloadTABLE4 <- downloadHandler(
     filename = function(){
       paste("User defined Volcano features_",gsub("-", ".", Sys.Date()),".csv", sep = "")

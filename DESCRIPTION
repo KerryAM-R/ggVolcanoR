@@ -1,5 +1,5 @@
 Package: ggVolcanoR
-Version: 1.0.1
+Version: 1.0.2
 Date: 2021-10-12
 Title: ggVolcanoR: a Shiny app for customizable visualization of differential expression datasets
 Description: A shiny application that can generate customizable figure for differential expression datasets. This includes Volcano plots, correlation plots, heatmaps and upset plots. 

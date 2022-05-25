@@ -455,6 +455,8 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                          )
 
 )
+
+"scholar.enw"
 # sever -----
 # preselected styles 
 server  <- function(input, output, session) {

@@ -432,7 +432,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                   )
                 ),
                  
-                 navbarMenu("More",
+                 navbarMenu("Read Me files",
                             tabPanel("Volcano plot Read Me file",
                                      fluidRow(includeMarkdown("README.md")
                                               
@@ -449,7 +449,12 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                      tabPanel("Session info", verbatimTextOutput("sessionInfo")),
                                      tags$head(includeHTML(("google-analytics.html")))
                             )
-                 ))
+                 ),
+                tabPanel('Citation',
+                         fluidRow(includeMarkdown("README.cite.md"))
+                         )
+
+)
 # sever -----
 # preselected styles 
 server  <- function(input, output, session) {

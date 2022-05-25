@@ -22,14 +22,6 @@ devtools::install_github("jokergoo/ComplexHeatmap")
 
 you may need to install Rtools (windows)
 
-## Cite the ggVolcanoR Publication
-
-https://www.sciencedirect.com/science/article/pii/S2001037021004426 
-
-Mullan, K. A. et al. ggVolcanoR: A Shiny app for customizable visualization of differential expression datasets. Comput Struct Biotechnol J 19, 5735-5740, doi:10.1016/j.csbj.2021.10.020 (2021).
-
-link to endnote citation: https://scholar.googleusercontent.com/scholar.enw?q=info:iH49o0Dmh9IJ:scholar.google.com/&output=citation&scisdr=CgWwAUR_EKqTkAVW0aU:AAGBfm0AAAAAYo1QyaVOL_NHxsGLBg0LKFXUw0mRb6iU&scisig=AAGBfm0AAAAAYo1Qye3a8GD_ewiuc6k5PjecPTn6kHDf&scisf=3&ct=citation&cd=-1&hl=en
-
 ## File types accepted
 
 The file must contain headers: ID, logFC and Pvalue. 

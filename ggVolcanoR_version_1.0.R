@@ -114,6 +114,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          fileInput('file1', 'ID, logFC, Pvalue',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          h5("P-value need to be between 0 to 1"),
+                                         selectInput("input.type.value","Form of Pvalue",choices=c("0 to 1","-∞ to ∞ or pre-converted -log10(PValue)")),
                                          fluidRow(
                                            column(6,radioButtons('sep', 'Separator', c( Tab='\t', Comma=','), ',')),
                                            column(6,radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
@@ -127,6 +128,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          h4("Select font for graph"),
                                          uiOutput("font.type"),
+
                                          h4("Cut-offs"),
                                          uiOutput("cut.offs"),
                                          h4("Axis parameters"),
@@ -183,6 +185,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                                        wellPanel(id = "tPanel222",style = "overflow-y:scroll; max-height: 600px",
                                                                  uiOutput('myPanel.ggVolCol'))),
                                                 column(9, plotOutput("col.ggplot",height = "600px"))),
+                                       
                                        fluidRow(
                                          
                                          column(3,numericInput("width_col", "Width of PDF", value=10)),
@@ -245,6 +248,9 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          ),
                                          fileInput('file6', 'Choose selected gene file (.csv)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                         
+                                         selectInput("input.type.value.cor","Form of Pvalue",choices=c("0 to 1","-∞ to ∞ or pre-converted -log10(PValue)")),
+                                         
                                          h4("Font type"),
                                         uiOutput("font_cor"),
                                          h4("Cut-offs"),
@@ -406,9 +412,33 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                             
                                             ),
                                    tabPanel("Upset plot",
-                                            fluidRow(column(4,selectInput("upset.group.select",label = h5("Select group column (max 31 groups)"), choices = "",selected= "")),
-                                                     column(4, numericInput("font.size.anno.upset","Size of numeric annotation",value=12))),
+                                            fluidRow(
+                                              column(4,selectInput("upset.group.select",label = h5("Select group column (max 31 groups)"), choices = "",selected= "")),
+                                                     
+                                                    ),
                                             selectInput("order.of.group",label = h5("Group column (max 31 groups)"), choices = "",selected= "", multiple = T, width = "1200px"),
+                                            
+                                            fluidRow(
+                                              column(2, selectInput("upset_anno","Colouring options",choices = c("default", "Colour by degree"))),
+                                              
+                                              column(2, numericInput("upset.lab.sizer","Size of group label",value = 20)),
+                                              column(2, numericInput("font.size.anno.upset","Size of numeric annotation",value=12)),
+                                              conditionalPanel(condition = "input.upset_anno == 'Colour by degree'",
+                                                               column(6,textInput("upset_colours_list1","Colour of dots by degree", value="darkgreen,purple")),
+                                              
+                                            ),
+                                              
+                                                    ),
+                                          
+                                            fluidRow(
+                                              column(3, numericInput("upset.point.size","Size of point",value = 5)),
+                                              column(3, numericInput("upset.lwd","Line width",value = 2)),
+                                              column(3, colourInput("right_annotation_colour","Colour of bar (right)",value = "black")),
+                                              column(3, colourInput("top_annotation_colour","Colour of bar (top)",value = "black"))
+                                                     ),
+                                            
+                                            
+                                            
                                             plotOutput("upset.plot", height = "600px"),
                                             h4(" "),
                                             h4("Download Upset plot"),
@@ -431,7 +461,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                      )
                   )
                 ),
-                 
+                 # Read me files ----
                  navbarMenu("Read Me files",
                             tabPanel("Volcano plot Read Me file",
                                      fluidRow(includeMarkdown("README.md")
@@ -708,7 +738,18 @@ server  <- function(input, output, session) {
   })
   output$summary_table <-DT::renderDataTable({
     
-    dat <- input.data();
+    
+    
+    if (input$input.type.value == '0 to 1') 
+    {
+      dat <- input.data();
+    }
+    
+    else {
+      dat <- input.data();
+      dat$Pvalue <- 10^(-1*dat$Pvalue)
+      
+    }
     
     validate(
       need(nrow(dat)>0,
@@ -768,6 +809,17 @@ server  <- function(input, output, session) {
   
   plotInput <- function() {
     dat <- input.data();
+    
+    if (input$input.type.value == '0 to 1') 
+    {
+      dat <- input.data();
+    }
+    
+    else {
+      dat <- input.data();
+      dat$Pvalue <- 10^(-1*dat$Pvalue)
+      
+    }
     
     validate(
       need(nrow(dat)>0,
@@ -1194,9 +1246,17 @@ server  <- function(input, output, session) {
 
   })
   type.of.data <- function () {
+
+    if (input$input.type.value == '0 to 1') 
+    {
+      dat <- input.data();
+    }
     
-    dat <- input.data();
-    
+    else {
+      dat <- input.data();
+      dat$Pvalue <- 10^(-1*dat$Pvalue)
+      
+    }
     
     dat <- dat[, c("ID","logFC","Pvalue")]
     
@@ -1386,6 +1446,18 @@ server  <- function(input, output, session) {
   })
   dataExpTable <- reactive({
     dat <- input.data();
+    if (input$input.type.value == '0 to 1') 
+    {
+      dat <- input.data();
+    }
+    
+    else {
+      dat <- input.data();
+      dat$Pvalue <- 10^(-1*dat$Pvalue)
+      
+    }
+    
+    
     dat2 <- input.data2();
     dat <- as.data.frame(dat)
     dat <- dat[order(dat$Pvalue),]
@@ -1416,7 +1488,16 @@ server  <- function(input, output, session) {
   output$number_of_points <- renderPrint({
     
     dat <- input.data();
+    if (input$input.type.value == '0 to 1') 
+    {
+      dat <- input.data();
+    }
     
+    else {
+      dat <- input.data();
+      dat$Pvalue <- 10^(-1*dat$Pvalue)
+      
+    }
     validate(
       need(nrow(dat)>0,
            error_message_val1)
@@ -1441,7 +1522,16 @@ server  <- function(input, output, session) {
   })
   output$sig_values_test <- renderPrint({
     
-    dat <- input.data();
+    if (input$input.type.value == '0 to 1') 
+    {
+      dat <- input.data();
+    }
+    
+    else {
+      dat <- input.data();
+      dat$Pvalue <- 10^(-1*dat$Pvalue)
+      
+    }
     
     validate(
       need(nrow(dat)>0,
@@ -1505,12 +1595,25 @@ server  <- function(input, output, session) {
 # selected points ---------------------------------------------------------
 
   col.ggVolc.data <- reactive({
-    df <- input.data();
+    if (input$input.type.value == '0 to 1') 
+    {
+      df <- input.data();
+    }
+    
+    else {
+      df <- input.data();
+      df$Pvalue <- 10^(-1*df$Pvalue)
+      
+    }
+    
     df <- as.data.frame(df)
     your_list <- c(input$string.data3)
-    your_list_df <- as.data.frame((unlist(strsplit(your_list, ', '))))
+
+    your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+    
     names(your_list_df) <- "ID"
     head(your_list_df)
+    your_list_df$ID <- gsub(" ","",your_list_df$ID)
     your_list_df$selected <- your_list_df$ID
 
     dat <-  merge(df,your_list_df,by="ID",all.x=T)
@@ -1542,12 +1645,25 @@ server  <- function(input, output, session) {
   output$myPanel.ggVolCol <- renderUI({col.ggVolc.data()}) 
   
   colors.ggvolc.plot2 <- reactive({
-    df <- input.data();
+    if (input$input.type.value == '0 to 1') 
+    {
+      df <- input.data();
+    }
+    
+    else {
+      df <- input.data();
+      df$Pvalue <- 10^(-1*df$Pvalue)
+      
+    }
+    
     df <- as.data.frame(df)
     your_list <- c(input$string.data3)
-    your_list_df <- as.data.frame((unlist(strsplit(your_list, ', '))))
+    
+    your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+    
     names(your_list_df) <- "ID"
     head(your_list_df)
+    your_list_df$ID <- gsub(" ","",your_list_df$ID)
     your_list_df$selected <- your_list_df$ID
     
     dat <-  merge(df,your_list_df,by="ID",all.x=T)
@@ -1564,13 +1680,25 @@ server  <- function(input, output, session) {
   vals6 <- reactiveValues(volc.plot2=NULL)
   
   plot.col.ggplot <- function () {
+    if (input$input.type.value == '0 to 1') 
+    {
+      df <- input.data();
+    }
     
-    df <- input.data();
+    else {
+      df <- input.data();
+      df$Pvalue <- 10^(-1*df$Pvalue)
+      
+    }
+    
     df <- as.data.frame(df)
     your_list <- c(input$string.data3)
-    your_list_df <- as.data.frame((unlist(strsplit(your_list, ', '))))
+    
+    your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+    
     names(your_list_df) <- "ID"
     head(your_list_df)
+    your_list_df$ID <- gsub(" ","",your_list_df$ID)
     your_list_df$selected <- your_list_df$ID
     neg <- -1*input$FC
     pos <- input$FC
@@ -1829,8 +1957,6 @@ server  <- function(input, output, session) {
     )
     
   })
-  
-  
   output$legend.par.cor <- renderUI({
     df <- values.cut.off.cor()
     fluidRow(
@@ -1840,7 +1966,6 @@ server  <- function(input, output, session) {
     )
     
   })
-  
   output$labels.cor <- renderUI({
     df <- values.cut.off.cor()
     
@@ -1855,7 +1980,6 @@ server  <- function(input, output, session) {
     )
     
   })
-  
   output$labels.cor2 <- renderUI({
     df <- values.cut.off.cor()
     
@@ -1866,10 +1990,6 @@ server  <- function(input, output, session) {
     )
     
   })
-  
-
-
-  
   # correlation graph server ------------------
   
   input.data3 <- reactive({switch(input$dataset2,"test-data" = test.data3(),"own" = own.data3())})
@@ -1919,8 +2039,22 @@ server  <- function(input, output, session) {
   
   # Merging the two plots ----
   plotInput2 <- function() {
-    dat4 <- input.data4();
-    dat3 <- input.data3();
+    
+    if (input$input.type.value.cor == '0 to 1') 
+    {
+      dat4 <- input.data4();
+      dat3 <- input.data3();
+    }
+    
+    else {
+      dat4 <- input.data4();
+      dat4$Pvalue <- 10^(-1*dat4$Pvalue)
+      dat3 <- input.data3();
+      dat3$Pvalue <- 10^(-1*dat3$Pvalue)
+      
+    }
+    
+    
     
     neg1 <- -1*input$FC1
     pos1 <- input$FC1
@@ -2366,8 +2500,19 @@ server  <- function(input, output, session) {
     pos1 <- input$FC1
     neg2 <- -1*input$FC2
     pos2 <- input$FC2
-    dat4 <- input.data4();
-    dat3 <- input.data3();
+    if (input$input.type.value.cor == '0 to 1') 
+    {
+      dat4 <- input.data4();
+      dat3 <- input.data3();
+    }
+    
+    else {
+      dat4 <- input.data4();
+      dat4$Pvalue <- 10^(-1*dat4$Pvalue)
+      dat3 <- input.data3();
+      dat3$Pvalue <- 10^(-1*dat3$Pvalue)
+      
+    }
     
     validate(
       need(nrow(dat3)>0,
@@ -2378,6 +2523,7 @@ server  <- function(input, output, session) {
       need(nrow(dat4)>0,
            error_message_val1)
     ) 
+    
     
     
     dat5 <- merge(dat3,dat4,by="ID")
@@ -2440,8 +2586,19 @@ server  <- function(input, output, session) {
   
   # test that isnt used? -----
   output$text1 <- renderPrint({
-    dat4 <- input.data4();
-    dat3 <- input.data3();
+    if (input$input.type.value.cor == '0 to 1') 
+    {
+      dat4 <- input.data4();
+      dat3 <- input.data3();
+    }
+    
+    else {
+      dat4 <- input.data4();
+      dat4$Pvalue <- 10^(-1*dat4$Pvalue)
+      dat3 <- input.data3();
+      dat3$Pvalue <- 10^(-1*dat3$Pvalue)
+      
+    }
     validate(
       need(nrow(dat3)>0,
            error_message_val1)
@@ -2465,8 +2622,19 @@ server  <- function(input, output, session) {
     pos1 <- input$FC1
     neg2 <- -1*input$FC2
     pos2 <- input$FC2
-    dat4 <- input.data4();
-    dat3 <- input.data3();
+    if (input$input.type.value.cor == '0 to 1') 
+    {
+      dat4 <- input.data4();
+      dat3 <- input.data3();
+    }
+    
+    else {
+      dat4 <- input.data4();
+      dat4$Pvalue <- 10^(-1*dat4$Pvalue)
+      dat3 <- input.data3();
+      dat3$Pvalue <- 10^(-1*dat3$Pvalue)
+      
+    }
     
     validate(
       need(nrow(dat3)>0,
@@ -2527,8 +2695,19 @@ server  <- function(input, output, session) {
     pos1 <- input$FC1
     neg2 <- -1*input$FC2
     pos2 <- input$FC2
-    dat4 <- input.data4();
-    dat3 <- input.data3();
+    if (input$input.type.value.cor == '0 to 1') 
+    {
+      dat4 <- input.data4();
+      dat3 <- input.data3();
+    }
+    
+    else {
+      dat4 <- input.data4();
+      dat4$Pvalue <- 10^(-1*dat4$Pvalue)
+      dat3 <- input.data3();
+      dat3$Pvalue <- 10^(-1*dat3$Pvalue)
+      
+    }
     
     validate(
       need(nrow(dat3)>0,
@@ -2994,7 +3173,7 @@ server  <- function(input, output, session) {
   
   
   
-  # heatmap and upset  ------------------------------------------------------
+  # heatmap and upset  -------
   
   input.data.upset.heatmap <- reactive({switch(input$dataset.upset.heatmap,"test-data" = test.data.hm(),"own" = own.data.hm())})
   
@@ -3079,8 +3258,7 @@ server  <- function(input, output, session) {
     }
     
   }
-  
-  
+
   output$heatmap.plot <- renderPlot({
     withProgress(message = 'Figure is being generated...',
                  detail = '', value = 0, {
@@ -3160,10 +3338,14 @@ server  <- function(input, output, session) {
       choices=select_group(),
       selected = c("Proteomics","Transcriptomics"))
   })
-  
+
   
   file.upset  <- function () {
     file <- input.data.upset.heatmap();
+    
+    your_list <- c(input$upset_colours_list1)
+    your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+    names(your_list_df) <- "ID"
     file$upset.present <- 1
     df.upset <- acast(file, ID~get(input$upset.group.select), value.var="upset.present")
     head(df.upset)
@@ -3171,23 +3353,73 @@ server  <- function(input, output, session) {
     df.x <- make_comb_mat(as.matrix(df.upset))
     head(df.x)
     
-   ht = draw(UpSet(df.x,
-                    row_names_gp =  gpar(fontfamily = input$font.hm),
-                    column_names_gp = gpar(fontfamily = input$font.hm),
+    
+    if (input$upset_anno == "Colour by degree") {
+      
+      ht = draw(UpSet(df.x,
+                      pt_size = unit(input$upset.point.size, "mm"),
+                      lwd = input$upset.lwd,
+                      row_names_gp =  gpar(fontfamily = input$font.hm,fontsize = input$upset.lab.sizer),#changes font size of "set size" labels
+                      column_names_gp = gpar(fontfamily = input$font.hm),
+                      comb_col = c(your_list_df$ID)[comb_degree(df.x)],
+                      top_annotation = upset_top_annotation(df.x,
+                                                            numbers_gp = gpar(fontfamily = input$font.hm,fontsize = input$font.size.anno.upset),
+                                                            annotation_name_gp = gpar(fontfamily = input$font.hm,fontsize=input$font.size.anno.upset),
+                                                                      
+                      ),
+                      right_annotation = upset_right_annotation(df.x,
+                                                                add_numbers = T,
+                                                                numbers_gp = gpar(fontfamily = input$font.hm,fontsize = input$font.size.anno.upset),
+                                                                annotation_name_gp = gpar(fontfamily = input$font.hm,fontsize=input$font.size.anno.upset),
+                                                                gp = gpar(fill = input$right_annotation_colour),
+                      ),
+                      
+                      
+                      set_order  = c(input$order.of.group)
+      ), padding = unit(c(20, 20, 20, 20), "mm"))
+      
+    }
+
+  else {
+    ht = draw(UpSet(df.x,
+                    pt_size = unit(input$upset.point.size, "mm"),
+                    lwd = input$upset.lwd,
+                    row_names_gp =  gpar(fontfamily = input$font.hm,fontsize = input$upset.lab.sizer),
+                    column_names_gp = gpar(fontfamily = input$font.hm,fontsize = input$upset.lab.sizer),
                     top_annotation = upset_top_annotation(df.x,
-                                                          annotation_name_gp = gpar(fontfamily = input$font.hm)
-                                                          ),
+                                                          # add_numbers = T,
+                                                          numbers_gp = gpar(fontfamily = input$font.hm,fontsize = input$font.size.anno.upset),
+                                                          annotation_name_gp = gpar(fontfamily = input$font.hm,fontsize=input$font.size.anno.upset),
+                                                          
+                    ),
                     right_annotation = upset_right_annotation(df.x,
-                                                              annotation_name_gp = gpar(fontfamily = input$font.hm)),
-                   set_order  = c(input$order.of.group)
-                    ), padding = unit(c(20, 20, 20, 20), "mm"))
+                                                              add_numbers = T,
+                                                              numbers_gp = gpar(fontfamily = input$font.hm,fontsize = input$font.size.anno.upset),
+                                                              annotation_name_gp = gpar(fontfamily = input$font.hm,fontsize=input$font.size.anno.upset),
+                                                              gp = gpar(fill = input$right_annotation_colour),
+                    ),
+                    
+                    
+                    set_order  = c(input$order.of.group)
+    ), padding = unit(c(20, 20, 20, 20), "mm"))
+    
+    
+  }
+   
+   
     od = column_order(ht)
     cs = comb_size(df.x)
+    
+    ht
     decorate_annotation("intersection_size", {
-      grid.text(cs[od], x = seq_along(cs), y = unit(cs[od], "native") + unit(2, "pt"), 
+      grid.text(cs[od], x = seq_along(cs), y = unit(cs[od], "native") + unit(2, "pt")
+      ,
                 default.units = "native", just = "bottom", gp = gpar(fontsize = input$font.size.anno.upset, fontfamily = input$font.hm)
                 )
     })
+    
+    
+    
     
   }
   

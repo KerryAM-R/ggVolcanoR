@@ -111,7 +111,9 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                            column(6,radioButtons('quote.style', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
                                          ),
                                          selectInput("user.defined","Types of preset parameters",choices = style.volcano.type),
+                                         
                                          uiOutput("label.graph.type"),
+                                         p("There are 6 labelling options: none, both, up, down or own list (uploaded or manual)"),
                                          selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file1', 'ID, logFC, Pvalue',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
@@ -224,6 +226,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                                    label = "Filtered lists for download", 
                                                    choices = filtered_table, 
                                                    selected = filtered_table[1]),
+                                       p("own list: will download either the list from 'own list' or 'manual' based on the 'Type of output' parameter in the sidebar"),
                                        downloadButton("downloadTABLE", "Download filtered Table"))
                               
                             ))

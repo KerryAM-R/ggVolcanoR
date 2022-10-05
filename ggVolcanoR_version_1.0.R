@@ -67,7 +67,7 @@ fonts <- c("Arial" = "sans",
            "Times New Roman" = "serif", 
            "Courier" = "mono")
 
-selected_present <- c("no labels","range (both directions)","range (up direction)","range (down direction)","own list")
+selected_present <- c("no labels","range (both directions)","range (up direction)","range (down direction)","own list","manual")
 y_options <- c("-Log10(p-value)","FDR", "adjusted")
 legend_location <- c("right","bottom","left","top","none")
 species <- c("BOVIN","CHICK","ECOLI","HORSE","HUMAN","MAIZE","MOUSE","PEA", "PIG","RABIT","RAT","SHEEP","SOYBN","TOBAC","WHEAT","YEAST","Other")
@@ -96,6 +96,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                  tabPanel("Volcano plot (Single-group)",
                          
                           sidebarLayout(
+                            # side panel -----
                             sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 900px; position:relative;", width=3,
                                         
                                          tags$style(type="text/css", "body {padding-top: 70px; padding-left: 10px;}"),
@@ -110,6 +111,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                            column(6,radioButtons('quote.style', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
                                          ),
                                          selectInput("user.defined","Types of preset parameters",choices = style.volcano.type),
+                                         uiOutput("label.graph.type"),
                                          selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                          fileInput('file1', 'ID, logFC, Pvalue',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
@@ -120,10 +122,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                            column(6,radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
                                          ),
                                          
-                                         tags$hr(),
-                                         h4("Type of graph"),
-                                         p("There are 5 labelling options: none, both, up, down or own list"),
-                                         uiOutput("label.graph.type"),
+
                                          fileInput('file2', 'Choose selected gene file (.csv)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          h4("Select font for graph"),
@@ -151,9 +150,17 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          h4("Legend parameters"),
                                          uiOutput("legend.parameters"),
                             ),
+                            # main panel -----
                             mainPanel(tabsetPanel(
                               tabPanel("Volcano plot", 
-                                       uiOutput("title.volc"),
+                                       fluidRow(column(6,uiOutput("title.volc")),
+                                               
+                                                ),
+                                       
+                                       
+                                       conditionalPanel(condition="input.selected == 'manual'",
+                                                        fluidRow(column(12, textInput("string.data3","list of selected points","CD74, TAP2, HLA-E, STAT1, WARS, ICAM1, TAP1", width = "1200px") ))),
+                                       
                                        textOutput("number_of_points"),
                                        textOutput("sig_values_test"),
                                        plotOutput("ggplot",height = "600px"),
@@ -176,7 +183,8 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                        
                               ),
                               tabPanel("Volcano plot (selected colours)",
-                                       fluidRow(column(12, textInput("string.data3","list of selected points","CD74, TAP2, HLA-E, STAT1, WARS, ICAM1, TAP1", width = "1200px") )),
+                                       conditionalPanel(condition="input.selected == 'manual'",
+                                                        fluidRow(column(12, textInput("string.data3","list of selected points","CD74, TAP2, HLA-E, STAT1, WARS, ICAM1, TAP1", width = "1200px") ))),
                                        textInput(inputId = "title3", 
                                                  label = "",
                                                  value = "Volcano plot: selected colour of points"),
@@ -540,6 +548,11 @@ server  <- function(input, output, session) {
     else if (input$user.defined == "selected.ID") {
       subset(df,df$style.type=="selected.ID")
     }
+    
+    # else if (input$user.defined == "manual") {
+    #   subset(df,df$style.type=="manual")
+    # }
+    
     else {
       subset(df,df$style.type=="default")
     }
@@ -707,7 +720,7 @@ server  <- function(input, output, session) {
   })
   
   options(shiny.sanitize.errors = F)
-  
+  # data input -----
   input.data <- reactive({switch(input$dataset,"test-data" = test.data(),"own" = own.data())})
   
   test.data <- reactive({
@@ -736,6 +749,9 @@ server  <- function(input, output, session) {
         inFile2$datapath,
         header=T)}
   })
+  
+  # summary table -----
+  
   output$summary_table <-DT::renderDataTable({
     
     
@@ -756,13 +772,16 @@ server  <- function(input, output, session) {
            error_message_val1)
     )
     
-    dat2 <- input.data2();
-    list <- dat2$ID
+
     dat <- as.data.frame(dat)
     neg <- -1*input$FC
     pos <- input$FC
     
     if (input$selected=="own list") {
+      
+      dat2 <- input.data2();
+      list <- dat2$ID
+      
       sub.mutateddf.gene3 <- mutate(dat,
                                     significance=ifelse(dat$ID %in% list & abs(dat$logFC)>pos & dat$Pvalue<input$Pvalue,"sig_list",
                                                         ifelse(dat$ID %in% list, "list not significant","not in list")))
@@ -772,9 +791,32 @@ server  <- function(input, output, session) {
       summary <- as.data.frame(t(summary))
       summary$V4 <- a
       summary <- as.data.frame(t(summary))
-      rownames(summary) <- 1:4
       summary
     }
+    
+    
+   else if (input$selected=="manual") {
+      
+      your_list <- c(input$string.data3)
+      your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+      names(your_list_df) <- "ID"
+      head(your_list_df)
+      your_list_df$ID <- gsub(" ","",your_list_df$ID)
+      your_list_df$selected <- your_list_df$ID
+      
+      sub.mutateddf.gene3 <- mutate(dat,
+                                    significance=ifelse(dat$ID %in% your_list_df$selected & abs(dat$logFC)>pos & dat$Pvalue<input$Pvalue,"sig_list",
+                                                        ifelse(dat$ID %in% your_list_df$selected, "list not significant","not in list")))
+      sub.mutateddf.gene3$count <- 1
+      summary <- as.data.frame(ddply(sub.mutateddf.gene3,c("significance"),numcolwise(sum)))[c(1,4)]
+      a <- c('total',sum(summary$count))
+      summary <- as.data.frame(t(summary))
+      summary$V4 <- a
+      summary <- as.data.frame(t(summary))
+      # rownames(summary) <- 1:4
+      summary
+    }
+    
     
     else if (input$selected=="no labels") {
       sub.mutateddf.gene3 <- mutate(dat,
@@ -787,7 +829,6 @@ server  <- function(input, output, session) {
       summary <- as.data.frame(t(summary))
       summary$V4 <- a
       summary <- as.data.frame(t(summary))
-      rownames(summary) <- 1:4
       summary
     }
     
@@ -802,11 +843,12 @@ server  <- function(input, output, session) {
       summary <- as.data.frame(t(summary))
       summary$V4 <- a
       summary <- as.data.frame(t(summary))
-      rownames(summary) <- 1:4
+
       summary}
     
   })
   
+  # plots -----
   plotInput <- function() {
     dat <- input.data();
     
@@ -1188,6 +1230,99 @@ server  <- function(input, output, session) {
       
       vals$ggplot
     }
+    else if (input$selected=="manual") {
+      
+      your_list <- c(input$string.data3)
+      
+      your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+      
+      names(your_list_df) <- "ID"
+      head(your_list_df)
+      your_list_df$ID <- gsub(" ","",your_list_df$ID)
+      your_list_df$selected <- your_list_df$ID
+      
+      
+      merged_list <- mutateddf[mutateddf$ID %in% your_list_df$selected,]
+      merged_list <- merged_list[order(merged_list$Pvalue),]
+      
+      ordered_list <- mutate(merged_list,df_order=ifelse(merged_list$ID %in% list2 & abs(merged_list$logFC)>pos & merged_list$Pvalue<input$Pvalue, "1","2"))
+      ordered_list <- ordered_list[order(ordered_list$df_order),]
+      sig2 <- ordered_list
+      list2 <- sig2$ID
+      
+      sub.mutateddf.gene_list <- mutate(mutateddf.gene,
+                                        colour=ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_up",
+                                                      ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_down",
+                                                             ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue>input$Pvalue, "labelled-Non-significant",
+                                                                    
+                                                                    ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue>input$Pvalue, "labelled-Non-significant",
+                                                                           ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue<input$Pvalue, "labelled-Non-significant",
+                                                                                  ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue<input$Pvalue,  "labelled-Non-significant",
+                                                                                         ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"Significant-up",
+                                                                                                ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"Significant-down","Non-significant")))))))),
+                                        
+      )
+      
+      colour_class3 <- c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant")
+      colour.df3 <- as.data.frame(c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant"))
+      names(colour.df3) <- "label"
+      colour.df3$V1 <- c(input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3,input$NS)
+      colour.df3$shape <- c(input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape1,input$shape3)
+      colour.df3$size <- c(input$size2,input$size1.1,input$size1,input$size1,input$size1,input$size3)
+      colour.df3$alpha <- c(input$alpha2,input$alpha2,input$alpha1,input$alpha1,input$alpha1,input$alpha3)
+      
+      colour.class4 <- colour.df3[colour.df3$label %in% unique(sub.mutateddf.gene_list$colour),]
+      
+      sub.mutateddf.gene_list$colour <- factor(sub.mutateddf.gene_list$colour, levels = colour.class4$label)
+      
+      vals$ggplot <- ggplot() + 
+        geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),
+                       col=sub.mutateddf.gene_list$colour,
+                       shape=sub.mutateddf.gene_list$colour,
+                       alpha=sub.mutateddf.gene_list$colour,
+                       size=sub.mutateddf.gene_list$colour),
+        ) +
+        scale_color_manual(name="legend",values=colour.class4$V1, labels = colour.class4$label) +
+        scale_shape_manual(name="legend",values=colour.class4$shape, labels=colour.class4$label)+
+        scale_size_manual(name="legend",values=colour.class4$size, labels=colour.class4$label)+
+        scale_alpha_manual(name="legend",values=colour.class4$alpha, labels=colour.class4$label) +
+        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)],]
+                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]], 
+                             y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]],
+                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]]),
+                        size=input$label,family=input$font, 
+                        segment.alpha = 0.5, 
+                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
+                        max.overlaps = Inf) +
+        guides(scale = "none")+
+        guides(shape = guide_legend(override.aes = list(size = 5))) +
+        guides(fill = guide_legend(override.aes = list(shape = NA))) +
+        theme_bw(base_size = 18)+
+        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
+        geom_vline(xintercept=pos, linetype="dashed", color = input$sig_lines) +
+        geom_vline(xintercept=neg, linetype="dashed", color = input$sig_lines) +
+        geom_hline(yintercept=-log10(input$Pvalue), linetype="dashed", color = input$sig_lines) +
+        theme(text=element_text(size=20,family=input$font),
+              axis.title = element_text(colour="black", size=input$axis,family=input$font),
+              axis.text.x = element_text(colour="black",size=input$axis_text,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
+              axis.text.y = element_text(colour="black",size=input$axis_text,angle=0,hjust=1,vjust=0,face="plain",family=input$font),
+              axis.title.x=element_text(colour="black",size=input$axis,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
+              axis.title.y = element_text(colour="black",size=input$axis,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font),
+              legend.title  =element_blank(),
+              legend.text = element_text(size=input$legend_size),
+              legend.position = input$legend_location,
+              legend.justification = "top")+
+        guides(size="none", col = guide_legend(ncol=input$col))+
+        # scale_alpha(guide = 'none')+ 
+        scale_y_continuous(limits = c(0, input$yhigh) ,breaks = seq(0, input$yhigh, by = input$ybreaks))+
+        scale_x_continuous(limits = c(input$xlow, input$xhigh), breaks = seq(input$xlow, input$xhigh, by = input$xbreaks))+
+        labs(y=y_lable1,
+             x=expression(Log[2]~Fold~Change),
+             title=input$title) 
+      
+      vals$ggplot
+    }
     else  {     
       
       
@@ -1319,6 +1454,7 @@ server  <- function(input, output, session) {
     dat <- as.data.frame(dat)
     dat <- dat[order(dat$Pvalue),]
     rownames(dat) <- 1:dim(dat)[1]
+  
     
     if (input$selected=="range (both directions)") {
       dat <- subset(dat, dat$Pvalue<input$Pvalue & abs(dat$logFC)>input$FC)
@@ -1349,13 +1485,27 @@ server  <- function(input, output, session) {
       
     }
     
-    else { # selected ID
+    else if (input$selected == "manual") {
+      
+      your_list <- c(input$string.data3)
+      your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+      names(your_list_df) <- "ID"
+      head(your_list_df)
+      your_list_df$ID <- gsub(" ","",your_list_df$ID)
+      your_list_df$selected <- your_list_df$ID
+      manual.list <- dat[dat$ID %in% your_list_df$selected,]
+      manual.list
+    }
+    
+    else  {
       dat2 <- input.data2();
       list <- dat2$ID
       dat <- dat[dat$ID %in% list,]
       dat
       
     }
+    
+
     
   }
   output$myoutput <-DT::renderDataTable(escape = FALSE, {
@@ -1479,7 +1629,23 @@ server  <- function(input, output, session) {
     }
     else if (input$export=="own list") {
       
-      ownlist <- dat[dat$ID %in% list & dat$Pvalue<input$Pvalue & abs(dat$logFC)>input$FC,]
+      if (input$selected == "manual") {
+        
+        your_list <- c(input$string.data3)
+        your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+        names(your_list_df) <- "ID"
+        head(your_list_df)
+        your_list_df$ID <- gsub(" ","",your_list_df$ID)
+        your_list_df$selected <- your_list_df$ID
+
+        
+        ownlist <- dat[dat$ID %in% your_list_df$selected & dat$Pvalue<input$Pvalue & abs(dat$logFC)>input$FC,]
+        
+      }
+      else { 
+        ownlist <- dat[dat$ID %in% list & dat$Pvalue<input$Pvalue & abs(dat$logFC)>input$FC,]
+      }
+      
     }
     else { 
       both <- subset(dat, dat$Pvalue<input$Pvalue & abs(dat$logFC)>pos)
@@ -1607,14 +1773,27 @@ server  <- function(input, output, session) {
     }
     
     df <- as.data.frame(df)
-    your_list <- c(input$string.data3)
-
-    your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
     
-    names(your_list_df) <- "ID"
-    head(your_list_df)
-    your_list_df$ID <- gsub(" ","",your_list_df$ID)
-    your_list_df$selected <- your_list_df$ID
+    if (input$selected == "manual") {
+      
+      your_list <- c(input$string.data3)
+      
+      your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+      
+      names(your_list_df) <- "ID"
+      head(your_list_df)
+      your_list_df$ID <- gsub(" ","",your_list_df$ID)
+      your_list_df$selected <- your_list_df$ID
+      
+    }
+    
+    else {
+      your_list_df <- input.data2();
+      names(your_list_df) <- "ID"
+      your_list_df$selected <- your_list_df$ID
+      
+    }
+
 
     dat <-  merge(df,your_list_df,by="ID",all.x=T)
     head(dat)
@@ -1656,15 +1835,25 @@ server  <- function(input, output, session) {
       
     }
     
-    df <- as.data.frame(df)
-    your_list <- c(input$string.data3)
+    if (input$selected == "manual") {
+      
+      your_list <- c(input$string.data3)
+      
+      your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+      
+      names(your_list_df) <- "ID"
+      head(your_list_df)
+      your_list_df$ID <- gsub(" ","",your_list_df$ID)
+      your_list_df$selected <- your_list_df$ID
+      
+    }
     
-    your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
-    
-    names(your_list_df) <- "ID"
-    head(your_list_df)
-    your_list_df$ID <- gsub(" ","",your_list_df$ID)
-    your_list_df$selected <- your_list_df$ID
+    else {
+      your_list_df <- input.data2();
+      names(your_list_df) <- "ID"
+      your_list_df$selected <- your_list_df$ID
+      
+    }
     
     dat <-  merge(df,your_list_df,by="ID",all.x=T)
     head(dat)
@@ -1692,14 +1881,28 @@ server  <- function(input, output, session) {
     }
     
     df <- as.data.frame(df)
-    your_list <- c(input$string.data3)
+
     
-    your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+    if (input$selected == "manual") {
+      
+      your_list <- c(input$string.data3)
+      
+      your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+      
+      names(your_list_df) <- "ID"
+      head(your_list_df)
+      your_list_df$ID <- gsub(" ","",your_list_df$ID)
+      your_list_df$selected <- your_list_df$ID
+      
+    }
     
-    names(your_list_df) <- "ID"
-    head(your_list_df)
-    your_list_df$ID <- gsub(" ","",your_list_df$ID)
-    your_list_df$selected <- your_list_df$ID
+    else {
+      your_list_df <- input.data2();
+      names(your_list_df) <- "ID"
+      your_list_df$selected <- your_list_df$ID
+      
+    }
+    
     neg <- -1*input$FC
     pos <- input$FC
     

@@ -2,7 +2,7 @@
 
 This is the README.md file containing information on the features of the application.
 
-Please contact: Chen.Li@monash.edu or Kerry.Mullan@monash.edu to report errors.
+Please contact: Chen.Li@monash.edu or Kerry.Mullan1@monash.edu to report errors.
 
 If using the local GitHub, run the following command in R or Rstudio to download and install the required packages. 
 

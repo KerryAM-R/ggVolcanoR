@@ -17,7 +17,7 @@ require("reshape2")
 require("colourpicker")
 require("circlize")
 require("ComplexHeatmap")
-
+suppressWarnings(suppressMessages(require("shinyjs")))
 require("colourpicker", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
 require("circlize", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
 require("ComplexHeatmap", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
@@ -88,7 +88,88 @@ style.volcano.type <- c("default","all.datapoints","up.ID","down.ID","selected.I
 style.cor.type <- c("default","Labelled","Regression.line","labelled.Regression.line")
 
 ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE, 
-                      
+                 useShinyjs(),  # Initialize shinyjs    
+                 
+                 # add hint explanation -----
+                 tags$head(
+                   tags$style(HTML(
+                     "
+      .hint-text {
+        display: none;
+        position: absolute; /* Change position to relative */
+        background-color: #d8ffc2;
+        border: 4px solid #41b000;
+        border-radius: 5px;
+        padding: 12px; /* Increased padding */
+        z-index: 200; /* Ensure hint text is above other elements */
+        font-size: 14px; /* Decreased font size */
+        text-align: center; /* Center alignment */
+        width: 250px; /* Set width to prevent stretching */
+        color: #41b000; /* Change text color to purple */
+      }
+      .hint-text2 {
+        display: none;
+        position: absolute; /* Change position to relative */
+        background-color: #d8ffc2;
+        border: 4px solid #41b000;
+        border-radius: 5px;
+        padding: 12px; /* Increased padding */
+        z-index: 1000; /* Ensure hint text is above other elements */
+        font-size: 14px; /* Decreased font size */
+        text-align: left; /* Center alignment */
+        width: 250px; /* Set width to prevent stretching */
+        color: #41b000; /* Change text color to purple */
+      }
+
+        .hint-text3 {
+        display: none;
+        position: absolute; /* Change position to relative */
+        background-color: #d8ffc2;
+        border: 4px solid #41b000;
+        border-radius: 5px;
+        padding: 12px; /* Increased padding */
+        z-index: 1000; /* Ensure hint text is above other elements */
+        font-size: 14px; /* Decreased font size */
+        text-align: left; /* Center alignment */
+        width: 150px; /* Set width to prevent stretching */
+        color: #41b000; /* Change text color to purple */
+      }
+
+      .hint-icon {
+        font-size: 24px; /* Decreased icon size */
+        color: #41b000; /* Change icon color to #41b000 (purple) */
+        vertical-align: top; /* Align icon vertically */
+        margin-left: 5px; /* Add left margin */
+        cursor: pointer; /* Change cursor to pointer */
+      }
+      .hint-icon2 {
+        font-size: 24px; /* Decreased icon size */
+        color: #FF5733; /* Change icon color to #FF5733 (orange) */
+        vertical-align: top; /* Align icon vertically */
+        margin-left: 5px; /* Add left margin */
+        cursor: pointer; /* Change cursor to pointer */
+      }
+      .select-input-container {
+        display: flex; /* Use Flexbox */
+        align-items: top; /* Center items vertically */
+        justify-content: space-between; /* Space items evenly */
+      }
+      "
+                   )),
+                   tags$script(HTML(
+                     "
+      $(document).ready(function(){
+        $('.hint-icon, .hint-icon2').mouseenter(function(){
+          $(this).siblings('.hint-text, .hint-text2, .hint-text3').show();
+        });
+        $('.hint-icon, .hint-icon2').mouseleave(function(){
+          $(this).siblings('.hint-text, .hint-text2, .hint-text3').hide();
+        });
+      });
+      "
+                   ))
+                 ),
+                 
                  # UI Volcano plot ----
                  
                
@@ -100,21 +181,40 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                             sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 900px; position:relative;", width=3,
                                         
                                          tags$style(type="text/css", "body {padding-top: 70px; padding-left: 10px;}"),
-                                         # tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}")),
-                                         # tags$style(HTML('.progress-bar {background-color: blue;}')),
-                                         selectInput("dataset_parameters","Select preset or user uploaded parameters",choices = c("preset","user-uploaded")),
+                                         
+                                         div(class = "select-input-container",
+                                             selectInput("dataset_parameters","Select preset or user uploaded parameters",choices = c("preset","user-uploaded")),
+                                             div(class = "hint-icon",
+                                                 icon("circle-question", lib = "font-awesome")),
+                                             div(class = "hint-text2", "User can chose keep the default parameters or switch to uploading their own after downloading the parameter table."),
+                                         ),
+
+                                         
+                                         conditionalPanel(
+                                           condition = 'input.dataset_parameters == "user-uploaded"',
                                          downloadButton("downloadTABLE.parameters","download parameters guide"),
-                                         fileInput('file.style', 'Upload parameters',
+                                         fileInput('file_style', 'Upload parameters',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          fluidRow(
                                            column(6,radioButtons('sep.style', 'Separator', c( Tab='\t', Comma=','), ',')),
                                            column(6,radioButtons('quote.style', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
                                          ),
+                                         
+                                         ),
+                                         
+                                         
+                                         
                                          selectInput("user.defined","Types of preset parameters",choices = style.volcano.type),
                                          
-                                         uiOutput("label.graph.type"),
-                                         p("There are 6 labelling options: none, both, up, down or own list (uploaded or manual)"),
+
+                                         
+                                         
                                          selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
+                                         
+                                         conditionalPanel(
+                                           condition = 'input.dataset == "own"',
+                                           
+                                         
                                          fileInput('file1', 'ID, logFC, Pvalue',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          h5("P-value need to be between 0 to 1"),
@@ -127,21 +227,56 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
 
                                          fileInput('file2', 'Choose selected gene file (.csv)',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                         
+                                         ),
+                                         
+                                         
+                                         
+                                         fluidRow(
+                                           div(class = "select-input-container",
+                                             column(10,uiOutput("label.graph.type")),
+                                             div(class = "hint-icon",
+                                                 icon("circle-question", lib = "font-awesome")),
+                                             div(class = "hint-text2", "There are 6 labelling options: none, both, up, down or own list (uploaded or manual)"),
+                                         )),
+                                         
+                                         conditionalPanel(condition="input.selected == 'manual'",
+                                                          fluidRow(column(12, textInput("string.data3","list of selected points","CD74, TAP2, HLA-E, STAT1, WARS, ICAM1, TAP1", width = "1200px") ))),
+                                         
                                          h4("Select font for graph"),
                                          uiOutput("font.type"),
-
+                                         
                                          h4("Cut-offs"),
                                          uiOutput("cut.offs"),
-                                         h4("Axis parameters"),
-                                         uiOutput("axis.parameters"),
-                                         uiOutput("axis.parameters2"),
-                                         h4("Point colour, size, shape and transparancy"),
-                                         uiOutput("up.parameters"),
-                                         uiOutput("down.parameters"),
-                                         uiOutput("transparancy1"),
-                                         uiOutput("NS.parameters"),
-                                         uiOutput("transparancy2"),
-                                         p(" "),
+                                         
+                                         
+                                         bsCollapse(
+                                           id = "collapseExampleHeat2", open = "Axis parameters", multiple = TRUE,
+                                           bsCollapsePanel(
+                                             title = "Axis parameters", style = "primary custom-panel",
+                                             uiOutput("axis.parameters"),
+                                             uiOutput("axis.parameters2")
+                                           )
+                                         ),
+                                         
+                                         # bsCollapse(
+                                         #   id = "collapseExampleHeat2", open = NULL, multiple = TRUE,
+                                         #     title = "Axis parameters"
+
+                                         # ),
+                                         
+                                         bsCollapse(
+                                           id = "collapseExampleHeat", open = "Point colour, size, shape and transparancy", multiple = TRUE,
+                                           bsCollapsePanel(
+                                             title = "Point colour, size, shape and transparancy", style = "primary custom-panel",
+                                             uiOutput("up.parameters"),
+                                             uiOutput("down.parameters"),
+                                             uiOutput("transparancy1"),
+                                             uiOutput("NS.parameters"),
+                                             uiOutput("transparancy2")
+                                           )
+                                         ),
+
                                          h4("Labels, colour and shape for selected points"),
                                          uiOutput("shape.size.selected"),
                                          uiOutput("transparancy3"),
@@ -153,15 +288,12 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          uiOutput("legend.parameters"),
                             ),
                             # main panel -----
+                            
                             mainPanel(tabsetPanel(
                               tabPanel("Volcano plot", 
                                        fluidRow(column(6,uiOutput("title.volc")),
                                                
                                                 ),
-                                       
-                                       
-                                       conditionalPanel(condition="input.selected == 'manual'",
-                                                        fluidRow(column(12, textInput("string.data3","list of selected points","CD74, TAP2, HLA-E, STAT1, WARS, ICAM1, TAP1", width = "1200px") ))),
                                        
                                        textOutput("number_of_points"),
                                        textOutput("sig_values_test"),
@@ -185,8 +317,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                        
                               ),
                               tabPanel("Volcano plot (selected colours)",
-                                       conditionalPanel(condition="input.selected == 'manual'",
-                                                        fluidRow(column(12, textInput("string.data3","list of selected points","CD74, TAP2, HLA-E, STAT1, WARS, ICAM1, TAP1", width = "1200px") ))),
+
                                        textInput(inputId = "title3", 
                                                  label = "",
                                                  value = "Volcano plot: selected colour of points"),
@@ -239,7 +370,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          h4("Correlation plot parameters"),
                                          selectInput("dataset_parameters.cor","Select preset or user uploaded parameters",choices = c("preset","user-uploaded")),
                                          downloadButton("downloadTABLE.parameters.cor","Download parameter guide"),
-                                         fileInput('file.style.cor', 'Upload parameters',
+                                         fileInput('file_style.cor', 'Upload parameters',
                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          selectInput("user.defined.cor","Types of parameters",choices = style.cor.type),
                                          
@@ -397,8 +528,8 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                                      column(3, numericInput("min.hm","range (min)",value = 1)),
                                                      column(3, numericInput("max.hm","range (max)",value = 20)),
                                                      column(3, numericInput("heatmap.font.size","ID size",value = 12))),
-                                            fluidRow(column(3, colourInput("lowcol","<0 logFC colour",value = "#0076c0")),
-                                                     column(3, colourInput("hicol",">0 logFC colour",value = "#a30234"))
+                                            fluidRow(column(3, colourpicker::colourInput("lowcol","<0 logFC colour",value = "#0076c0")),
+                                                     column(3, colourpicker::colourInput("hicol",">0 logFC colour",value = "#a30234"))
                                                      ),
                                             
                                             plotOutput("heatmap.plot", height = "600px"),
@@ -444,8 +575,8 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                             fluidRow(
                                               column(3, numericInput("upset.point.size","Size of point",value = 5)),
                                               column(3, numericInput("upset.lwd","Line width",value = 2)),
-                                              column(3, colourInput("right_annotation_colour","Colour of bar (right)",value = "black")),
-                                              column(3, colourInput("top_annotation_colour","Colour of bar (top)",value = "black"))
+                                              column(3, colourpicker::colourInput("right_annotation_colour","Colour of bar (right)",value = "black")),
+                                              column(3, colourpicker::colourInput("top_annotation_colour","Colour of bar (top)",value = "black"))
                                                      ),
                                             
                                             
@@ -505,18 +636,20 @@ server  <- function(input, output, session) {
   input.data_parameters <- reactive({switch(input$dataset_parameters,"preset" = test.data_parameters(),"user-uploaded" = own.data_parameters())})
   test.data_parameters <- reactive({
     dataframe = read.csv("test-data/test-parameters.csv") })
+  
   own.data_parameters <- reactive({
-    inFile.style <- input$file.style 
-    if (is.null(inFile.style)) return(NULL)
+    infile_style <- input$file_style 
+    if (is.null(infile_style)) return(NULL)
     
     else {
       dataframe <- read.csv(
-        inFile.style$datapath,
+        infile_style$datapath,
         header=TRUE)}
   })
   
   table.parameters <- function (){
     df <- input.data_parameters()
+    req(df)
     df
   }
   
@@ -532,6 +665,7 @@ server  <- function(input, output, session) {
   values.cut.off <- function(){
     
     df <- input.data_parameters()
+    req(df)
     
     if (input$user.defined == "all.datapoints") {
       
@@ -577,6 +711,7 @@ server  <- function(input, output, session) {
                 selected= selected_present[df$label.type])
     
   })
+  
   output$cut.offs <- renderUI({
     
     df <- values.cut.off()
@@ -590,12 +725,12 @@ server  <- function(input, output, session) {
   output$axis.parameters <- renderUI({
     df <- values.cut.off()
     fluidRow(
-      column(12, textInput(inputId = "sig_lines", label = "Significance lines",value = df$sig.col.line)),
-      column(12,  textInput(inputId = "expression_y2", 
+      column(6, colourpicker::colourInput(inputId = "sig_lines", label = "Significance lines",value = df$sig.col.line)),
+      column(6,  textInput(inputId = "expression_y2", 
                             label = "Y-axis label",
                             value = df$x.axis.lab)),
-      column(12, numericInput("axis", "Axis label text size", min=0, value=df$axis.text.size)),
-      column(12,  numericInput("axis_text", "Axis numeric text size", min=0, value=df$axis.numeric.size)),
+      column(6, numericInput("axis", "Axis label text size", min=0, value=df$axis.text.size)),
+      column(6,  numericInput("axis_text", "Axis numeric text size", min=0, value=df$axis.numeric.size)),
      
       
      
@@ -621,7 +756,7 @@ server  <- function(input, output, session) {
     df <- values.cut.off()
     
     fluidRow(
-      column(4,colourInput(inputId = "up", label = "Colour up",value = df$up.colour)),
+      column(4,colourpicker::colourInput(inputId = "up", label = "Colour up",value = df$up.colour)),
       column(4,numericInput("shape1.1","Shape of up",value = df$up.symbol)),
       column(4, numericInput("size1.1","Size of up",value = df$up.size))
     )
@@ -632,7 +767,7 @@ server  <- function(input, output, session) {
     df <- values.cut.off()
     
     fluidRow(
-      column(4,colourInput(inputId = "down",  label = "Colour down", value = df$down.colour)),
+      column(4,colourpicker::colourInput(inputId = "down",  label = "Colour down", value = df$down.colour)),
       column(4,numericInput("shape2","Shape of down",value = df$down.symbol)),
       column(4,numericInput("size2","Size of down",value = df$down.size)),
       
@@ -648,7 +783,7 @@ server  <- function(input, output, session) {
     
     df <- values.cut.off()
     fluidRow(
-      column(4,colourInput(inputId = "NS", label = "Colour of non-significant",value = df$NS.colour)),
+      column(4,colourpicker::colourInput(inputId = "NS", label = "Colour of non-significant",value = df$NS.colour)),
       column(4,numericInput("shape3","Shape of non-significant",value = df$NS.shape)),
       column(4,numericInput("size3","Size of non-significant",value = df$NS.size))
     )
@@ -673,11 +808,11 @@ server  <- function(input, output, session) {
   output$labelled.parameters <- renderUI({
     df <- values.cut.off()
     fluidRow(
-      column(4,colourInput(inputId = "col_lab1", label = "Labelled-down",value = df$lab1.colour)),
+      column(4,colourpicker::colourInput(inputId = "col_lab1", label = "Labelled-down",value = df$lab1.colour)),
 
-      column(4,colourInput(inputId = "col_lab2", label = "Labelled-up",value = df$lab2.colour)),
+      column(4,colourpicker::colourInput(inputId = "col_lab2", label = "Labelled-up",value = df$lab2.colour)),
 
-      column(4,colourInput(inputId = "col_lab3", label = "Labelled-NS",value = df$lab3.colour)),
+      column(4,colourpicker::colourInput(inputId = "col_lab3", label = "Labelled-NS",value = df$lab3.colour)),
 
     )
     
@@ -1373,11 +1508,12 @@ server  <- function(input, output, session) {
     }
   }
   output$ggplot <- renderPlot({
-    withProgress(message = 'Figure is being generated...',
-                 detail = '', value = 0, {
-                   test_fun()
-                 })
-    
+    # withProgress(message = 'Figure is being generated...',
+    #              detail = '', value = 0, {
+    #                test_fun()
+    #              })
+    # plot <- plotInput()
+    # req(plot)
     
     grid.arrange(plotInput(),ncol=1,padding=unit(5,"line"),top="",bottom="",right="",left="")
     
@@ -1454,6 +1590,7 @@ server  <- function(input, output, session) {
   }
   type.of.filter <- function (){
     dat <- type.of.data()
+    req(dat)
     dat <- as.data.frame(dat)
     dat <- dat[order(dat$Pvalue),]
     rownames(dat) <- 1:dim(dat)[1]
@@ -1808,13 +1945,13 @@ server  <- function(input, output, session) {
 
     if (input$select.ggVolc_colour.choise == "default") {
       lapply(1:dim(num)[1], function(i) {
-        colourInput(paste("col.ggVolc", i, sep="_"), paste(num[i,]), col.gg[i])
+        colourpicker::colourInput(paste("col.ggVolc", i, sep="_"), paste(num[i,]), col.gg[i])
       })
     }
 
     else {
       lapply(1:dim(num)[1], function(i) {
-        colourInput(paste("col.ggVolc", i, sep="_"), paste(num[i,]), "grey")
+        colourpicker::colourInput(paste("col.ggVolc", i, sep="_"), paste(num[i,]), "grey")
       })
 
 
@@ -2017,16 +2154,16 @@ server  <- function(input, output, session) {
   test.data_parameters.cor <- reactive({
     dataframe = read.csv("test-data/test-parameters.cor.csv") })
   own.data_parameters.cor <- reactive({
-    inFile.style.cor <- input$file.style.cor 
-    if (is.null(inFile.style.cor)) return(NULL)
+    infile_style.cor <- input$file_style.cor 
+    if (is.null(infile_style.cor)) return(NULL)
     
     else {
       dataframe <- read.csv(
-        inFile.style.cor$datapath,
+        infile_style.cor$datapath,
         header=TRUE)}
   })
   
-  table.parameters <- function (){
+  table.parameters.cor <- function (){
     df <- input.data_parameters.cor()
     df
   }
@@ -2110,7 +2247,7 @@ server  <- function(input, output, session) {
   })
   output$point.parameter.cor1 <- renderUI({
     df <- values.cut.off.cor()
-    fluidRow(column(3,colourInput(inputId = "col1", label = "Colour of up",value = df$colour.up)),
+    fluidRow(column(3,colourpicker::colourInput(inputId = "col1", label = "Colour of up",value = df$colour.up)),
              column(3, numericInput("cor_shape1","Shape of up",value = df$shape.up)),
              column(3,numericInput("cor_size1","Size of up",value = df$size.up)),
              column(3,numericInput("cor_alpha1", "Transparency of up", value = df$alpha.up))
@@ -2119,7 +2256,7 @@ server  <- function(input, output, session) {
   })
   output$point.parameter.cor2 <- renderUI({
     df <- values.cut.off.cor()
-    fluidRow(column(3,colourInput(inputId = "col2", label = "Colour of down",value = df$colour.down)),
+    fluidRow(column(3,colourpicker::colourInput(inputId = "col2", label = "Colour of down",value = df$colour.down)),
              column(3, numericInput("cor_shape2","Shape of down",value = df$shape.down)),
              column(3,numericInput("cor_size2","Size of down",value = df$size.down)),
              column(3,numericInput("cor_alpha2", "Transparency of down", value = df$alpha.down))
@@ -2128,7 +2265,7 @@ server  <- function(input, output, session) {
   })
   output$point.parameter.cor3 <- renderUI({
     df <- values.cut.off.cor()
-    fluidRow(column(3,colourInput(inputId = "col3", label = "Colour of opposite",value = df$colour.opposite)),
+    fluidRow(column(3,colourpicker::colourInput(inputId = "col3", label = "Colour of opposite",value = df$colour.opposite)),
              column(3, numericInput("cor_shape3","Shape of opposite",value = df$shape.opposite)),
              column(3,numericInput("cor_size3","Size of opposite",value = df$size.opposite)),
              column(3,numericInput("cor_alpha3", "Transparency of opposite", value = df$alpha.opposite))
@@ -2137,7 +2274,7 @@ server  <- function(input, output, session) {
   })
   output$point.parameter.cor4 <- renderUI({
     df <- values.cut.off.cor()
-    fluidRow(column(3,colourInput(inputId = "col4", label = "Colour of other",value = df$colour.other)),
+    fluidRow(column(3,colourpicker::colourInput(inputId = "col4", label = "Colour of other",value = df$colour.other)),
              column(3, numericInput("cor_shape4","Shape of other",value = df$shape.other)),
              column(3,numericInput("cor_size4","Size of other",value = df$size.other)),
              column(3,numericInput("cor_alpha4", "Transparency of other", value = df$alpha.other))
@@ -2158,8 +2295,8 @@ server  <- function(input, output, session) {
     fluidRow(
      
       column(3,checkboxInput("reg.line", label = "Display regression line", value = df$Regression.line)),
-      column(3,colourInput(inputId = "linecolour", label = "Correlation line colour",value = df$colour.regression.line)),
-      column(3,colourInput(inputId = "CI95_fill", label = "95% CI colour",value = df$CI95.col))
+      column(3,colourpicker::colourInput(inputId = "linecolour", label = "Correlation line colour",value = df$colour.regression.line)),
+      column(3,colourpicker::colourInput(inputId = "CI95_fill", label = "95% CI colour",value = df$CI95.col))
     )
     
   })

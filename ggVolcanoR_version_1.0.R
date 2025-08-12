@@ -1,8 +1,6 @@
 
 # Allow files up to 10 Mb
 options(shiny.maxRequestSize=10*1024^2)
-
-
 ## volcano plots
 require("tidyverse")
 require("ggplot2") #Best plots
@@ -17,11 +15,10 @@ require("reshape2")
 require("colourpicker")
 require("circlize")
 require("ComplexHeatmap")
-
-require("colourpicker", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
-require("circlize", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
-require("ComplexHeatmap", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
-
+require("shinybusy")
+# require("colourpicker", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
+# require("circlize", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
+# require("ComplexHeatmap", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
 # install.packages("circlize",lib = "../ggVolcanoR/local.lib/", dependencies = T)
 # install.packages("ComplexHeatmap",lib = "../ggVolcanoR/local.lib/", dependencies = T)
 
@@ -89,6 +86,87 @@ style.cor.type <- c("default","Labelled","Regression.line","labelled.Regression.
 
 ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE, 
                       
+                 # CSS formatting
+                 # add hint explanation -----
+                 tags$head(
+                   tags$style(HTML(
+                     "
+      .hint-text {
+        display: none;
+        position: absolute; /* Change position to relative */
+        background-color: #d8ffc2;
+        border: 4px solid #41b000;
+        border-radius: 5px;
+        padding: 12px; /* Increased padding */
+        z-index: 200; /* Ensure hint text is above other elements */
+        font-size: 14px; /* Decreased font size */
+        text-align: center; /* Center alignment */
+        width: 250px; /* Set width to prevent stretching */
+        color: #41b000; /* Change text color to purple */
+      }
+      .hint-text2 {
+        display: none;
+        position: absolute; /* Change position to relative */
+        background-color: #d8ffc2;
+        border: 4px solid #41b000;
+        border-radius: 5px;
+        padding: 12px; /* Increased padding */
+        z-index: 1000; /* Ensure hint text is above other elements */
+        font-size: 14px; /* Decreased font size */
+        text-align: left; /* Center alignment */
+        width: 250px; /* Set width to prevent stretching */
+        color: #41b000; /* Change text color to purple */
+      }
+
+        .hint-text3 {
+        display: none;
+        position: absolute; /* Change position to relative */
+        background-color: #d8ffc2;
+        border: 4px solid #41b000;
+        border-radius: 5px;
+        padding: 12px; /* Increased padding */
+        z-index: 1000; /* Ensure hint text is above other elements */
+        font-size: 14px; /* Decreased font size */
+        text-align: left; /* Center alignment */
+        width: 150px; /* Set width to prevent stretching */
+        color: #41b000; /* Change text color to purple */
+      }
+
+      .hint-icon {
+        font-size: 24px; /* Decreased icon size */
+        color: #41b000; /* Change icon color to #41b000 (purple) */
+        vertical-align: top; /* Align icon vertically */
+        margin-left: 5px; /* Add left margin */
+        cursor: pointer; /* Change cursor to pointer */
+      }
+      .hint-icon2 {
+        font-size: 24px; /* Decreased icon size */
+        color: #FF5733; /* Change icon color to #FF5733 (orange) */
+        vertical-align: top; /* Align icon vertically */
+        margin-left: 5px; /* Add left margin */
+        cursor: pointer; /* Change cursor to pointer */
+      }
+      .select-input-container {
+        display: flex; /* Use Flexbox */
+        align-items: top; /* Center items vertically */
+        justify-content: space-between; /* Space items evenly */
+      }
+      "
+                   )),
+                   tags$script(HTML(
+                     "
+      $(document).ready(function(){
+        $('.hint-icon, .hint-icon2').mouseenter(function(){
+          $(this).siblings('.hint-text, .hint-text2, .hint-text3').show();
+        });
+        $('.hint-icon, .hint-icon2').mouseleave(function(){
+          $(this).siblings('.hint-text, .hint-text2, .hint-text3').hide();
+        });
+      });
+      "
+                   ))
+                 ),
+                 
                  # UI Volcano plot ----
                  
                
@@ -98,59 +176,133 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                           sidebarLayout(
                             # side panel -----
                             sidebarPanel(id = "tPanel",style = "overflow-y:scroll; max-height: 900px; position:relative;", width=3,
-                                        
-                                         tags$style(type="text/css", "body {padding-top: 70px; padding-left: 10px;}"),
-                                         # tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}")),
-                                         # tags$style(HTML('.progress-bar {background-color: blue;}')),
-                                         selectInput("dataset_parameters","Select preset or user uploaded parameters",choices = c("preset","user-uploaded")),
-                                         downloadButton("downloadTABLE.parameters","download parameters guide"),
-                                         fileInput('file.style', 'Upload parameters',
-                                                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         fluidRow(
-                                           column(6,radioButtons('sep.style', 'Separator', c( Tab='\t', Comma=','), ',')),
-                                           column(6,radioButtons('quote.style', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                         
+                                         bsCollapse(
+                                           id = "collapse_parameters", multiple = TRUE, 
+                                           bsCollapsePanel("parameters",style = "primary custom-panel",
+
+                                                 tags$style(type="text/css", "body {padding-top: 70px; padding-left: 10px;}"),
+                                                 # tags$style(HTML(".shiny-notification {position:fixed;top: 50%;left: 30%;right: 30%;}")),
+                                                 # tags$style(HTML('.progress-bar {background-color: blue;}')),
+                                                 selectInput("dataset_parameters","Select preset or user uploaded parameters",choices = c("preset","user-uploaded")),
+                                                 downloadButton("downloadTABLE.parameters","download parameters guide"),
+                                                 fileInput('file.style', 'Upload parameters',
+                                                           accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                                 fluidRow(
+                                                   column(6,radioButtons('sep.style', 'Separator', c( Tab='\t', Comma=','), ',')),
+                                                   column(6,radioButtons('quote.style', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                                 )
+                                           )
+                                         ),
+                                         
+                                         
+                                         bsCollapse(
+                                           id = "collapse_dataset", open = c("dataset"), multiple = TRUE,
+                                           bsCollapsePanel("dataset",style = "primary custom-panel",
+                                                           fluidRow(
+                                                             column(12, div(class = "select-input-container",
+                                                                            fileInput('file1', 'ID, logFC, Pvalue',
+                                                                     accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                                                     div(class = "hint-icon",
+                                                                         icon("circle-question", lib = "font-awesome")),
+                                                                     div(class = "hint-text", "P-value or FDR need to be between 0 to 1"),
+                                                             )
+                                                          )),
+
+                                                           fluidRow(
+                                                             column(6,radioButtons('sep', 'Separator', c( Tab='\t', Comma=','), ',')),
+                                                             column(6,radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                                           ),
+                                                           fluidRow(
+                                                            
+                                                                    div(class = "select-input-container",
+                                                                        column(12,  selectInput("input.type.value","Form of Pvalue",choices=c("0 to 1","-∞ to ∞ or pre-converted -log10(PValue)")),
+                                                                    )
+                                                             )
+                                                             
+                                                           )
+
+                                                           
+                                           )
                                          ),
                                          selectInput("user.defined","Types of preset parameters",choices = style.volcano.type),
+                                        
+                                         # fluidRow(
+                                                  # column(12,   
+                                                         div(class = "select-input-container",uiOutput("label.graph.type"),
+                                                        div(class = "hint-icon",
+                                                            icon("circle-question", lib = "font-awesome")),
+                                                        div(class = "hint-text", "There are 6 labelling options: none, both, up, down or own list (uploaded or manual)"),
+                                                  ),
+                                         # )
+                                         # ),
                                          
-                                         uiOutput("label.graph.type"),
-                                         p("There are 6 labelling options: none, both, up, down or own list (uploaded or manual)"),
-                                         selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
-                                         fileInput('file1', 'ID, logFC, Pvalue',
-                                                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         h5("P-value need to be between 0 to 1"),
-                                         selectInput("input.type.value","Form of Pvalue",choices=c("0 to 1","-∞ to ∞ or pre-converted -log10(PValue)")),
-                                         fluidRow(
-                                           column(6,radioButtons('sep', 'Separator', c( Tab='\t', Comma=','), ',')),
-                                           column(6,radioButtons('quote', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                         conditionalPanel(condition = 'input.selected=="own list"',
+                                                          
+                                                         selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
+                                                         fileInput('file2', 'Choose selected gene file (.csv)',
+                                                                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                         ),
+                                         bsCollapse(
+                                           id = "collapse_font", open = "Font", multiple = TRUE,
+                                           bsCollapsePanel("Font",style = "primary custom-panel",
+                                                           uiOutput("font.type")
+                                                           
+                                           )
                                          ),
                                          
+                                         bsCollapse(
+                                           id = "collapse_cutoff", open = "Cut-offs", multiple = TRUE,
+                                           bsCollapsePanel("Cut-offs",style = "primary custom-panel",
+                                                           uiOutput("cut.offs")
+                                                           
+                                           )
+                                         ),
+                                         
+                                         bsCollapse(
+                                           id = "collapse_axis", open = "Axis parameters", multiple = TRUE,
+                                           bsCollapsePanel("Axis parameters",style = "primary custom-panel",
+                                                           uiOutput("axis.parameters"),
+                                                           uiOutput("axis.parameters2")
 
-                                         fileInput('file2', 'Choose selected gene file (.csv)',
-                                                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         h4("Select font for graph"),
-                                         uiOutput("font.type"),
+                                           )
+                                         ),
 
-                                         h4("Cut-offs"),
-                                         uiOutput("cut.offs"),
-                                         h4("Axis parameters"),
-                                         uiOutput("axis.parameters"),
-                                         uiOutput("axis.parameters2"),
-                                         h4("Point colour, size, shape and transparancy"),
-                                         uiOutput("up.parameters"),
-                                         uiOutput("down.parameters"),
-                                         uiOutput("transparancy1"),
-                                         uiOutput("NS.parameters"),
-                                         uiOutput("transparancy2"),
-                                         p(" "),
-                                         h4("Labels, colour and shape for selected points"),
-                                         uiOutput("shape.size.selected"),
-                                         uiOutput("transparancy3"),
-                                         uiOutput("labelled.parameters"),
-                                         h4("Label parameters"),
-                                         uiOutput("label.range"),
-                                         uiOutput("dist.size.label"),
-                                         h4("Legend parameters"),
-                                         uiOutput("legend.parameters"),
+                                         bsCollapse(
+                                           id = "collapse_col", open = "Point colour, size, shape and transparancy", multiple = TRUE,
+                                           bsCollapsePanel("Point colour, size, shape and transparancy",style = "primary custom-panel",
+                                                           uiOutput("up.parameters"),
+                                                           uiOutput("down.parameters"),
+                                                           uiOutput("transparancy1"),
+                                                           uiOutput("NS.parameters"),
+                                                           uiOutput("transparancy2")
+                                                           
+                                           )
+                                         ),
+                                         bsCollapse(
+                                           id = "collapse_col2", open = "Labels, colour and shape for selected points", multiple = TRUE,
+                                           bsCollapsePanel("Labels, colour and shape for selected points",style = "primary custom-panel",
+                                                           uiOutput("shape.size.selected"),
+                                                           uiOutput("transparancy3"),
+                                                           uiOutput("labelled.parameters")
+                                                           
+                                           )
+                                         ),
+       
+                                         bsCollapse(
+                                           id = "collapse_lab1", open = "Label parameters", multiple = TRUE,
+                                           bsCollapsePanel("Label parameters",style = "primary custom-panel",
+                                                           uiOutput("label.range"),
+                                                           uiOutput("dist.size.label")
+                                           )
+                                         ),
+                                         bsCollapse(
+                                           id = "collapse_lab1", open = "Legend parameters", multiple = TRUE,
+                                           bsCollapsePanel("Legend parameters",style = "primary custom-panel",
+
+                                                           uiOutput("legend.parameters")
+                                           )
+                                         ),
                             ),
                             # main panel -----
                             mainPanel(tabsetPanel(
@@ -162,7 +314,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                        
                                        conditionalPanel(condition="input.selected == 'manual'",
                                                         fluidRow(column(12, textInput("string.data3","list of selected points","CD74, TAP2, HLA-E, STAT1, WARS, ICAM1, TAP1", width = "1200px") ))),
-                                       
+                                       div(id = "spinner-container",class = "centered-spinner",add_busy_spinner(spin = "fading-circle",height = "200px",width = "200px",color = "#6F00B0")),
                                        textOutput("number_of_points"),
                                        textOutput("sig_values_test"),
                                        plotOutput("ggplot",height = "600px"),
@@ -572,7 +724,10 @@ server  <- function(input, output, session) {
     
     df <- values.cut.off()
     
-    selectInput('selected', 'Type of output', 
+    
+    
+    
+    selectInput('selected', 'Type of output', width = "275px",
                 choices = selected_present, 
                 selected= selected_present[df$label.type])
     
@@ -590,7 +745,7 @@ server  <- function(input, output, session) {
   output$axis.parameters <- renderUI({
     df <- values.cut.off()
     fluidRow(
-      column(12, textInput(inputId = "sig_lines", label = "Significance lines",value = df$sig.col.line)),
+      column(12, colourInput(inputId = "sig_lines", label = "Significance lines",value = df$sig.col.line)),
       column(12,  textInput(inputId = "expression_y2", 
                             label = "Y-axis label",
                             value = df$x.axis.lab)),

@@ -199,6 +199,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          bsCollapse(
                                            id = "collapse_dataset", open = c("dataset"), multiple = TRUE,
                                            bsCollapsePanel("dataset",style = "primary custom-panel",
+                                                           selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
                                                            fluidRow(
                                                              column(12, div(class = "select-input-container",
                                                                             fileInput('file1', 'ID, logFC, Pvalue',
@@ -239,7 +240,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          
                                          conditionalPanel(condition = 'input.selected=="own list"',
                                                           
-                                                         selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
+                                                         
                                                          fileInput('file2', 'Choose selected gene file (.csv)',
                                                                    accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
                                          ),

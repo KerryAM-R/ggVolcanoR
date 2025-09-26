@@ -61,7 +61,7 @@ filtered_table <- c("upregulated" = "upregulated",
 sort_by <- c("x-axis" = 2,
              "y-axis" =4)
 require(fontHelper)
-fonts <- register_fonts("common")
+fonts <- register_fonts("all")
 print(fonts)
 
 

@@ -16,16 +16,15 @@ require("colourpicker")
 require("circlize")
 require("ComplexHeatmap")
 require("shinybusy")
-# require("colourpicker", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
-# require("circlize", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
-# require("ComplexHeatmap", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
+require("colourpicker", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
+require("circlize", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
+require("ComplexHeatmap", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
 # install.packages("circlize",lib = "../ggVolcanoR/local.lib/", dependencies = T)
 # install.packages("ComplexHeatmap",lib = "../ggVolcanoR/local.lib/", dependencies = T)
 
 
 
-test_fun <- function()
-{
+test_fun <- function(){
   for (i in 1:15) {
     incProgress(1/15)
     sum(runif(1000000,0,1))
@@ -168,9 +167,6 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                  ),
                  
                  # UI Volcano plot ----
-                 
-               
-                 
                  tabPanel("Volcano plot (Single-group)",
                          
                           sidebarLayout(

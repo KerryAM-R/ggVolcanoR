@@ -16,9 +16,10 @@ require("colourpicker")
 require("circlize")
 require("ComplexHeatmap")
 require("shinybusy")
-require("colourpicker", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
-require("circlize", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
-require("ComplexHeatmap", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
+# require("colourpicker", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
+# require("circlize", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
+# require("ComplexHeatmap", lib.loc = "/home/ubuntu/R/x86_64-pc-linux-gnu-library/4.1")
+require("fontHelper")
 # install.packages("circlize",lib = "../ggVolcanoR/local.lib/", dependencies = T)
 # install.packages("ComplexHeatmap",lib = "../ggVolcanoR/local.lib/", dependencies = T)
 
@@ -59,9 +60,10 @@ filtered_table <- c("upregulated" = "upregulated",
 
 sort_by <- c("x-axis" = 2,
              "y-axis" =4)
-fonts <- c("Arial" = "sans", 
-           "Times New Roman" = "serif", 
-           "Courier" = "mono")
+require(fontHelper)
+fonts <- register_fonts("common")
+print(fonts)
+
 
 selected_present <- c("no labels","range (both directions)","range (up direction)","range (down direction)","own list","manual")
 y_options <- c("-Log10(p-value)","FDR", "adjusted")
@@ -532,7 +534,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                       selectInput("dataset.upset.heatmap", "Choose a dataset:", choices = c("test-data", "own")),
                                       fileInput('file.hm', 'ID, logFC, Pvalue, group, group.direction (.csv)',
                                                 accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                      selectInput('font.hm','Font type',choices = fonts, selected = fonts[2]),
+                                      selectInput('font.hm','Font type',choices = fonts),
                                       downloadButton('downloadTABLE.hm','Download Heatmap table'),
                                       p(" "),
                                       downloadButton('downloadTABLE.upset','Download Upset table')
@@ -714,7 +716,7 @@ server  <- function(input, output, session) {
   #})
   output$font.type <- renderUI({
     df <- values.cut.off()
-    selectInput('font','Font type',choices = fonts, selected = fonts[df$font.type])
+    selectInput('font','Font type',choices = fonts, selected = "Times New Roman")
     
   })
   output$label.graph.type <- renderUI({
@@ -2222,7 +2224,7 @@ server  <- function(input, output, session) {
   }
   output$font_cor <- renderUI({
     df <- values.cut.off.cor()
-    selectInput('font2','Font type',choices = fonts, selected = fonts[df$font.type])
+    selectInput('font2','Font type',choices = fonts)
     
   })
   output$cut.off.cor <- renderUI({

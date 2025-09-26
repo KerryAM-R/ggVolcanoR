@@ -195,7 +195,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                          bsCollapse(
                                            id = "collapse_dataset", open = c("dataset"), multiple = TRUE,
                                            bsCollapsePanel("dataset",style = "primary custom-panel",
-                                                           selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own")),
+                                                           selectInput("dataset", "Choose a dataset:", choices = c("test-data", "own"),selected = "own"),
                                                            fluidRow(
                                                              column(12, div(class = "select-input-container",
                                                                             fileInput('file1', 'ID, logFC, Pvalue',

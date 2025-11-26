@@ -62,8 +62,7 @@ sort_by <- c("x-axis" = 2,
              "y-axis" =4)
 require(fontHelper)
 fonts <- register_fonts("all")
-print(fonts)
-
+fonts <- fonts[order(fonts,decreasing = F)]
 
 selected_present <- c("no labels","range (both directions)","range (up direction)","range (down direction)","own list","manual")
 y_options <- c("-Log10(p-value)","FDR", "adjusted")
@@ -93,18 +92,20 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                    tags$style(HTML(
                      "
       .hint-text {
-        display: none;
-        position: absolute; /* Change position to relative */
-        background-color: #d8ffc2;
-        border: 4px solid #41b000;
-        border-radius: 5px;
-        padding: 12px; /* Increased padding */
-        z-index: 200; /* Ensure hint text is above other elements */
-        font-size: 14px; /* Decreased font size */
-        text-align: center; /* Center alignment */
-        width: 250px; /* Set width to prevent stretching */
-        color: #41b000; /* Change text color to purple */
-      }
+  display: none;
+  position: absolute;
+  background-color: #d8ffc2;
+  border: 4px solid #41b000;
+  border-radius: 5px;
+  padding: 12px;
+  z-index: 200;
+  font-size: 14px;
+  text-align: left;
+  max-width: 180px;    /* prevents overflow */
+  width: auto;         /* lets text wrap naturally */
+  white-space: normal; /* allow multi-line text */
+  color: #41b000;
+}
       .hint-text2 {
         display: none;
         position: absolute; /* Change position to relative */
@@ -148,10 +149,12 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
         cursor: pointer; /* Change cursor to pointer */
       }
       .select-input-container {
-        display: flex; /* Use Flexbox */
-        align-items: top; /* Center items vertically */
-        justify-content: space-between; /* Space items evenly */
-      }
+  display: flex;
+  align-items: center;
+  gap: 6px;           /* small spacing between label and icon */
+  width: 100%;        /* ensures it fits inside the sidebar */
+  justify-content: flex-start;   /* prevents stretching */
+}
       "
                    )),
                    tags$script(HTML(
@@ -228,7 +231,8 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                         
                                          # fluidRow(
                                                   # column(12,   
-                                                         div(class = "select-input-container",uiOutput("label.graph.type"),
+                                                        div(class = "select-input-container",
+                                                            uiOutput("label.graph.type"),
                                                         div(class = "hint-icon",
                                                             icon("circle-question", lib = "font-awesome")),
                                                         div(class = "hint-text", "There are 6 labelling options: none, both, up, down or own list (uploaded or manual)"),
@@ -309,8 +313,6 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                        fluidRow(column(6,uiOutput("title.volc")),
                                                
                                                 ),
-                                       
-                                       
                                        conditionalPanel(condition="input.selected == 'manual'",
                                                         fluidRow(column(12, textInput("string.data3","list of selected points","CD74, TAP2, HLA-E, STAT1, WARS, ICAM1, TAP1", width = "1200px") ))),
                                        div(id = "spinner-container",class = "centered-spinner",add_busy_spinner(spin = "fading-circle",height = "200px",width = "200px",color = "#6F00B0")),
@@ -387,49 +389,89 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                  tabPanel("Correlation plot (Two-group)",
                           sidebarLayout(
                             sidebarPanel(id = "tPanel2",style = "overflow-y:scroll; max-height: 1000px; position:relative;", width=3,
-                                         h4("Correlation plot parameters"),
-                                         selectInput("dataset_parameters.cor","Select preset or user uploaded parameters",choices = c("preset","user-uploaded")),
-                                         downloadButton("downloadTABLE.parameters.cor","Download parameter guide"),
-                                         fileInput('file.style.cor', 'Upload parameters',
-                                                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                         bsCollapse(
+                                           id = "collapse_params_twogroup", open = c("dataset"), multiple = TRUE,
+                                           bsCollapsePanel("Correlation plot parameters",style = "primary custom-panel",
+                                                           selectInput("dataset_parameters.cor","Select preset or user uploaded parameters",choices = c("preset","user-uploaded")),
+                                                           downloadButton("downloadTABLE.parameters.cor","Download parameter guide"),
+                                                           fileInput('file.style.cor', 'Upload parameters',
+                                                                     accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')
+                                                                     )
+                                           )
+                                         ),
+                                         
+                                         bsCollapse(
+                                           id = "collapse_dataset2", open = c("dataset"), multiple = TRUE,
+                                           bsCollapsePanel("dataset",style = "primary custom-panel",
+                                                           selectInput("dataset2", "Choose a dataset:", choices = c("test-data", "own"),selected = "own"),
+                                                           fileInput('file3', 'ID, logFC, Pvalue (x-axis)',
+                                                                     accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                                           fluidRow(
+                                                             column(6,radioButtons('sep3', 'Separator', c( Tab='\t', Comma=','), ',')),
+                                                             column(6,radioButtons('quote3', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                                           ),
+                                                           tags$hr(),
+                                                           fileInput('file4', 'ID, logFC, Pvalue (y-axis)',
+                                                                     accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                                           fluidRow(
+                                                             column(6,radioButtons('sep4', 'Separator', c( Tab='\t', Comma=','), ',')),
+                                                             column(6,radioButtons('quote4', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                                           )
+                                                           
+                                                           
+                                           )
+                                         ),
+                                         
                                          selectInput("user.defined.cor","Types of parameters",choices = style.cor.type),
                                          
-                                         selectInput("dataset2", "Choose a dataset:", choices = c("test-data", "own")),
-                                         fileInput('file3', 'ID, logFC, Pvalue (x-axis)',
-                                                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         fluidRow(
-                                           column(6,radioButtons('sep3', 'Separator', c( Tab='\t', Comma=','), ',')),
-                                           column(6,radioButtons('quote3', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
+                                         bsCollapse(
+                                           id = "collapse_ownList", open = "Own List", multiple = TRUE,
+                                           bsCollapsePanel("Own List",style = "primary custom-panel",
+                                                           fileInput('file6', 'Choose selected gene file (.csv)',
+                                                                     accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+                                                           selectInput("input.type.value.cor","Form of Pvalue",choices=c("0 to 1","-∞ to ∞ or pre-converted -log10(PValue)"))
+                                                           
+                                           )
                                          ),
-                                         tags$hr(),
-                                         fileInput('file4', 'ID, logFC, Pvalue (y-axis)',
-                                                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         fluidRow(
-                                           column(6,radioButtons('sep4', 'Separator', c( Tab='\t', Comma=','), ',')),
-                                           column(6,radioButtons('quote4', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
-                                         ),
-                                         fileInput('file6', 'Choose selected gene file (.csv)',
-                                                   accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                         
-                                         selectInput("input.type.value.cor","Form of Pvalue",choices=c("0 to 1","-∞ to ∞ or pre-converted -log10(PValue)")),
-                                         
-                                         h4("Font type"),
-                                        uiOutput("font_cor"),
-                                         h4("Cut-offs"),
-                                        uiOutput("cut.off.cor"),
-                                         h4("Axis text size"),
-                                        uiOutput("axis.text.size.cor"),
-                                         h4("Point parameters"),
-                                      uiOutput("point.parameter.cor1"),
-                                      uiOutput("point.parameter.cor2"),
-                                      uiOutput("point.parameter.cor3"),
-                                      uiOutput("point.parameter.cor4"),
-                                         h4("Axis tick marks"),
-                                        uiOutput("axis.tick.marks"),
-                                      h4("Legend parameters"),
-                                      uiOutput("legend.par.cor")
-                                        
+                                        bsCollapse(
+                                          id = "collapse_font2", open = "Font", multiple = TRUE,
+                                          bsCollapsePanel("Font",style = "primary custom-panel",
+                                                          uiOutput("font_cor")
+                                                          
+                                          )
+                                        ),
+                                        bsCollapse(
+                                          id = "collapse_font2", open = "Cut-offs", multiple = TRUE,
+                                          bsCollapsePanel("Cut-offs",style = "primary custom-panel",
+                                                          uiOutput("cut.off.cor")
+                                          )
+                                        ),
 
+                                        bsCollapse(
+                                          id = "collapse_text2", open = "Text Size", multiple = TRUE,
+                                          bsCollapsePanel("Text Size",style = "primary custom-panel",
+                                                          uiOutput("axis.text.size.cor")
+                                          )),
+                                        bsCollapse(
+                                          id = "collapse_points2", open = "Point parameters", multiple = TRUE,
+                                          bsCollapsePanel("Point parameters",style = "primary custom-panel",
+                                                          uiOutput("point.parameter.cor1"),
+                                                          uiOutput("point.parameter.cor2"),
+                                                          uiOutput("point.parameter.cor3"),
+                                                          uiOutput("point.parameter.cor4")
+                                          )),
+                                        bsCollapse(
+                                          id = "collapse_ticks2", open = "Axis tick marks", multiple = TRUE,
+                                          bsCollapsePanel("Axis tick marks",style = "primary custom-panel",
+                                                          uiOutput("axis.tick.marks")
+                                          )),
+                                        
+                                        bsCollapse(
+                                          id = "collapse_legend2", open = "Legend parameters", multiple = TRUE,
+                                          bsCollapsePanel("Legend parameters",style = "primary custom-panel",
+                                                          uiOutput("legend.par.cor")
+                                          )),
+  
                             ),
                             # main panl correlation -----
                             mainPanel(tabsetPanel(
@@ -534,7 +576,7 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                       selectInput("dataset.upset.heatmap", "Choose a dataset:", choices = c("test-data", "own")),
                                       fileInput('file.hm', 'ID, logFC, Pvalue, group, group.direction (.csv)',
                                                 accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
-                                      selectInput('font.hm','Font type',choices = fonts),
+                                      selectInput('font.hm','Font type',choices = fonts,selected = "Times New Roman"),
                                       downloadButton('downloadTABLE.hm','Download Heatmap table'),
                                       p(" "),
                                       downloadButton('downloadTABLE.upset','Download Upset table')
@@ -2168,8 +2210,10 @@ server  <- function(input, output, session) {
   # reactive UI cor plots ---------------------------------------------------
   
   input.data_parameters.cor <- reactive({switch(input$dataset_parameters.cor,"preset" = test.data_parameters.cor(),"user-uploaded" = own.data_parameters.cor())})
+  
+  
   test.data_parameters.cor <- reactive({
-    dataframe = read.csv("test-data/test-parameters.cor.csv") })
+    dataframe = read.csv("test-data/test-parameters.cor.csv",header = T) })
   own.data_parameters.cor <- reactive({
     inFile.style.cor <- input$file.style.cor 
     if (is.null(inFile.style.cor)) return(NULL)
@@ -2182,6 +2226,7 @@ server  <- function(input, output, session) {
   
   table.parameters <- function (){
     df <- input.data_parameters.cor()
+    req(df)
     df
   }
   
@@ -2197,6 +2242,7 @@ server  <- function(input, output, session) {
   values.cut.off.cor <- function(){
     
     df <- input.data_parameters.cor()
+    req(df)
     df <- as.data.frame(df)
     
     if (input$user.defined.cor == "Labelled") {
@@ -2224,7 +2270,7 @@ server  <- function(input, output, session) {
   }
   output$font_cor <- renderUI({
     df <- values.cut.off.cor()
-    selectInput('font2','Font type',choices = fonts)
+    selectInput('font2','Font type',choices = fonts, selected = "Times New Roman")
     
   })
   output$cut.off.cor <- renderUI({
@@ -2301,9 +2347,9 @@ server  <- function(input, output, session) {
   output$axis.tick.marks <- renderUI({
     df <- values.cut.off.cor()
     fluidRow(
-      column(3,numericInput("cor_xbreaks","x-axis tick marks",value = df$x.tick)),
-      column(3,numericInput("cor_ybreaks","y-axis tick marks",value = df$y.tick)),
-      column(3,textInput(inputId = "cor_sig_lines", label = "x=0,y=0 line colour",value = df$dotted.line)),
+      column(4,numericInput("cor_xbreaks","x-axis tick marks",value = df$x.tick)),
+      column(4,numericInput("cor_ybreaks","y-axis tick marks",value = df$y.tick)),
+      column(4,textInput(inputId = "cor_sig_lines", label = "x=0,y=0 line colour",value = df$dotted.line)),
     )
     
   })
@@ -2328,7 +2374,7 @@ server  <- function(input, output, session) {
   })
   output$labels.cor <- renderUI({
     df <- values.cut.off.cor()
-    
+    req(df)
     fluidRow(
       column(2,checkboxInput("label3", label = "Display labels", value = df$Add.labels)),
       column(2, checkboxInput("ownlist.cor", "Own list",value = df$display.ownlist)),
@@ -2342,7 +2388,7 @@ server  <- function(input, output, session) {
   })
   output$labels.cor2 <- renderUI({
     df <- values.cut.off.cor()
-    
+    req(df)
     fluidRow(
   
       column(2,numericInput("min2", "Label range (min)", value=df$min.range)),
@@ -2400,13 +2446,13 @@ server  <- function(input, output, session) {
   # Merging the two plots ----
   plotInput2 <- function() {
     
+    req(input$input.type.value.cor,input$FC1,input.data4(),input.data3())
+    
     if (input$input.type.value.cor == '0 to 1') 
     {
       dat4 <- input.data4();
       dat3 <- input.data3();
-    }
-    
-    else {
+    } else {
       dat4 <- input.data4();
       dat4$Pvalue <- 10^(-1*dat4$Pvalue)
       dat3 <- input.data3();
@@ -2434,10 +2480,7 @@ server  <- function(input, output, session) {
     
     
     dat5 <- merge(dat3,dat4,by="ID")
-    
-    
-    
-    
+
     dat_all <- mutate(dat5,
                       sig=ifelse(dat5$Pvalue.x<input$Pvalue1 & dat5$Pvalue.y<input$Pvalue2,"sig","NS"),
                       direction=ifelse(dat5$logFC.x>pos1 & dat5$logFC.y>pos2,"both_up",

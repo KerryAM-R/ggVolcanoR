@@ -416,8 +416,6 @@ ui <- navbarPage("ggVolcanoR", position = "fixed-top",collapsible = TRUE,
                                                              column(6,radioButtons('sep4', 'Separator', c( Tab='\t', Comma=','), ',')),
                                                              column(6,radioButtons('quote4', 'Quote', c(None='', 'Double Quote'='"', 'Single Quote'="'"), '"'))
                                                            )
-                                                           
-                                                           
                                            )
                                          ),
                                          
@@ -792,9 +790,7 @@ server  <- function(input, output, session) {
                             value = df$x.axis.lab)),
       column(12, numericInput("axis", "Axis label text size", min=0, value=df$axis.text.size)),
       column(12,  numericInput("axis_text", "Axis numeric text size", min=0, value=df$axis.numeric.size)),
-     
-      
-     
+      column(12,  numericInput("title_size", "Title text size", min=0, value=30)),
       column(4,numericInput("xlow","x-axis lower range",value = df$x.min)),
       column(4,numericInput("xhigh","x-axis upper range",value = df$x.max)),
       column(4,numericInput("xbreaks","x-axis tick marks",value = df$x.tick.marks)),
@@ -952,9 +948,6 @@ server  <- function(input, output, session) {
   # summary table -----
   
   output$summary_table <-DT::renderDataTable({
-    
-    
-    
     if (input$input.type.value == '0 to 1') 
     {
       dat <- input.data();
@@ -1119,441 +1112,171 @@ server  <- function(input, output, session) {
     y_lable1 <- bquote("-"~Log[10]~(.(input$expression_y2)))
     y_lable1
     
-    if (input$selected=="range (both directions)") {
+    ## ----------------------------
+    ## 1. DEFINE gene_list + filtering ONCE
+    ## ----------------------------
+    
+    df_base <- mutateddf.gene
+    
+    gene_list <- switch(
+      input$selected,
       
-      colour_class3 <- c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant")
-      colour.df3 <- as.data.frame(c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant"))
-      names(colour.df3) <- "label"
-      colour.df3$V1 <- c(input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3,input$NS)
-      colour.df3$shape <- c(input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape1,input$shape3)
-      colour.df3$size <- c(input$size2,input$size1.1,input$size1,input$size1,input$size1,input$size3)
-      colour.df3$alpha <- c(input$alpha2,input$alpha2,input$alpha1,input$alpha1,input$alpha1,input$alpha3)
+      "range (up direction)" = {
+        tmp <- subset(df_base, logFC > pos & Pvalue < input$Pvalue)
+        tmp <- tmp[order(tmp$Pvalue), ]
+        tmp$ID[input$min:input$max]
+      },
       
-      colour.class4 <- colour.df3[colour.df3$label %in% unique(sub.mutateddf.gene2$colour),]
+      "range (down direction)" = {
+        tmp <- subset(df_base, logFC < neg & Pvalue < input$Pvalue)
+        tmp <- tmp[order(tmp$Pvalue), ]
+        tmp$ID[input$min:input$max]
+      },
       
-      sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour.class4$label)
+      "range (both directions)" = {
+        tmp <- subset(df_base, Pvalue < input$Pvalue)
+        tmp <- tmp[order(tmp$Pvalue), ]
+        tmp$ID[input$min:input$max]
+      },
       
-      vals$ggplot <- ggplot() + 
-        geom_point(aes(x=sub.mutateddf.gene2$logFC, y=-log10(sub.mutateddf.gene2$Pvalue),
-                       col=sub.mutateddf.gene2$colour,
-                       shape=sub.mutateddf.gene2$colour,
-                       alpha=sub.mutateddf.gene2$colour,
-                       size=sub.mutateddf.gene2$colour),
-        ) +
-        scale_color_manual(name="legend",values=colour.class4$V1, labels = colour.class4$label) +
-        scale_shape_manual(name="legend",values=colour.class4$shape, labels=colour.class4$label)+
-        scale_size_manual(name="legend",values=colour.class4$size, labels=colour.class4$label)+
-        scale_alpha_manual(name="legend",values=colour.class4$alpha, labels=colour.class4$label) +
+      "own list" = {
+        list2
+      },
+      
+      "manual" = {
+        strsplit(input$string.data3, ",")[[1]] |> trimws()
+      },
+      
+      character(0)
+    )
+    
+    ## ----------------------------
+    ## 2. BUILD colour annotation ONCE
+    ## ----------------------------
+    
+    df_plot <- dplyr::mutate(
+      df_base,
+      colour = case_when(
         
-        geom_text_repel(data=sub.mutateddf.gene2[sub.mutateddf.gene2$ID %in% gene_list,]
-                        ,aes(x=sub.mutateddf.gene2$logFC[sub.mutateddf.gene2$ID %in% gene_list], 
-                             y=  -log10(sub.mutateddf.gene2$Pvalue)[sub.mutateddf.gene2$ID %in% gene_list],
-                             label= sub.mutateddf.gene2$ID[sub.mutateddf.gene2$ID %in% gene_list]),
-                        size=input$label,
-                        family=input$font, 
-                        segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
-                        max.overlaps = Inf) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        theme_bw(base_size = 18)+
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        geom_vline(xintercept=pos, linetype="dashed", color = input$sig_lines) +
-        geom_vline(xintercept=neg, linetype="dashed", color = input$sig_lines) +
-        geom_hline(yintercept=-log10(input$Pvalue), linetype="dashed", color = input$sig_lines) +
-        theme(text=element_text(size=20,family=input$font),
-              axis.title = element_text(colour="black", size=input$axis,family=input$font),
-              axis.text.x = element_text(colour="black",size=input$axis_text,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
-              axis.text.y = element_text(colour="black",size=input$axis_text,angle=0,hjust=1,vjust=0,face="plain",family=input$font),
-              axis.title.x=element_text(colour="black",size=input$axis,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
-              axis.title.y = element_text(colour="black",size=input$axis,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size),
-              legend.position = input$legend_location, 
-              legend.box="vertical",
-              legend.margin=margin(),
-              plot.title = element_text(size = 18),
-              legend.justification = "top")+
-        labs(y=y_lable1,
-             x=expression(Log[2]~Fold~Change),
-             title=input$title) +
-        guides(size="none", col = guide_legend(ncol=input$col))+
-        scale_y_continuous(limits = c(0, input$yhigh) ,breaks = seq(0, input$yhigh, by = input$ybreaks))+
-        scale_x_continuous(limits = c(input$xlow, input$xhigh), breaks = seq(input$xlow, input$xhigh, by = input$xbreaks)) 
-      vals$ggplot
-      
-    }
-    else if (input$selected=="range (up direction)") {
-      mutateddf.gene2 <- subset(mutateddf.gene,mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue)
-      Ordered_df <-  mutateddf.gene2[order(mutateddf.gene2$Pvalue,decreasing = F),]
-      
-      top <- mutateddf.gene2[(input$min:input$max),]
-      gene_list <- top$ID
-      sub.mutateddf.gene2 <- dplyr::mutate(mutateddf.gene,
-                                    colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_up",
-                                                  ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"Significant-up",
-                                                                                                                                                                                                                                                                             ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"Significant-down","Non-significant"))))
-      )
-      
-      colour_class3 <- c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant")
-      colour.df3 <- as.data.frame(c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant"))
-      names(colour.df3) <- "label"
-      colour.df3$V1 <- c(input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3,input$NS)
-      colour.df3$shape <- c(input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape1,input$shape3)
-      colour.df3$size <- c(input$size2,input$size1.1,input$size1,input$size1,input$size1,input$size3)
-      colour.df3$alpha <- c(input$alpha2,input$alpha2,input$alpha1,input$alpha1,input$alpha1,input$alpha3)
-      
-      colour.class4 <- colour.df3[colour.df3$label %in% unique(sub.mutateddf.gene2$colour),]
-      
-      sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour.class4$label)
-
-      
-      vals$ggplot <- ggplot() + 
-        geom_point(aes(x=sub.mutateddf.gene2$logFC, y=-log10(sub.mutateddf.gene2$Pvalue),
-                       col=sub.mutateddf.gene2$colour,
-                       shape=sub.mutateddf.gene2$colour,
-                       alpha=sub.mutateddf.gene2$colour,
-                       size=sub.mutateddf.gene2$colour),
-        ) +
-        scale_color_manual(name="legend",values=colour.class4$V1, labels = colour.class4$label) +
-        scale_shape_manual(name="legend",values=colour.class4$shape, labels=colour.class4$label)+
-        scale_size_manual(name="legend",values=colour.class4$size, labels=colour.class4$label)+
-        scale_alpha_manual(name="legend",values=colour.class4$alpha, labels=colour.class4$label) +
+        ID %in% gene_list & logFC > pos & Pvalue < input$Pvalue ~ "Labelled_up",
+        ID %in% gene_list & logFC < neg & Pvalue < input$Pvalue ~ "Labelled_down",
         
-        geom_text_repel(data=sub.mutateddf.gene2[sub.mutateddf.gene2$ID %in% gene_list,]
-                        ,aes(x=sub.mutateddf.gene2$logFC[sub.mutateddf.gene2$ID %in% gene_list], 
-                             y=  -log10(sub.mutateddf.gene2$Pvalue)[sub.mutateddf.gene2$ID %in% gene_list],
-                             label= sub.mutateddf.gene2$ID[sub.mutateddf.gene2$ID %in% gene_list]),
-                        size=input$label,
-                        family=input$font, 
-                        segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
-                        max.overlaps = Inf) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme_bw(base_size = 18)+
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        geom_vline(xintercept=pos, linetype="dashed", color = input$sig_lines) +
-        geom_vline(xintercept=neg, linetype="dashed", color = input$sig_lines) +
-        geom_hline(yintercept=-log10(input$Pvalue), linetype="dashed", color = input$sig_lines) +
-        theme(text=element_text(size=20,family=input$font),
-              axis.title = element_text(colour="black", size=input$axis,family=input$font),
-              axis.text.x = element_text(colour="black",size=input$axis_text,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
-              axis.text.y = element_text(colour="black",size=input$axis_text,angle=0,hjust=1,vjust=0,face="plain",family=input$font),
-              axis.title.x=element_text(colour="black",size=input$axis,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
-              axis.title.y = element_text(colour="black",size=input$axis,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size),
-              legend.position = input$legend_location, 
-              legend.box="vertical",
-              legend.margin=margin(),
-              legend.justification = "top")+
-        labs(y=y_lable1,
-             x=expression(Log[2]~Fold~Change),
-             title=input$title) +
-        guides(size="none", col = guide_legend(ncol=input$col))+
-        scale_y_continuous(limits = c(0, input$yhigh) ,breaks = seq(0, input$yhigh, by = input$ybreaks))+
-        scale_x_continuous(limits = c(input$xlow, input$xhigh), breaks = seq(input$xlow, input$xhigh, by = input$xbreaks))
-      vals$ggplot
-      
-    }
-    else if (input$selected=="range (down direction)") {
-      
-      
-      mutateddf.gene2 <- subset(mutateddf.gene,mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue)
-      top <- mutateddf.gene2[(input$min:input$max),]
-      gene_list <- top$ID
-      sub.mutateddf.gene2 <- dplyr::mutate(mutateddf.gene,
-                                      colour=ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_up",
-                                                    ifelse(mutateddf.gene$ID %in% gene_list & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_down",                                                                                           ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"Significant-up",
-                                                                                                                                                                                                                                                                               ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"Significant-down","Non-significant")))),
-      )
-      
-      colour_class3 <- c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant")
-      colour.df3 <- as.data.frame(c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant"))
-      names(colour.df3) <- "label"
-      colour.df3$V1 <- c(input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3,input$NS)
-      colour.df3$shape <- c(input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape1,input$shape3)
-      colour.df3$size <- c(input$size2,input$size1.1,input$size1,input$size1,input$size1,input$size3)
-      colour.df3$alpha <- c(input$alpha2,input$alpha2,input$alpha1,input$alpha1,input$alpha1,input$alpha3)
-      
-      colour.class4 <- colour.df3[colour.df3$label %in% unique(sub.mutateddf.gene2$colour),]
-      
-      sub.mutateddf.gene2$colour <- factor(sub.mutateddf.gene2$colour, levels = colour.class4$label)
-      
-      vals$ggplot <- ggplot() + 
-        geom_point(aes(x=sub.mutateddf.gene2$logFC, y=-log10(sub.mutateddf.gene2$Pvalue),
-                       col=sub.mutateddf.gene2$colour,
-                       shape=sub.mutateddf.gene2$colour,
-                       alpha=sub.mutateddf.gene2$colour,
-                       size=sub.mutateddf.gene2$colour),
-        ) +
-        scale_color_manual(name="legend",values=colour.class4$V1, labels = colour.class4$label) +
-        scale_shape_manual(name="legend",values=colour.class4$shape, labels=colour.class4$label)+
-        scale_size_manual(name="legend",values=colour.class4$size, labels=colour.class4$label)+
-        scale_alpha_manual(name="legend",values=colour.class4$alpha, labels=colour.class4$label) +
+        Pvalue < input$Pvalue & logFC > pos ~ "Significant-up",
+        Pvalue < input$Pvalue & logFC < neg ~ "Significant-down",
         
-        geom_text_repel(data=sub.mutateddf.gene2[sub.mutateddf.gene2$ID %in% gene_list,]
-                        ,aes(x=sub.mutateddf.gene2$logFC[sub.mutateddf.gene2$ID %in% gene_list], 
-                             y=  -log10(sub.mutateddf.gene2$Pvalue)[sub.mutateddf.gene2$ID %in% gene_list],
-                             label= sub.mutateddf.gene2$ID[sub.mutateddf.gene2$ID %in% gene_list]),
-                        size=input$label,
-                        family=input$font, 
-                        segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
-                        max.overlaps = Inf) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        scale_color_manual(name="legend",values=colour.class4$V1, labels = colour.class4$label) +
-        scale_shape_manual(name="legend",values=colour.class4$shape, labels=colour.class4$label)+
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme_bw(base_size = 18)+
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        geom_vline(xintercept=pos, linetype="dashed", color = input$sig_lines) +
-        geom_vline(xintercept=neg, linetype="dashed", color = input$sig_lines) +
-        geom_hline(yintercept=-log10(input$Pvalue), linetype="dashed", color = input$sig_lines) +
-        theme(text=element_text(size=20,family=input$font),
-              axis.title = element_text(colour="black", size=input$axis,family=input$font),
-              axis.text.x = element_text(colour="black",size=input$axis_text,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
-              axis.text.y = element_text(colour="black",size=input$axis_text,angle=0,hjust=1,vjust=0,face="plain",family=input$font),
-              axis.title.x=element_text(colour="black",size=input$axis,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
-              axis.title.y = element_text(colour="black",size=input$axis,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size),
-              legend.position = input$legend_location, 
-              legend.box="vertical",
-              legend.margin=margin(),
-              legend.justification = "top")+
-        labs(y=y_lable1,
-             x=expression(Log[2]~Fold~Change),
-             title=input$title) +
-        guides(size="none", col = guide_legend(ncol=input$col))+
-        scale_y_continuous(limits = c(0, input$yhigh) ,breaks = seq(0, input$yhigh, by = input$ybreaks))+
-        scale_x_continuous(limits = c(input$xlow, input$xhigh), breaks = seq(input$xlow, input$xhigh, by = input$xbreaks))
-      vals$ggplot
-      
-    }
-    else if (input$selected=="own list") {
-      merged_list <- mutateddf[mutateddf$ID %in% list2,]
-      merged_list <- merged_list[order(merged_list$Pvalue),]
-      
-      ordered_list <- dplyr::mutate(merged_list,df_order=ifelse(merged_list$ID %in% list2 & abs(merged_list$logFC)>pos & merged_list$Pvalue<input$Pvalue, "1","2"))
-      ordered_list <- ordered_list[order(ordered_list$df_order),]
-      sig2 <- ordered_list
-      list2 <- sig2$ID
-      
-      sub.mutateddf.gene_list <- dplyr::mutate(mutateddf.gene,
-                                        colour=ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_up",
-                                                      ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_down",
-                                                             ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue>input$Pvalue, "labelled-Non-significant",
-                                                                    
-                                                                    ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue>input$Pvalue, "labelled-Non-significant",
-                                                                           ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue<input$Pvalue, "labelled-Non-significant",
-                                                                                  ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue<input$Pvalue,  "labelled-Non-significant",
-                                                                                         ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"Significant-up",
-                                                                                                ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"Significant-down","Non-significant")))))))),
-                                        
+        TRUE ~ "Non-significant"
       )
-
-      colour_class3 <- c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant")
-      colour.df3 <- as.data.frame(c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant"))
-      names(colour.df3) <- "label"
-      colour.df3$V1 <- c(input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3,input$NS)
-      colour.df3$shape <- c(input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape1,input$shape3)
-      colour.df3$size <- c(input$size2,input$size1.1,input$size1,input$size1,input$size1,input$size3)
-      colour.df3$alpha <- c(input$alpha2,input$alpha2,input$alpha1,input$alpha1,input$alpha1,input$alpha3)
+    )
+    
+    ## ----------------------------
+    ## 3. COLOUR CLASS (single definition)
+    ## ----------------------------
+    
+    colour.df <- data.frame(
+      label = c("Significant-down","Significant-up",
+                "Labelled_down","Labelled_up",
+                "labelled-Non-significant","Non-significant"),
       
-      colour.class4 <- colour.df3[colour.df3$label %in% unique(sub.mutateddf.gene_list$colour),]
+      V1 = c(input$down, input$up,
+             input$col_lab1, input$col_lab2,
+             input$col_lab3, input$NS),
       
-      sub.mutateddf.gene_list$colour <- factor(sub.mutateddf.gene_list$colour, levels = colour.class4$label)
+      shape = c(input$shape2, input$shape1.1,
+                input$shape1, input$shape1,
+                input$shape1, input$shape3),
       
-      vals$ggplot <- ggplot() + 
-      geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),
-                            col=sub.mutateddf.gene_list$colour,
-                            shape=sub.mutateddf.gene_list$colour,
-                            alpha=sub.mutateddf.gene_list$colour,
-                            size=sub.mutateddf.gene_list$colour),
-        ) +
-        scale_color_manual(name="legend",values=colour.class4$V1, labels = colour.class4$label) +
-        scale_shape_manual(name="legend",values=colour.class4$shape, labels=colour.class4$label)+
-        scale_size_manual(name="legend",values=colour.class4$size, labels=colour.class4$label)+
-        scale_alpha_manual(name="legend",values=colour.class4$alpha, labels=colour.class4$label) +
-        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)],]
-                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]], 
-                             y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]],
-                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]]),
-                        size=input$label,family=input$font, 
-                        segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
-                        max.overlaps = Inf) +
-        guides(scale = "none")+
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme_bw(base_size = 18)+
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        geom_vline(xintercept=pos, linetype="dashed", color = input$sig_lines) +
-        geom_vline(xintercept=neg, linetype="dashed", color = input$sig_lines) +
-        geom_hline(yintercept=-log10(input$Pvalue), linetype="dashed", color = input$sig_lines) +
-        theme(text=element_text(size=20,family=input$font),
-              axis.title = element_text(colour="black", size=input$axis,family=input$font),
-              axis.text.x = element_text(colour="black",size=input$axis_text,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
-              axis.text.y = element_text(colour="black",size=input$axis_text,angle=0,hjust=1,vjust=0,face="plain",family=input$font),
-              axis.title.x=element_text(colour="black",size=input$axis,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
-              axis.title.y = element_text(colour="black",size=input$axis,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size),
-              legend.position = input$legend_location,
-              legend.justification = "top")+
-        guides(size="none", col = guide_legend(ncol=input$col))+
-        # scale_alpha(guide = 'none')+ 
-        scale_y_continuous(limits = c(0, input$yhigh) ,breaks = seq(0, input$yhigh, by = input$ybreaks))+
-        scale_x_continuous(limits = c(input$xlow, input$xhigh), breaks = seq(input$xlow, input$xhigh, by = input$xbreaks))+
-        labs(y=y_lable1,
-             x=expression(Log[2]~Fold~Change),
-             title=input$title) 
+      size = c(input$size2, input$size1.1,
+               input$size1, input$size1,
+               input$size1, input$size3),
       
-      vals$ggplot
-    }
-    else if (input$selected=="manual") {
+      alpha = c(input$alpha2, input$alpha2,
+                input$alpha1, input$alpha1,
+                input$alpha1, input$alpha3)
+    )
+    
+    colour.class <- colour.df[colour.df$label %in% unique(df_plot$colour),]
+    df_plot$colour <- factor(df_plot$colour, levels = colour.class$label)
+    
+    ## ----------------------------
+    ## 4. BASE PLOT (always same)
+    ## ----------------------------
+    
+    p <- ggplot(df_plot) +
+      geom_point(
+        aes(x = logFC, y = -log10(Pvalue),
+            col = colour, shape = colour,
+            alpha = colour, size = colour)
+      ) +
       
-      your_list <- c(input$string.data3)
+      scale_color_manual(values = colour.class$V1, labels = colour.class$label) +
+      scale_shape_manual(values = colour.class$shape, labels = colour.class$label) +
+      scale_size_manual(values = colour.class$size, labels = colour.class$label) +
+      scale_alpha_manual(values = colour.class$alpha, labels = colour.class$label) +
       
-      your_list_df <- as.data.frame((unlist(strsplit(your_list, ','))))
+      geom_vline(xintercept = c(pos, neg), linetype = "dashed", color = input$sig_lines) +
+      geom_hline(yintercept = -log10(input$Pvalue), linetype = "dashed", color = input$sig_lines) +
       
-      names(your_list_df) <- "ID"
-      head(your_list_df)
-      your_list_df$ID <- gsub(" ","",your_list_df$ID)
-      your_list_df$selected <- your_list_df$ID
+      scale_x_continuous(limits = c(input$xlow, input$xhigh),
+                         breaks = seq(input$xlow, input$xhigh, by = input$xbreaks)) +
+      scale_y_continuous(limits = c(0, input$yhigh),
+                         breaks = seq(0, input$yhigh, by = input$ybreaks)) +
       
+      labs(
+        x = expression(Log[2]~Fold~Change),
+        y = y_lable1,
+        title = input$title
+      ) +
       
-      merged_list <- mutateddf[mutateddf$ID %in% your_list_df$selected,]
-      merged_list <- merged_list[order(merged_list$Pvalue),]
+      theme_bw(base_size = 18) +
+      theme(
+        panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.line = element_line(colour = "black"),
+        
+        text = element_text(size = 20, family = input$font),
+        
+        plot.title = element_text(size = input$title_size, colour="black"),
+        axis.title = element_text(size = input$axis, colour="black"),
+        axis.text = element_text(size = input$axis_text, colour="black"),
+        
+        legend.position = input$legend_location,
+        legend.justification = "top",
+        legend.title = element_blank(),
+        legend.text = element_text(size = input$legend_size)
+      ) +
       
-      ordered_list <- dplyr::mutate(merged_list,df_order=ifelse(merged_list$ID %in% list2 & abs(merged_list$logFC)>pos & merged_list$Pvalue<input$Pvalue, "1","2"))
-      ordered_list <- ordered_list[order(ordered_list$df_order),]
-      sig2 <- ordered_list
-      list2 <- sig2$ID
-      
-      sub.mutateddf.gene_list <- dplyr::mutate(mutateddf.gene,
-                                        colour=ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>pos & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_up",
-                                                      ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<neg & mutateddf.gene$Pvalue<input$Pvalue, "Labelled_down",
-                                                             ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue>input$Pvalue, "labelled-Non-significant",
-                                                                    
-                                                                    ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue>input$Pvalue, "labelled-Non-significant",
-                                                                           ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC>neg & mutateddf.gene$Pvalue<input$Pvalue, "labelled-Non-significant",
-                                                                                  ifelse(mutateddf.gene$ID %in% list2 & mutateddf.gene$logFC<pos & mutateddf.gene$Pvalue<input$Pvalue,  "labelled-Non-significant",
-                                                                                         ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC>pos,"Significant-up",
-                                                                                                ifelse(mutateddf.gene$Pvalue<input$Pvalue& mutateddf.gene$logFC<neg,"Significant-down","Non-significant")))))))),
-                                        
+      guides(
+        size = "none",
+        shape = guide_legend(override.aes = list(size = 5)),
+        col = guide_legend(ncol = input$col)
       )
+    
+    ## ----------------------------
+    ## 5. OPTIONAL LABELS (only toggle)
+    ## ----------------------------
+    
+    if (input$label) {
       
-      colour_class3 <- c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant")
-      colour.df3 <- as.data.frame(c("Significant-down","Significant-up","Labelled_down","Labelled_up","labelled-Non-significant","Non-significant"))
-      names(colour.df3) <- "label"
-      colour.df3$V1 <- c(input$down,input$up,input$col_lab1,input$col_lab2,input$col_lab3,input$NS)
-      colour.df3$shape <- c(input$shape2,input$shape1.1,input$shape1,input$shape1,input$shape1,input$shape3)
-      colour.df3$size <- c(input$size2,input$size1.1,input$size1,input$size1,input$size1,input$size3)
-      colour.df3$alpha <- c(input$alpha2,input$alpha2,input$alpha1,input$alpha1,input$alpha1,input$alpha3)
-      
-      colour.class4 <- colour.df3[colour.df3$label %in% unique(sub.mutateddf.gene_list$colour),]
-      
-      sub.mutateddf.gene_list$colour <- factor(sub.mutateddf.gene_list$colour, levels = colour.class4$label)
-      
-      vals$ggplot <- ggplot() + 
-        geom_point(aes(x=sub.mutateddf.gene_list$logFC, y=-log10(sub.mutateddf.gene_list$Pvalue),
-                       col=sub.mutateddf.gene_list$colour,
-                       shape=sub.mutateddf.gene_list$colour,
-                       alpha=sub.mutateddf.gene_list$colour,
-                       size=sub.mutateddf.gene_list$colour),
-        ) +
-        scale_color_manual(name="legend",values=colour.class4$V1, labels = colour.class4$label) +
-        scale_shape_manual(name="legend",values=colour.class4$shape, labels=colour.class4$label)+
-        scale_size_manual(name="legend",values=colour.class4$size, labels=colour.class4$label)+
-        scale_alpha_manual(name="legend",values=colour.class4$alpha, labels=colour.class4$label) +
-        geom_text_repel(data=sub.mutateddf.gene_list[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)],]
-                        ,aes(x=sub.mutateddf.gene_list$logFC[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]], 
-                             y= -log10(sub.mutateddf.gene_list$Pvalue)[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]],
-                             label= sub.mutateddf.gene_list$ID[sub.mutateddf.gene_list$ID %in% list2[(input$min:input$max)]]),
-                        size=input$label,family=input$font, 
-                        segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist, 'lines'), 
-                        max.overlaps = Inf) +
-        guides(scale = "none")+
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme_bw(base_size = 18)+
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        geom_vline(xintercept=pos, linetype="dashed", color = input$sig_lines) +
-        geom_vline(xintercept=neg, linetype="dashed", color = input$sig_lines) +
-        geom_hline(yintercept=-log10(input$Pvalue), linetype="dashed", color = input$sig_lines) +
-        theme(text=element_text(size=20,family=input$font),
-              axis.title = element_text(colour="black", size=input$axis,family=input$font),
-              axis.text.x = element_text(colour="black",size=input$axis_text,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
-              axis.text.y = element_text(colour="black",size=input$axis_text,angle=0,hjust=1,vjust=0,face="plain",family=input$font),
-              axis.title.x=element_text(colour="black",size=input$axis,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
-              axis.title.y = element_text(colour="black",size=input$axis,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size),
-              legend.position = input$legend_location,
-              legend.justification = "top")+
-        guides(size="none", col = guide_legend(ncol=input$col))+
-        # scale_alpha(guide = 'none')+ 
-        scale_y_continuous(limits = c(0, input$yhigh) ,breaks = seq(0, input$yhigh, by = input$ybreaks))+
-        scale_x_continuous(limits = c(input$xlow, input$xhigh), breaks = seq(input$xlow, input$xhigh, by = input$xbreaks))+
-        labs(y=y_lable1,
-             x=expression(Log[2]~Fold~Change),
-             title=input$title) 
-      
-      vals$ggplot
+      p <- p + geom_text_repel(
+        data = df_plot[df_plot$ID %in% gene_list,],
+        aes(x = logFC, y = -log10(Pvalue), label = ID),
+        color = "black",
+        size = input$label,
+        family = input$font,
+        segment.alpha = 0.5,
+        box.padding = unit(input$dist, "lines"),
+        max.overlaps = Inf,
+        show.legend = FALSE
+      )
     }
-    else  {     
-      
-      
-      
-      colour_class <- c("NS","sig_down","sig_up")
-      colour.df <- as.data.frame(c("NS","sig_down","sig_up")) 
-      names(colour.df) <- "label"
-      colour.df$V1 <- c(input$NS,input$down,input$up)
-      
-      colour.class1 <- colour.df[colour.df$label %in% unique(sub.mutateddf.gene$colour),]
-      
-      sub.mutateddf.gene$colour <- factor(sub.mutateddf.gene$colour, levels = colour.class1$label)
- 
-      
-      vals$ggplot <- ggplot() + 
-        geom_point(aes(x=sub.mutateddf.gene$logFC, y=-log10(sub.mutateddf.gene$Pvalue),col=sub.mutateddf.gene$colour,shape=sub.mutateddf.gene$colour),size=sub.mutateddf.gene$size,alpha=sub.mutateddf.gene$alpha) +
-        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
-        scale_shape_manual(name="legend",values=c(input$shape3,input$shape2,input$shape1.1), labels=colour.class1$label)+
-        theme_bw(base_size = 18)+
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(), 
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        geom_vline(xintercept=pos, linetype="dashed", color = input$sig_lines) +
-        geom_vline(xintercept=neg, linetype="dashed", color = input$sig_lines) +
-        geom_hline(yintercept=-log10(input$Pvalue), linetype="dashed", color = input$sig_lines) +
-        theme(text=element_text(size=20,family=input$font),
-              axis.title = element_text(colour="black", size=input$axis,family=input$font),
-              axis.text.x = element_text(colour="black",size=input$axis_text,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
-              axis.text.y = element_text(colour="black",size=input$axis_text,angle=0,hjust=1,vjust=0,face="plain",family=input$font),
-              axis.title.x=element_text(colour="black",size=input$axis,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font),
-              axis.title.y = element_text(colour="black",size=input$axis,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size),
-              legend.position = input$legend_location,
-              legend.justification = "top")+
-        guides(size="none", col = guide_legend(ncol=input$col))+
-        scale_alpha(guide = 'none')+
-        labs(y=y_lable1,
-             x=expression(Log[2]~Fold~Change),
-             title=input$title)+
-        scale_y_continuous(limits = c(0, input$yhigh) ,breaks = seq(0, input$yhigh, by = input$ybreaks))+
-        scale_x_continuous(limits = c(input$xlow, input$xhigh), breaks = seq(input$xlow, input$xhigh, by = input$xbreaks))
-      
-      vals$ggplot
-    }
+    
+    ## ----------------------------
+    ## 6. OUTPUT
+    ## ----------------------------
+    
+    vals$ggplot <- p
+    
   }
   output$ggplot <- renderPlot({
     withProgress(message = 'Figure is being generated...',
@@ -2280,7 +2003,7 @@ server  <- function(input, output, session) {
       column(3,textInput(inputId = "expression_x", 
                                 label = "x-axis label",
                                 value = df$expression_x)),
-             column(3,textInput(inputId = "expression_y", 
+     column(3,textInput(inputId = "expression_y", 
                                 label = "y-axis label",
                                 value = df$expression_y))
              
@@ -2291,43 +2014,44 @@ server  <- function(input, output, session) {
     df <- values.cut.off.cor()
     fluidRow(
       column(6,numericInput("axis2", "Axis label text size", min=0, value=df$axis.label)),
-      column(6,numericInput("axis_text2", "Axis numeric text size", min=0, value=df$axis.numeric))
+      column(6,numericInput("axis_text2", "Axis numeric text size", min=0, value=df$axis.numeric)),
+      column(6,numericInput("title2_size", "title size",min=0, value=18))
     )
     
   })
   output$point.parameter.cor1 <- renderUI({
     df <- values.cut.off.cor()
-    fluidRow(column(3,colourInput(inputId = "col1", label = "Colour of up",value = df$colour.up)),
-             column(3, numericInput("cor_shape1","Shape of up",value = df$shape.up)),
-             column(3,numericInput("cor_size1","Size of up",value = df$size.up)),
-             column(3,numericInput("cor_alpha1", "Transparency of up", value = df$alpha.up))
+    fluidRow(column(6,colourInput(inputId = "col1", label = "Colour of up",value = df$colour.up)),
+             column(6, numericInput("cor_shape1","Shape of up",value = df$shape.up)),
+             column(6,numericInput("cor_size1","Size of up",value = df$size.up)),
+             column(6,numericInput("cor_alpha1", "Transparency of up", value = df$alpha.up))
     )
     
   })
   output$point.parameter.cor2 <- renderUI({
     df <- values.cut.off.cor()
-    fluidRow(column(3,colourInput(inputId = "col2", label = "Colour of down",value = df$colour.down)),
-             column(3, numericInput("cor_shape2","Shape of down",value = df$shape.down)),
-             column(3,numericInput("cor_size2","Size of down",value = df$size.down)),
-             column(3,numericInput("cor_alpha2", "Transparency of down", value = df$alpha.down))
+    fluidRow(column(6,colourInput(inputId = "col2", label = "Colour of down",value = df$colour.down)),
+             column(6, numericInput("cor_shape2","Shape of down",value = df$shape.down)),
+             column(6,numericInput("cor_size2","Size of down",value = df$size.down)),
+             column(6,numericInput("cor_alpha2", "Transparency of down", value = df$alpha.down))
     )
     
   })
   output$point.parameter.cor3 <- renderUI({
     df <- values.cut.off.cor()
-    fluidRow(column(3,colourInput(inputId = "col3", label = "Colour of opposite",value = df$colour.opposite)),
-             column(3, numericInput("cor_shape3","Shape of opposite",value = df$shape.opposite)),
-             column(3,numericInput("cor_size3","Size of opposite",value = df$size.opposite)),
-             column(3,numericInput("cor_alpha3", "Transparency of opposite", value = df$alpha.opposite))
+    fluidRow(column(6,colourInput(inputId = "col3", label = "Colour of opposite",value = df$colour.opposite)),
+             column(6, numericInput("cor_shape3","Shape of opposite",value = df$shape.opposite)),
+             column(6,numericInput("cor_size3","Size of opposite",value = df$size.opposite)),
+             column(6,numericInput("cor_alpha3", "Transparency of opposite", value = df$alpha.opposite))
     )
     
   })
   output$point.parameter.cor4 <- renderUI({
     df <- values.cut.off.cor()
-    fluidRow(column(3,colourInput(inputId = "col4", label = "Colour of other",value = df$colour.other)),
-             column(3, numericInput("cor_shape4","Shape of other",value = df$shape.other)),
-             column(3,numericInput("cor_size4","Size of other",value = df$size.other)),
-             column(3,numericInput("cor_alpha4", "Transparency of other", value = df$alpha.other))
+    fluidRow(column(6,colourInput(inputId = "col4", label = "Colour of other",value = df$colour.other)),
+             column(6, numericInput("cor_shape4","Shape of other",value = df$shape.other)),
+             column(6,numericInput("cor_size4","Size of other",value = df$size.other)),
+             column(6,numericInput("cor_alpha4", "Transparency of other", value = df$alpha.other))
     )
     
   })
@@ -2512,365 +2236,94 @@ server  <- function(input, output, session) {
     ID_sig <-  ID_sig[order(ID_sig[,input$sort_by],decreasing = input$sort_direction),] 
     ID_sig <- ID_sig[input$min2:input$max2,]
     
-    if      (input$ownlist.cor == FALSE && input$label3 == TRUE    && input$reg.line == FALSE) {
+    
+    base_cor_plot <- function(dat_all, xlab, ylab, title, input, colour.class1) {
       
-      
-      
-      
-      vals2$cor_graph <- ggplot() +
-        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
-        theme_bw()+
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        guides(col = guide_legend(ncol=input$col.cor)) +
-        geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        labs(y=y_lable1,
-             x=x_lable1,
-             title=input$title2) +
-        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
-              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
-              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
-              legend.position = input$legend_location2,
-              legend.justification = "top")+
-        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
-        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks)) +
-        geom_text_repel(data=dat_all[dat_all$ID %in% ID_sig$ID,],aes(x=dat_all$logFC.x[dat_all$ID %in% ID_sig$ID], 
-                                                                     y= dat_all$logFC.y[dat_all$ID %in% ID_sig$ID],
-                                                                     label= dat_all$ID[dat_all$ID %in% ID_sig$ID]),
-                        size=input$label2,
-                        family=input$font2, 
-                        segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist2, 'lines'), 
-                        max.overlaps = Inf) 
-      vals2$cor_graph}
-    else if (input$ownlist.cor == FALSE && input$label3 == TRUE    && input$reg.line == TRUE) {
-      
-      vals2$cor_graph <- ggplot() +
-        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
-        theme_bw()+
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        guides(col = guide_legend(ncol=input$col.cor)) +
-        geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        labs(y=y_lable1,
-             x=x_lable1,
-             title=input$title2) +
-        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
-              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
-              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
-              legend.position = input$legend_location2,
-              legend.justification = "top")+
-        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
-        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks)) + 
-        geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  +
-        geom_text_repel(data=dat_all[dat_all$ID %in% ID_sig$ID,],aes(x=dat_all$logFC.x[dat_all$ID %in% ID_sig$ID], 
-                                                                     y= dat_all$logFC.y[dat_all$ID %in% ID_sig$ID],
-                                                                     label= dat_all$ID[dat_all$ID %in% ID_sig$ID]),
-                        size=input$label2,
-                        family=input$font2, 
-                        segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist2, 'lines'), 
-                        max.overlaps = Inf) 
-      vals2$cor_graph}
-    else if (input$ownlist.cor == FALSE && input$label3 == FALSE   && input$reg.line == TRUE) {
-      
-      vals2$cor_graph <- ggplot() +
-        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
-        theme_bw()+
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        guides(col = guide_legend(ncol=input$col.cor)) +
-        geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        labs(y=y_lable1,
-             x=x_lable1,
-             title=input$title2) +
-        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
-              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
-              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
-              legend.position = input$legend_location2,
-              legend.justification = "top")+
-        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
-        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks)) + 
-        geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  
-      vals2$cor_graph}
-    else if (input$ownlist.cor == TRUE  && input$reg.line == FALSE &&  input$label3 == TRUE) {
-      dat6 <- input.data6();
-      
-      validate(
-        need(nrow(dat6)>0,
-             error_message_val4)
-      ) 
-      
-      dat6 <- as.data.frame(dat6)
-
-      ID_sig <- dat_all[dat_all$ID %in% dat6$ID,]
-      ID_sig <-  ID_sig[order(ID_sig[,input$sort_by],decreasing = input$sort_direction),] 
-      ID_sig <- ID_sig[input$min2:input$max2,]
-      
-      vals2$cor_graph <- ggplot() +
-        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
-        theme_bw()+
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        guides(col = guide_legend(ncol=input$col.cor)) +
-        geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        labs(y=y_lable1,
-             x=x_lable1,
-             title=input$title2) +
-        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
-              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
-              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
-              legend.position = input$legend_location2,
-              legend.justification = "top")+
-        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
-        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks)) +
-        geom_text_repel(data=dat_all[dat_all$ID %in% ID_sig$ID,],aes(x=dat_all$logFC.x[dat_all$ID %in% ID_sig$ID], 
-                                                                     y= dat_all$logFC.y[dat_all$ID %in% ID_sig$ID],
-                                                                     label= dat_all$ID[dat_all$ID %in% ID_sig$ID]),
-                        size=input$label2,
-                        family=input$font2, 
-                        segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist2, 'lines'), 
-                        max.overlaps = Inf) 
-      vals2$cor_graph
-      
-      
+      ggplot(dat_all, aes(x = logFC.x, y = logFC.y, col = colour, shape = colour)) +
+        geom_point(alpha = dat_all$alpha, size = dat_all$size_of_point) +
         
-    }
-    else if (input$ownlist.cor == TRUE  && input$reg.line == TRUE  &&  input$label3 == TRUE) {
-      dat6 <- input.data6();
-      
-      validate(
-        need(nrow(dat6)>0,
-             error_message_val4)
-      ) 
-      
-      dat6 <- as.data.frame(dat6)
-      
-      ID_sig <- dat_all[dat_all$ID %in% dat6$ID,]
-      ID_sig <-  ID_sig[order(ID_sig[,input$sort_by],decreasing = input$sort_direction),] 
-      ID_sig <- ID_sig[input$min2:input$max2,]
-      
-      vals2$cor_graph <- ggplot() +
-        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
-        theme_bw()+
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        guides(col = guide_legend(ncol=input$col.cor)) +
-        geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        labs(y=y_lable1,
-             x=x_lable1,
-             title=input$title2) +
-        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
-              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
-              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
-              legend.position = input$legend_location2,
-              legend.justification = "top")+
-        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
-        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks)) + 
-        geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  +
-        geom_text_repel(data=dat_all[dat_all$ID %in% ID_sig$ID,],aes(x=dat_all$logFC.x[dat_all$ID %in% ID_sig$ID], 
-                                                                     y= dat_all$logFC.y[dat_all$ID %in% ID_sig$ID],
-                                                                     label= dat_all$ID[dat_all$ID %in% ID_sig$ID]),
-                        size=input$label2,
-                        family=input$font2, 
-                        segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist2, 'lines'), 
-                        max.overlaps = Inf) 
-      vals2$cor_graph
-      
-      
-    }
-    else if (input$ownlist.cor == TRUE  && input$reg.line == FALSE &&  input$label3 == FALSE) {
-      dat6 <- input.data6();
-      
-      validate(
-        need(nrow(dat6)>0,
-             error_message_val4)
-      ) 
-      
-      dat6 <- as.data.frame(dat6)
-      
-      
-      ID_sig <- dat_all[dat_all$ID %in% dat6$ID,]
-      ID_sig <-  ID_sig[order(ID_sig[,input$sort_by],decreasing = input$sort_direction),] 
-      ID_sig <- ID_sig[input$min2:input$max2,]
-      
-      vals2$cor_graph <- ggplot() +
-        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
-        theme_bw()+
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        guides(col = guide_legend(ncol=input$col.cor)) +
-        geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        labs(y=y_lable1,
-             x=x_lable1,
-             title=input$title2) +
-        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
-              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
-              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
-              legend.position = input$legend_location2,
-              legend.justification = "top")+
-        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
+        geom_vline(xintercept = 0, linetype = "dashed", color = input$cor_sig_lines) +
+        geom_hline(yintercept = 0, linetype = "dashed", color = input$cor_sig_lines) +
+        
+        scale_color_manual(values = colour.class1$V1, labels = colour.class1$label) +
+        scale_shape_manual(values = c(input$cor_shape1, input$cor_shape2,
+                                      input$cor_shape3, input$cor_shape4),
+                           labels = colour.class1$label) +
+        
+        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks)) +
         scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks)) +
-        geom_text_repel(data=dat_all[dat_all$ID %in% ID_sig$ID,],aes(x=dat_all$logFC.x[dat_all$ID %in% ID_sig$ID], 
-                                                                     y= dat_all$logFC.y[dat_all$ID %in% ID_sig$ID],
-                                                                     label= dat_all$ID[dat_all$ID %in% ID_sig$ID]),
-                        size=input$label2,
-                        family=input$font2, 
-                        segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist2, 'lines'), 
-                        max.overlaps = Inf) 
-      vals2$cor_graph
-      
-      
-      
-    }
-    else if (input$ownlist.cor == TRUE  && input$reg.line == TRUE  &&  input$label3 == FALSE) {
-      dat6 <- input.data6();
-      
-      validate(
-        need(nrow(dat6)>0,
-             error_message_val4)
-      ) 
-      
-      
-      ID_sig <- dat_all[dat_all$ID %in% dat6$ID,]
-      ID_sig <-  ID_sig[order(ID_sig[,input$sort_by],decreasing = input$sort_direction),] 
-      ID_sig <- ID_sig[input$min2:input$max2,]
-      
-      vals2$cor_graph <- ggplot() +
-        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
-        theme_bw()+
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        guides(col = guide_legend(ncol=input$col.cor)) +
-        geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        labs(y=y_lable1,
-             x=x_lable1,
-             title=input$title2) +
-        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
-              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
-              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
-              legend.position = input$legend_location2,
-              legend.justification = "top")+
-        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
-        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks)) + 
-        geom_smooth(aes(x=dat_all$logFC.x,y=dat_all$logFC.y),method="lm", se=T, fullrange=T, level=0.95,color=input$linecolour, fill=input$CI95_fill)  +
-        geom_text_repel(data=dat_all[dat_all$ID %in% ID_sig$ID,],aes(x=dat_all$logFC.x[dat_all$ID %in% ID_sig$ID], 
-                                                                     y= dat_all$logFC.y[dat_all$ID %in% ID_sig$ID],
-                                                                     label= dat_all$ID[dat_all$ID %in% ID_sig$ID]),
-                        size=input$label2,
-                        family=input$font2, 
-                        segment.alpha = 0.5, 
-                        show.legend = F,box.padding = unit(input$dist2, 'lines'), 
-                        max.overlaps = Inf) 
-      vals2$cor_graph
-      
-      
-    }
-    else {
-      vals2$cor_graph <- ggplot() +
-        geom_point(aes(x=dat_all$logFC.x,y=dat_all$logFC.y, col=dat_all$colour,shape=dat_all$colour),alpha=dat_all$alpha,size=dat_all$size_of_point) +
-        theme_bw()+
-        guides(fill = guide_legend(override.aes = list(shape = NA))) +
-        theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-              panel.grid.minor = element_blank(), axis.line = element_line(colour = "black")) +
-        theme(legend.position="bottom", legend.justification = "top",legend.title = element_blank())+
-        guides(col = guide_legend(ncol=input$col.cor)) +
-        geom_vline(xintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        geom_hline(yintercept=0, linetype="dashed", color = input$cor_sig_lines) +
-        labs(y=y_lable1,
-             x=x_lable1,
-             title=input$title2) +
-        scale_color_manual(name="legend",values=colour.class1$V1, labels = colour.class1$label) +
-        scale_shape_manual(name="legend",values=c(input$cor_shape1,input$cor_shape2,input$cor_shape3,input$cor_shape4), labels = colour.class1$label) +
-        guides(shape = guide_legend(override.aes = list(size = 5))) +
-        theme(axis.title = element_text(colour="black", size=input$axis2,family=input$font2),
-              axis.text.x = element_text(colour="black",size=input$axis_text2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.text.y = element_text(colour="black",size=input$axis_text2,angle=0,hjust=1,vjust=0,face="plain",family=input$font2),
-              axis.title.x=element_text(colour="black",size=input$axis2,angle=0,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              axis.title.y = element_text(colour="black",size=input$axis2,angle=90,hjust=.5,vjust=.5,face="plain",family=input$font2),
-              legend.title  =element_blank(),
-              legend.text = element_text(size=input$legend_size2,face="plain",family=input$font2),
-              legend.position = input$legend_location2,
-              legend.justification = "top")+
-        scale_y_continuous(breaks = seq(-1e6, 1e6, by = input$cor_ybreaks))+
-        scale_x_continuous(breaks = seq(-1e6, 1e6, by = input$cor_xbreaks))
-      vals2$cor_graph
-      
+        
+        labs(x = xlab, y = ylab, title = title) +
+        
+        theme_bw() +
+        theme(
+          panel.border = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          axis.line = element_line(colour = "black"),
+          
+          axis.title = element_text(colour="black", size=input$axis2, family=input$font2),
+          axis.text.x = element_text(colour="black", size=input$axis_text2, family=input$font2),
+          axis.text.y = element_text(colour="black", size=input$axis_text2, family=input$font2),
+          
+          legend.position = input$legend_location2,
+          legend.justification = "top",
+          legend.title = element_blank(),
+          legend.text = element_text(size=input$legend_size2, family=input$font2),
+          
+          plot.title = element_text(
+            colour="black",
+            size=input$title2_size,
+            family=input$font2,
+            hjust = 0.5
+          )
+        ) +
+        guides(
+          fill = guide_legend(override.aes = list(shape = NA)),
+          shape = guide_legend(override.aes = list(size = 5)),
+          col = guide_legend(ncol = input$col.cor)
+        )
     }
     
+    add_regression <- function(input) {
+      geom_smooth(
+        method = "lm",
+        se = TRUE,
+        fullrange = TRUE,
+        level = 0.95,
+        color = input$linecolour,
+        fill = input$CI95_fill
+      )
+    }
+    
+    add_labels <- function(dat_all, ID_sig, input) {
+      geom_text_repel(
+        data = dat_all[dat_all$ID %in% ID_sig$ID,],
+        aes(
+          x = logFC.x,
+          y = logFC.y,
+          label = ID
+        ),
+        color = "black",
+        size = input$label2,
+        family = input$font2,
+        segment.alpha = 0.5,
+        show.legend = FALSE,
+        box.padding = unit(input$dist2, "lines"),
+        max.overlaps = Inf
+      )
+    }
+    p <- base_cor_plot(dat_all, x_lable1, y_lable1, input$title2, input, colour.class1)
+    
+    if (input$reg.line) {
+      p <- p + add_regression(input)
+    }
+    
+    if (input$label3) {
+      p <- p + add_labels(dat_all, ID_sig, input)
+    }
+    
+    p
     
     
   }

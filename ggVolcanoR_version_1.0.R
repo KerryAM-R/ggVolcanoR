@@ -1113,30 +1113,89 @@ server  <- function(input, output, session) {
     y_lable1
     
     ## ----------------------------
-    ## 1. DEFINE gene_list + filtering ONCE
+    ## 1. DEFINE THE SIGNIFICANT SET
     ## ----------------------------
     
     df_base <- mutateddf.gene
+    
+    sig_up <- df_base %>%
+      dplyr::filter(
+        Pvalue < input$Pvalue,
+        logFC > pos
+      ) %>%
+      dplyr::arrange(Pvalue)
+    
+    sig_down <- df_base %>%
+      dplyr::filter(
+        Pvalue < input$Pvalue,
+        logFC < neg
+      ) %>%
+      dplyr::arrange(Pvalue)
+    
+    sig_both <- df_base %>%
+      dplyr::filter(
+        Pvalue < input$Pvalue,
+        abs(logFC) > pos
+      ) %>%
+      dplyr::arrange(Pvalue)
+    
+    
+    ## ----------------------------
+    ## 2. SELECT TOP/RANGE GENES
+    ## ----------------------------
     
     gene_list <- switch(
       input$selected,
       
       "range (up direction)" = {
-        tmp <- subset(df_base, logFC > pos & Pvalue < input$Pvalue)
-        tmp <- tmp[order(tmp$Pvalue), ]
-        tmp$ID[input$min:input$max]
+        n <- nrow(sig_up)
+        
+        if (n == 0) {
+          character(0)
+        } else {
+          start <- max(1, input$min)
+          end <- min(input$max, n)
+          
+          if (start <= end) {
+            sig_up$ID[start:end]
+          } else {
+            character(0)
+          }
+        }
       },
       
       "range (down direction)" = {
-        tmp <- subset(df_base, logFC < neg & Pvalue < input$Pvalue)
-        tmp <- tmp[order(tmp$Pvalue), ]
-        tmp$ID[input$min:input$max]
+        n <- nrow(sig_down)
+        
+        if (n == 0) {
+          character(0)
+        } else {
+          start <- max(1, input$min)
+          end <- min(input$max, n)
+          
+          if (start <= end) {
+            sig_down$ID[start:end]
+          } else {
+            character(0)
+          }
+        }
       },
       
       "range (both directions)" = {
-        tmp <- subset(df_base, Pvalue < input$Pvalue)
-        tmp <- tmp[order(tmp$Pvalue), ]
-        tmp$ID[input$min:input$max]
+        n <- nrow(sig_both)
+        
+        if (n == 0) {
+          character(0)
+        } else {
+          start <- max(1, input$min)
+          end <- min(input$max, n)
+          
+          if (start <= end) {
+            sig_both$ID[start:end]
+          } else {
+            character(0)
+          }
+        }
       },
       
       "own list" = {
@@ -1150,24 +1209,33 @@ server  <- function(input, output, session) {
       character(0)
     )
     
+    
     ## ----------------------------
-    ## 2. BUILD colour annotation ONCE
+    ## 3. COLOUR POINTS
     ## ----------------------------
     
     df_plot <- dplyr::mutate(
       df_base,
-      colour = case_when(
+      
+      colour = dplyr::case_when(
         
-        ID %in% gene_list & logFC > pos & Pvalue < input$Pvalue ~ "Labelled_up",
-        ID %in% gene_list & logFC < neg & Pvalue < input$Pvalue ~ "Labelled_down",
+        ID %in% gene_list &
+          Pvalue < input$Pvalue &
+          logFC > pos ~ "Labelled_up",
         
-        Pvalue < input$Pvalue & logFC > pos ~ "Significant-up",
-        Pvalue < input$Pvalue & logFC < neg ~ "Significant-down",
+        ID %in% gene_list &
+          Pvalue < input$Pvalue &
+          logFC < neg ~ "Labelled_down",
+        
+        Pvalue < input$Pvalue &
+          logFC > pos ~ "Significant-up",
+        
+        Pvalue < input$Pvalue &
+          logFC < neg ~ "Significant-down",
         
         TRUE ~ "Non-significant"
       )
     )
-    
     ## ----------------------------
     ## 3. COLOUR CLASS (single definition)
     ## ----------------------------
